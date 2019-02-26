@@ -365,4 +365,6 @@ Class level documentation is available for inspection in Xcode, and will be made
 
 ## Contributing
 
+Please see our [contribution guidelines](CONTRIBUTING.md)
+
 
