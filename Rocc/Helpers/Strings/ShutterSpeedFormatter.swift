@@ -111,7 +111,11 @@ public class ShutterSpeedFormatter {
             }
         }
         
-        return "\(shutterSpeed.numerator.toString)/\(shutterSpeed.denominator.toString)"
+        if formattingOptions.contains(.forceIntegersToDouble) {
+            return "\(shutterSpeed.numerator)/\(shutterSpeed.denominator)"
+        } else {
+            return "\(shutterSpeed.numerator.toString)/\(shutterSpeed.denominator.toString)"
+        }
     }
     
     /// Attempts to parse a shutter speed from a given string

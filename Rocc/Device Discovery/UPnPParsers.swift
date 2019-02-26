@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import CoreGraphics
 import os
 
 internal final class UPnPDevice {

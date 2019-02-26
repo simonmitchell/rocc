@@ -132,6 +132,8 @@
 		B1B43451209746B000A81B9D /* CameraFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B4344F209746B000A81B9D /* CameraFunctions.swift */; };
 		B1B4345A209747C200A81B9D /* ISO.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B43459209747C200A81B9D /* ISO.swift */; };
 		B1B4345D2097483300A81B9D /* WhiteBalance.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B4345C2097483300A81B9D /* WhiteBalance.swift */; };
+		B1BAAC8F222583B8007F0F61 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A1B67E21F8BC78008B5181 /* Logger.swift */; };
+		B1BAAC96222583B9007F0F61 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A1B67E21F8BC78008B5181 /* Logger.swift */; };
 		B1CDCB8322234CAA00DD0F0E /* UPnPService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1CDCB8222234CAA00DD0F0E /* UPnPService.swift */; };
 		B1CDCB8F2223524100DD0F0E /* ThunderRequestMac.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1AF5045208D34510029336B /* ThunderRequestMac.framework */; };
 		B1CDCB90222352BB00DD0F0E /* UPnPService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1CDCB8222234CAA00DD0F0E /* UPnPService.swift */; };
@@ -916,6 +918,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B1A3EC2521F11AB700670712 /* CameraFunctions.swift in Sources */,
+				B1BAAC96222583B9007F0F61 /* Logger.swift in Sources */,
 				B115EFD321ECFB6B00667FB7 /* ParserTests.swift in Sources */,
 				B1A3EC1E21F11AA500670712 /* FileSystem.swift in Sources */,
 				B1A25F2221ADE6CE00D9EE81 /* ShutterSpeedFormatter.swift in Sources */,
@@ -1008,6 +1011,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B1AF5096208DC3A80029336B /* RoccMacTests.swift in Sources */,
+				B1BAAC8F222583B8007F0F61 /* Logger.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1205,7 +1209,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				INFOPLIST_FILE = RocTests/Info.plist;
+				INFOPLIST_FILE = RoccTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1223,7 +1227,7 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				INFOPLIST_FILE = RocTests/Info.plist;
+				INFOPLIST_FILE = RoccTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1300,7 +1304,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				INFOPLIST_FILE = RocMacTests/Info.plist;
+				INFOPLIST_FILE = RoccMacTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -1321,7 +1325,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				INFOPLIST_FILE = RocMacTests/Info.plist;
+				INFOPLIST_FILE = RoccMacTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",

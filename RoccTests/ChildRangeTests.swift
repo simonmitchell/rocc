@@ -43,7 +43,7 @@ class ChildRangeTests: XCTestCase {
         XCTAssertEqual(flatRange.first?.subRange.count, 2)
         XCTAssertEqual(flatRange.last?.element, ["d", "e", "f", "g"])
         XCTAssertEqual(flatRange.last?.subRange.startIndex, 0)
-        XCTAssertEqual(flatRange.last?.subRange.count, 3)
+        XCTAssertEqual(flatRange.last?.subRange.count, 2)
         
         let flattenedArray = stringArrays.enumerated().flatMap { (index, stringArray) -> [String] in
             guard let elementAndRange = flatRange.first(where: { $0.element == stringArray }) else {
@@ -51,7 +51,7 @@ class ChildRangeTests: XCTestCase {
             }
             return Array(elementAndRange.element[elementAndRange.subRange])
         }
-        XCTAssertEqual(flattenedArray, ["b", "c", "d", "e", "f"])
+        XCTAssertEqual(flattenedArray, ["b", "c", "d", "e"])
     }
     
     func testRangeSkippingFirstElementReturnsCorrectly() {

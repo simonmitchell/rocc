@@ -1,8 +1,19 @@
-# ![ROCC](https://github.com/simonmitchell/rocc/blob/master/assets/rocc.png)
+<p align="center">
+  <img width="376" height="182" alt="ROCC" src="https://github.com/simonmitchell/rocc/blob/master/assets/rocc.png">
+</p>
+<p align="center">
+  <a href="https://travis-ci.org/simonmitchell/rocc">
+  	<img alt="Build Status" src="https://travis-ci.org/simonmitchell/rocc.svg">
+  </a>
+  <a href="https://swift.org/blog/swift-4-2-released/">
+  	<img alt="Swift 4.3" src="http://img.shields.io/badge/swift-4.2-brightgreen.svg">
+  </a>
+  <a href="https://github.com/simonmitchell/rocc/blob/master/README.md">
+  	<img alt="MIT" src="https://img.shields.io/badge/license-MIT-brightgreen.svg">
+  </a>
+</p>
 
-[![Build Status](https://travis-ci.org/3sidedcube/iOS-ThunderCollection.svg)](https://travis-ci.org/3sidedcube/iOS-ThunderTable) [![Swift 4.2](http://img.shields.io/badge/swift-4.2-brightgreen.svg)](https://swift.org/blog/swift-4-2-released/) [![Apache 2](https://img.shields.io/badge/license-MIT-brightgreen.svg)](LICENSE)
-
-Rocc (RemOte Camera ControlRocc) is a Swift framework for interacting with Digital Cameras which support function control or Image/Video transfer via a WiFi connection. It currently only supports control/transfer from Sony's line-up of cameras but will be expanding in the future to support as many manufacturers as possible!
+Rocc (Remote Camera Control) is a Swift framework for interacting with Digital Cameras which support function control or Image/Video transfer via a WiFi connection. It currently only supports control/transfer from Sony's line-up of cameras but will be expanding in the future to support as many manufacturers as possible!
 
 The Sony implementation is a tried and tested codebase which is used by the app [Camrote](https://itunes.apple.com/app/id1408732788) to provide the connectivity with the camera.
 
