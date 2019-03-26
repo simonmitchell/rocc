@@ -58,55 +58,55 @@ public enum CameraError: LocalizedError {
     case someContentCouldNotBeDeleted(String)
     
     var localizedDescription: String {
-        return errorDescription ?? "Unknown Error"
+        return errorDescription ?? NSLocalizedString("error_unknown", comment: "")
     }
     
     public var errorDescription: String? {
         switch self {
-        case .invalidResponse(let methodName):
-            return "\(methodName): Invalid Response"
-        case .any(let methodName, let error):
-            return "\(methodName): \(error ?? "Unknown Error")"
-        case .timeout(let methodName):
-            return "\(methodName): The Request Timed Out"
-        case .illegalArgument(let methodName):
-            return "\(methodName): Illegal Argument"
-        case .illegalDataFormat(let methodName):
-            return "\(methodName): Illegal Data Format"
-        case .illegalRequest(let methodName):
-            return "\(methodName): Illegal Request"
-        case .illegalResponse(let methodName):
-            return "\(methodName): Illegal Response"
-        case .illegalState(let methodName):
-            return "\(methodName): Illegal State"
-        case .illegalType(let methodName):
-            return "\(methodName): Illegal Type"
-        case .notAvailable(let methodName):
-            return "\(methodName): Not available Now"
-        case .outOfBounds(let methodName):
-            return "\(methodName): Index Out Of Bounds"
-        case .noSuchElement(let methodName):
-            return "\(methodName): No Such Element"
-        case .noSuchField(let methodName):
-            return "\(methodName): No Such Field"
-        case .noSuchMethod(let methodName):
-            return "\(methodName): Camera doesn't support this method"
-        case .nullPointer(let methodName):
-            return "\(methodName): Null Pointer"
-        case .unsupportedVersion(let methodName):
-            return "\(methodName): Version Unsupported"
-        case .unsupportedOperation(let methodName):
-            return "\(methodName): Operation Unsupported"
-        case .shootingFail(let methodName):
-            return "\(methodName): Shooting Failed"
-        case .cameraNotReady(let methodName):
-            return "\(methodName): Camera Not Ready"
-        case .alreadyRunningPollingAPI(let methodName):
-            return "\(methodName): Already Running Polling API"
-        case .stillCapturingNotFinished(let methodName):
-            return "\(methodName): Hasn't Finished Capturing"
-        case .someContentCouldNotBeDeleted(let methodName):
-            return "\(methodName): Some Content Couldn't Be Deleted"
+        case .invalidResponse(_):
+            return NSLocalizedString("error_invalidresponse", comment: "")
+        case .any(_, let error):
+            return error ?? NSLocalizedString("error_unknown", comment: "")
+        case .timeout(_):
+            return NSLocalizedString("error_timeout", comment: "")
+        case .illegalArgument(_):
+            return NSLocalizedString("error_illegalargument", comment: "")
+        case .illegalDataFormat(_):
+            return NSLocalizedString("error_illegaldataformat", comment: "")
+        case .illegalRequest(_):
+            return NSLocalizedString("error_illegalrequest", comment: "")
+        case .illegalResponse(_):
+            return NSLocalizedString("error_illegalresponse", comment: "")
+        case .illegalState(_):
+            return NSLocalizedString("error_illegalstate", comment: "")
+        case .illegalType(_):
+            return NSLocalizedString("error_illegaltype", comment: "")
+        case .notAvailable(_):
+            return NSLocalizedString("error_unavailable", comment: "")
+        case .outOfBounds(_):
+            return NSLocalizedString("error_outofbounds", comment: "")
+        case .noSuchElement(_):
+            return NSLocalizedString("error_nosuchelement", comment: "")
+        case .noSuchField(_):
+            return NSLocalizedString("error_nosuchfield", comment: "")
+        case .noSuchMethod(_):
+            return NSLocalizedString("error_unsupported", comment: "")
+        case .nullPointer(_):
+            return NSLocalizedString("error_nullpointer", comment: "")
+        case .unsupportedVersion(_):
+            return NSLocalizedString("error_invalidversion", comment: "")
+        case .unsupportedOperation(_):
+            return NSLocalizedString("error_operationunsupported", comment: "")
+        case .shootingFail(_):
+            return NSLocalizedString("error_shootingfailure", comment: "")
+        case .cameraNotReady(_):
+            return NSLocalizedString("error_cameranotready", comment: "")
+        case .alreadyRunningPollingAPI(_):
+            return NSLocalizedString("error_alreadypolling", comment: "")
+        case .stillCapturingNotFinished(_):
+            return NSLocalizedString("error_capturenotfinished", comment: "")
+        case .someContentCouldNotBeDeleted(_):
+            return NSLocalizedString("error_contentnotdeleted", comment: "")
         }
     }
 }

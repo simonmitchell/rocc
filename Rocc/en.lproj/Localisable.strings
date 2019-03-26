@@ -1,0 +1,30 @@
+/* 
+  Localisable.strings
+  Rocc
+
+  Created by Simon Mitchell on 22/03/2019.
+  Copyright © 2019 Simon Mitchell. All rights reserved.
+*/
+
+"error_unknown" = "Unknown Error";
+"error_invalidresponse" = "Invalid Response";
+"error_timeout" = "The Request Timed Out";
+"error_illegalargument" = "Illegal Argument Provided";
+"error_illegaldataformat" = "Illegal Data Format Provided";
+"error_illegalrequest" = "Illegal Request";
+"error_illegalresponse" = "Illegal Response";
+"error_illegalstate" = "Illegal Camera State";
+"error_illegaltype" = "Illegal Type";
+"error_unavailable" = "Not Available Now";
+"error_outofbounds" = "Index Out Of Bounds";
+"error_nosuchelement" = "No Such Element";
+"error_nosuchfield" = "No Such Field";
+"error_unsupported" = "The camera doesn't support this method";
+"error_nullpointer" = "Null Pointer";
+"error_invalidversion" = "The version provided is unsupported";
+"error_operationunsupported" = "The camera doesn't support that operation";
+"error_shootingfailure" = "Shooting Failed";
+"error_cameranotready" = "The camera is not ready yet";
+"error_alreadypolling" = "The camera is already running a polling API";
+"error_capturenotfinished" = "The camera is still capturing";
+"error_contentnotdeleted" = "Some content could not be deleted";
