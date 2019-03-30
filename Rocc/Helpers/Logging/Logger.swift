@@ -87,7 +87,13 @@ public final class Logger {
                 handle.write(writeString.data(using: .utf8)!)
                 handle.closeFile()
             } else {
-                try? writeString.data(using: .utf8)?.write(to: fileURL)
+                
+                guard let data = writeString.data(using: .utf8) else { return }
+                do {
+                    try data.write(to: fileURL)
+                } catch {
+                    print("Failed to write to log url")
+                }
             }
         }
     }
