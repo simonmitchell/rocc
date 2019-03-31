@@ -90,6 +90,8 @@ extension SonyCameraDevice {
             case .cyberShot_RX100M3: return "Cyber-Shot RX100 III"
             case .cyberShot_RX100M4: return "Cyber-Shot RX100 IV"
             case .cyberShot_RX100M5: return "Cyber-Shot RX100 V"
+            case .cyberShot_RX0: return "RX0"
+            case .cyberShot_RX0M2: return "RX0 II"
             case .FDR_X1000V: return "FDR-X1000V"
             case .FDR_X3000: return "FDR-X3000"
             case .HDR_AS100V: return "HDR-AS100V"
