@@ -2013,13 +2013,13 @@ extension SonyCameraDevice: Camera {
                     case .success(let availableCompensations):
                         
                         // Find the zero-based index of the compensation we are trying to set.
-                        guard let index = availableCompensations.index(where: {
+                        guard let index = availableCompensations.firstIndex(where: {
                             Double.equal($0, compensation, precision: 2)
                         }) else {
                             callback(FunctionError.invalidPayload, nil)
                             return
                         }
-                        guard let zeroIndex = availableCompensations.index(where: {
+                        guard let zeroIndex = availableCompensations.firstIndex(where: {
                             Double.equal($0, 0.0, precision: 4)
                         }) else {
                             callback(FunctionError.invalidPayload, nil)
@@ -2055,7 +2055,7 @@ extension SonyCameraDevice: Camera {
                                 callback(error, nil)
                             case .success(let compensationIndex):
                                 
-                                guard let zeroIndex = availableCompensations.index(of: 0.0) else {
+                                guard let zeroIndex = availableCompensations.firstIndex(of: 0.0) else {
                                     callback(FunctionError.invalidResponse, nil)
                                     return
                                 }
