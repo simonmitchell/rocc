@@ -192,7 +192,9 @@ extension SonyCameraDevice: Camera {
     
     func handleEvent(event: CameraEvent) {
         focusStatus = event.focusStatus
-        focusMode = event.focusMode?.current
+        if let currentFocusMode = event.focusMode?.current {
+            focusMode = currentFocusMode
+        }
     }
     
     func loadFilesToTransfer(callback: @escaping ((Error?, [File]?) -> Void)) {
@@ -1698,12 +1700,14 @@ extension SonyCameraDevice: Camera {
                 
                 // Make sure our camera model requires this call! Only 3rd gen seem to
                 guard let _model = modelEnum, _model.requiresHalfPressToCapture else {
+                    Logger.shared.log("\(modelEnum?.friendlyName ?? "Unknown") doesn't require half press to focus, skipping step", category: "SonyCamera", level: .debug)
                     takePicture()
                     return
                 }
                 
                 // Make sure is in AF, otherwise we don't need to call half-press
-                guard lastNonNilFocusState != .focused || lastNonNilFocusState == nil, (focusMode ?? "").lowercased().contains("af") else {
+                guard lastNonNilFocusState != .focusing || lastNonNilFocusState == nil, (focusMode ?? "").lowercased().contains("af") else {
+                    Logger.shared.log("Camera already focussing or not in AF mode, skipping half press shutter", category: "SonyCamera", level: .debug)
                     takePicture()
                     return
                 }
@@ -1711,6 +1715,7 @@ extension SonyCameraDevice: Camera {
                 supportsFunction(Shutter.halfPress) { [weak self] (supports, _, _) in
                     
                     guard let this = self, let _supports = supports, _supports else {
+                        Logger.shared.log("Camera doesn't support shutter half press, skipping", category: "SonyCamera", level: .debug)
                         takePicture()
                         return
                     }
@@ -1718,6 +1723,7 @@ extension SonyCameraDevice: Camera {
                     // Await event letting us know the camera has finished focussing
                     this.onFocusChange({ (status) -> Bool in
                         guard let _status = status, _status != .focusing else { return false }
+                        Logger.shared.log("Camera achieved focus, taking picture", category: "SonyCamera", level: .debug)
                         takePicture()
                         return true
                     })
