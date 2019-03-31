@@ -34,6 +34,8 @@ extension SonyCameraDevice {
         case cyberShot_HX400 = "DSC-HX400"
         case cyberShot_HX400V = "DSC-HX400V"
         case cyberShot_WX500 = "DSC-WX500"
+        case cyberShot_RX0 = "DSC-RX0"
+        case cyberShot_RX0M2 = "DSC-RX0M2"
         case cyberShot_RX10M2 = "DSC-RX1RM2"
         case cyberShot_RX10M3 = "DSC-RX10M3"
         case cyberShot_RX100M3 = "DSC-RX100M3"
@@ -300,7 +302,7 @@ extension SonyCameraDevice {
         }
         
         static var cyberShotSeries: [Model] {
-            return [.cyberShot_HX60, .cyberShot_HX60V, .cyberShot_HX80, .cyberShot_HX90, .cyberShot_HX90V, .cyberShot_HX400, .cyberShot_HX400V, .cyberShot_WX500, .cyberShot_RX10M2, .cyberShot_RX10M3, .cyberShot_RX100M3, .cyberShot_RX100M4, .cyberShot_RX100M5]
+            return [.cyberShot_HX60, .cyberShot_HX60V, .cyberShot_HX80, .cyberShot_HX90, .cyberShot_HX90V, .cyberShot_HX400, .cyberShot_HX400V, .cyberShot_WX500, .cyberShot_RX10M2, .cyberShot_RX10M3, .cyberShot_RX100M3, .cyberShot_RX100M4, .cyberShot_RX100M5, .cyberShot_RX0, .cyberShot_RX0M2]
         }
         
         static var fdrSeries: [Model] {
@@ -338,6 +340,17 @@ extension SonyCameraDevice {
             default:
                 return nil
             }
+        }
+        
+        var requiresHalfPressToCapture: Bool {
+            let modelsWhichRequireHalfPressToCapture: [Model] = [
+                .a7iii,
+                .a7riii,
+                .a9,
+                .cyberShot_RX0,
+                .cyberShot_RX0M2
+            ]
+            return modelsWhichRequireHalfPressToCapture.contains(self)
         }
     }
 }

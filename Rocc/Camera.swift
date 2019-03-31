@@ -171,6 +171,11 @@ public protocol Camera {
     ///
     /// - Parameter callback: A closure called once the transfer has finished
     func finishTransfer(callback: @escaping ((_ error: Error?) -> Void))
+    
+    /// Passes an event from a `CameraEventNotifier` to the camera it's notifying
+    ///
+    /// - Parameter event: The event that occured
+    func handleEvent(event: CameraEvent)
 }
 
 /// An error for local issues before the API request has been made to the camera

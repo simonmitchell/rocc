@@ -96,6 +96,7 @@ public final class CameraEventNotifier {
                 self.delegate?.eventNotifier(self, didError: error)
             } else if let _event = event {
                 self.delegate?.eventNotifier(self, receivedEvent: _event)
+                self.camera.handleEvent(event: _event)
             }
             
             guard self.camera.supportsPolledEvents, event != nil else {

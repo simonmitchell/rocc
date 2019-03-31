@@ -21,6 +21,19 @@ public struct Event: CameraFunction {
     public static let get = Event(function: .getEvent)
 }
 
+/// The focussing status of the camera
+///
+/// - notFocussing: The camera is not focussed
+/// - failed: The focus operation failed
+/// - focusing: The camera is focussing
+/// - focussed: The camera has finished focussing
+public enum FocusStatus {
+    case notFocussing
+    case failed
+    case focusing
+    case focused
+}
+
 /// CameraEvent represents an overview of the camera's current setup.
 /// An event can either be a whole snapshot - in-which we expect all the parameters to be set - or an update to certain parameters, for example if the camera's ISO was set on the body; in which case only that parameter would be non-nil.
 public struct CameraEvent {
@@ -174,7 +187,7 @@ public struct CameraEvent {
     public let touchAF: TouchAF.Information?
     
     /// The current focus status of the camera.
-    public let focusStatus: String?
+    public let focusStatus: FocusStatus?
     
     /// The current and available zoom settings.
     public let zoomSetting: (current: String, available: [String])?

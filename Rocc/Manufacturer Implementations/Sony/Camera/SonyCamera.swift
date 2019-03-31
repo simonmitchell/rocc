@@ -83,6 +83,23 @@ internal final class SonyCameraDevice {
         }
     }
     
+    /// Callbacks for when the camera's focus status changes. These return true to be removed from the pending array.
+    var focusChangeAwaitingCallbacks: [(_ focusStatus: FocusStatus?) -> Bool] = []
+    
+    var lastNonNilFocusState: FocusStatus?
+    
+    var focusStatus: FocusStatus? {
+        didSet {
+            focusChangeAwaitingCallbacks = focusChangeAwaitingCallbacks.filter { (callback) -> Bool in
+                return !callback(focusStatus)
+            }
+            guard focusStatus != nil else { return }
+            lastNonNilFocusState = focusStatus
+        }
+    }
+    
+    var focusMode: String?
+        
     var type: String?
     
     public var apiVersion: String?
@@ -173,8 +190,17 @@ extension SonyCameraDevice: Camera {
         callback(CameraError.noSuchMethod("Finish Transfer"))
     }
     
+    func handleEvent(event: CameraEvent) {
+        focusStatus = event.focusStatus
+        focusMode = event.focusMode?.current
+    }
+    
     func loadFilesToTransfer(callback: @escaping ((Error?, [File]?) -> Void)) {
         callback(CameraError.noSuchMethod("Transfer Files"), nil)
+    }
+    
+    private func onFocusChange(_ callback: @escaping (_ focusStatus: FocusStatus?) -> Bool) {
+        focusChangeAwaitingCallbacks.append(callback)
     }
     
     public var supportsPolledEvents: Bool {
@@ -1639,32 +1665,66 @@ extension SonyCameraDevice: Camera {
                 
             case .takePicture:
                 
-                camera.takePicture { (result) in
+                let takePicture: () -> Void = {
                     
-                    guard case let .success(response) = result else {
-                        if case let .failure(error) = result {
-                            callback(error, nil)
+                    camera.takePicture { (result) in
+                        
+                        guard case let .success(response) = result else {
+                            if case let .failure(error) = result {
+                                callback(error, nil)
+                            }
+                            return
                         }
+                        
+                        // If the call to takePicture tells us we need to await the response, then do so!
+                        
+                        if response.needsAwait {
+                            
+                            camera.awaitTakePicture({ (result) in
+                                switch result {
+                                case .failure(let error):
+                                    callback(error, nil)
+                                case .success(let url):
+                                    callback(nil, url as? T.ReturnType)
+                                }
+                            })
+                            
+                        } else {
+                            
+                            callback(nil, response.url as? T.ReturnType)
+                        }
+                    }
+                }
+                
+                // Make sure our camera model requires this call! Only 3rd gen seem to
+                guard let _model = modelEnum, _model.requiresHalfPressToCapture else {
+                    takePicture()
+                    return
+                }
+                
+                // Make sure is in AF, otherwise we don't need to call half-press
+                guard lastNonNilFocusState != .focused || lastNonNilFocusState == nil, (focusMode ?? "").lowercased().contains("af") else {
+                    takePicture()
+                    return
+                }
+                
+                supportsFunction(Shutter.halfPress) { [weak self] (supports, _, _) in
+                    
+                    guard let this = self, let _supports = supports, _supports else {
+                        takePicture()
                         return
                     }
                     
-                    // If the call to takePicture tells us we need to await the response, then do so!
+                    // Await event letting us know the camera has finished focussing
+                    this.onFocusChange({ (status) -> Bool in
+                        guard let _status = status, _status != .focusing else { return false }
+                        takePicture()
+                        return true
+                    })
                     
-                    if response.needsAwait {
+                    this.performFunction(Shutter.halfPress, payload: nil, callback: { (_, _) in
                         
-                        camera.awaitTakePicture({ (result) in
-                            switch result {
-                            case .failure(let error):
-                                callback(error, nil)
-                            case .success(let url):
-                                callback(nil, url as? T.ReturnType)
-                            }
-                        })
-                        
-                    } else {
-                        
-                        callback(nil, response.url as? T.ReturnType)
-                    }
+                    })
                 }
                 
             case .startBulbCapture:
