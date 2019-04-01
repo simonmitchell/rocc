@@ -28,10 +28,25 @@ public struct Event: CameraFunction {
 /// - focusing: The camera is focussing
 /// - focussed: The camera has finished focussing
 public enum FocusStatus {
+    
     case notFocussing
     case failed
     case focusing
     case focused
+    
+    internal var debugString: String {
+        switch self {
+        case .notFocussing:
+            return "Not Focusing"
+        case .failed:
+            return "Failed"
+        case .focusing:
+            return "Focusing"
+        case .focused return "Focused"
+        default:
+            return "Unknown"
+        }
+    }
 }
 
 /// CameraEvent represents an overview of the camera's current setup.

@@ -1705,9 +1705,16 @@ extension SonyCameraDevice: Camera {
                     return
                 }
                 
-                // Make sure is in AF, otherwise we don't need to call half-press
-                guard lastNonNilFocusState != .focusing || lastNonNilFocusState == nil, (focusMode ?? "").lowercased().contains("af") else {
-                    Logger.shared.log("Camera already focussing or not in AF mode, skipping half press shutter", category: "SonyCamera", level: .debug)
+                // Make sure is in AF, otherwise we don't need to call half-press. If we don't have focusMode yet, then call halfPress
+                // as it will fail anyway if the camera is in MF
+                guard lastNonNilFocusState != .focusing || lastNonNilFocusState == nil else {
+                    Logger.shared.log("Camera already focussing (\(lastNonNilFocusState?.debugString ?? "Unknown")), skipping half press shutter", category: "SonyCamera", level: .debug)
+                    takePicture()
+                    return
+                }
+                
+                guard focusMode == nil || focusMode!.lowercased().contains("af") else {
+                    Logger.shared.log("Camera not in AF mode, skipping half-press shutter", category: "SonyCamera", level: .debug)
                     takePicture()
                     return
                 }
