@@ -42,7 +42,8 @@ public enum FocusStatus {
             return "Failed"
         case .focusing:
             return "Focusing"
-        case .focused return "Focused"
+        case .focused:
+            return "Focused"
         default:
             return "Unknown"
         }
