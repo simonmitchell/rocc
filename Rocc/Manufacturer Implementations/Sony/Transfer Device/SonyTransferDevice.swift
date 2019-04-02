@@ -100,6 +100,10 @@ extension UPnPFolder: Countable {
 
 extension SonyTransferDevice: Camera {
     
+    func handleEvent(event: CameraEvent) {
+        
+    }
+    
     var connectionMode: ConnectionMode {
         return .contentsTransfer(pushContentDevice != nil)
     }
