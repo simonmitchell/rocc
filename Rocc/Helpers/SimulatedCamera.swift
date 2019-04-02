@@ -97,6 +97,10 @@ extension File {
 
 public final class DummyCamera: Camera {
     
+    public func handleEvent(event: CameraEvent) {
+        
+    }
+    
     public var connectionMode: ConnectionMode {
         return .remoteControl
     }

@@ -73,6 +73,24 @@ fileprivate extension ContinuousShootingSpeed {
     }
 }
 
+fileprivate extension FocusStatus {
+    
+    init?(sonyString: String) {
+        switch sonyString {
+        case "Not Focusing":
+            self = .notFocussing
+        case "Failed":
+            self = .failed
+        case "Focusing":
+            self = .focusing
+        case "Focused":
+            self = .focused
+        default:
+            return nil
+        }
+    }
+}
+
 fileprivate func exposureCompensationsFor(lowerIndex: Int, upperIndex: Int, stepSize: Int) -> [Double] {
     
     var compensations: [Double] = []
@@ -255,7 +273,7 @@ fileprivate extension CameraEvent {
         var _shutterSpeed: (current: ShutterSpeed, available: [ShutterSpeed])?
         var _whiteBalance: WhiteBalanceInformation?
         var _touchAF: TouchAF.Information?
-        var _focusStatus: String?
+        var _focusStatus: FocusStatus?
         var _zoomSetting: (current: String, available: [String])?
         var _stillQuality: (current: String, available: [String])?
         var _continuousShootingMode: (current: ContinuousShootingMode, available: [ContinuousShootingMode])?
@@ -380,7 +398,8 @@ fileprivate extension CameraEvent {
                 case "touchAFPosition":
                     _touchAF = TouchAF.Information(dictionary: dictionaryElement)
                 case "focusStatus":
-                    _focusStatus = dictionaryElement["focusStatus"] as? String
+                    guard let status = dictionaryElement["focusStatus"] as? String else { return }
+                    _focusStatus = FocusStatus(sonyString: status)
                 case "zoomSetting":
                     guard let current = dictionaryElement["zoom"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
                     _zoomSetting = (current, candidates)
