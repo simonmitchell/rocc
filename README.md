@@ -6,7 +6,7 @@
   	<img alt="Build Status" src="https://travis-ci.org/simonmitchell/rocc.svg">
   </a>
   <a href="https://swift.org/blog/swift-4-2-released/">
-  	<img alt="Swift 4.3" src="http://img.shields.io/badge/swift-4.2-brightgreen.svg">
+  	<img alt="Swift 5.0" src="http://img.shields.io/badge/swift-5.0-brightgreen.svg">
   </a>
   <a href="https://github.com/simonmitchell/rocc/blob/master/README.md">
   	<img alt="MIT" src="https://img.shields.io/badge/license-MIT-brightgreen.svg">
