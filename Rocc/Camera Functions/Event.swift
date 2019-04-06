@@ -76,39 +76,39 @@ public struct CameraEvent {
         }
         
         /// The unique identifier of the battery
-        let identifier: String
+        public let identifier: String
         
         /// The current status of the battery
-        let status: Status
+        public let status: Status
         
         /// The current charge status of the battery (If nil, then the battery is simply in a normal state)
-        let chargeStatus: ChargeStatus?
+        public let chargeStatus: ChargeStatus?
         
         /// A description of the battery
-        let description: String?
+        public let description: String?
         
         /// The charge level of the battery
-        let level: Double
+        public let level: Double
     }
     
     /// A structural representation of information about the live view
     public struct LiveViewInformation {
         
         /// Whether the LiveView on the camera is ready to transfer LiveView images over the API.
-        let status: Bool
+        public let status: Bool
         
         /// The orientation of the liveView on the camera.
-        let orientation: String?
+        public let orientation: String?
     }
     
     /// A structural representation of information about the still size being used by the camera
     public struct StillSizeInformation {
         
         /// Whether the user should check the available values of still size. If true, the client should check the change of available parameters by calling `Camera.isFunctionAvailable(Still.Size.set)`.
-        let shouldCheck: Bool
+        public let shouldCheck: Bool
         
         /// The still size the camera is shooting in.
-        let stillSize: StillSize
+        public let stillSize: StillSize
     }
     
     /// A structural representation of information about the white balance being used by the camera
