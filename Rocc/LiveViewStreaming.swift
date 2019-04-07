@@ -275,7 +275,7 @@ public final class LiveViewStream: NSObject {
             
             // Payload Header
             
-            let checkBytes = Data(bytes: [0x24, 0x35, 0x68, 0x79])
+            let checkBytes = Data([0x24, 0x35, 0x68, 0x79])
             let checkRange = 0..<4
             
             let found = _data.range(of: checkBytes, options: [.anchored], in: checkRange)

@@ -176,7 +176,7 @@ class UDPClient {
             let messages = strongSelf.initialMessage
             
             let messageDatas = messages.map({ (message) in
-                return (message: message, data: Data(bytes: Array(message.utf8)) as CFData)
+                return (message: message, data: Data(Array(message.utf8)) as CFData)
             })
             
             var address: sockaddr_in = sockaddr_in(

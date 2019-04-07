@@ -17,7 +17,7 @@ extension DataConvertible {
     
     init?(data: Data) {
         guard data.count == MemoryLayout<Self>.size else { return nil }
-        self = data.withUnsafeBytes { $0.pointee }
+        self = data.withUnsafeBytes { $0.load(as: Self.self) }
     }
     
     var data: Data {
