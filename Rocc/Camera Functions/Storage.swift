@@ -25,17 +25,17 @@ public struct Storage: CameraFunction {
 public struct StorageInformation {
     
     /// A description of the storage option
-    let description: String?
+    public let description: String?
     
     /// The amount of space available for storage of images on the storage
-    let spaceForImages: Int?
+    public let spaceForImages: Int?
     
     /// Whether the storage can be recorded to
-    let recordTarget: Bool
+    public let recordTarget: Bool
     
     /// The amount of recorded footage that can be stored
-    let recordableTime: Int?
+    public let recordableTime: Int?
     
     /// The unique ID of the storage
-    let id: String?
+    public let id: String?
 }
