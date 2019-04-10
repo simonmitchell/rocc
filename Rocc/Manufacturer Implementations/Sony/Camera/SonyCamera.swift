@@ -1735,8 +1735,11 @@ extension SonyCameraDevice: Camera {
                         return true
                     })
                     
-                    this.performFunction(Shutter.halfPress, payload: nil, callback: { (_, _) in
-                        
+                    this.performFunction(Shutter.halfPress, payload: nil, callback: { [weak this] (error, _) in
+                        guard error != nil else { return }
+                        takePicture()
+                        // It's safe to do this for now, because we're the only function that uses onFocusChange.
+                        this?.focusChangeAwaitingCallbacks = []
                     })
                 }
                 
