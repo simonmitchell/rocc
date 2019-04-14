@@ -1667,22 +1667,30 @@ extension SonyCameraDevice: Camera {
                 
             case .takePicture:
                 
-                let takePicture: (_ ignoreFailure: Bool, _ completion: ((_ success: Bool) -> Void)?) -> Void = { ignore, completion in
+                let takePicture: (_ ignoreShootingFailure: Bool, _ completion: ((_ success: Bool) -> Void)?) -> Void = { ignoreShootingFailure, completion in
                     
                     camera.takePicture { (result) in
                         
                         guard case let .success(response) = result else {
                             if case let .failure(error) = result {
                                 
-                                Logger.shared.log("Capture failed" + (ignore ? ", ignoring failure" : ""), category: "SonyCamera", level: .debug)
+                                Logger.shared.log("Capture failed" + (ignoreShootingFailure ? ", ignoring shooting failure" : ""), category: "SonyCamera", level: .debug)
                                 
                                 // If we're not ignoring the error, then call back to original caller
-                                if !ignore {
+                                if let cameraError = error as? CameraError {
+                                    switch cameraError {
+                                    case .shootingFail(_):
+                                        if !ignoreShootingFailure {
+                                            callback(error, nil)
+                                        }
+                                        // Call the completion block saying shooting failed
+                                        completion?(false)
+                                    default:
+                                        callback(error, nil)
+                                    }
+                                } else {
                                     callback(error, nil)
                                 }
-                                
-                                // Call the completion block saying shooting failed
-                                completion?(false)
                             }
                             return
                         }
