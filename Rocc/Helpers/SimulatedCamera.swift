@@ -421,6 +421,10 @@ public final class DummyCamera: Camera {
             
             callback(nil, nil)
             
+        case .takePicture:
+            
+            callback(nil, URL(string: "https://via.placeholder.com/1370x1028") as? T.ReturnType)
+            
         default:
             callback(nil, nil)
         }

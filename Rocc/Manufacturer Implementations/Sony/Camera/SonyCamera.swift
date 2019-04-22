@@ -133,7 +133,7 @@ internal final class SonyCameraDevice {
     public var remoteAppVersion: String?
     
     public var latestRemoteAppVersion: String? {
-        return "4.31"
+        return modelEnum?.latestRemoteAppVersion ?? "4.30"
     }
     
     public var lensModelName: String?
