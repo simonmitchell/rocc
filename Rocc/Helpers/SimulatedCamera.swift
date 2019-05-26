@@ -256,7 +256,7 @@ public final class DummyCamera: Camera {
             exposureMode: nil,
             postViewImageSize: nil,
             selfTimer: (current: currentSelfTimer, available: [0.0, 2.0, 5.0]),
-            shootMode: (current: currentShootMode, available: [.photo, .continuous, .timelapse, .video, .continuous]),
+            shootMode: (current: currentShootMode, available: [.photo, .continuous, .timelapse, .video, .continuous, .bulb]),
             exposureCompensation: (current: currentExposureComp, available: [-3.0, -2.66, -2.33, -2.0, -1.66, -1.33, -1.0, -0.66, -0.33, 0, 0.33, 0.66, 1.0, 1.33, 1.66, 2.0, 2.33, 2.66, 3.0]),
             flashMode: nil,
             aperture: (current: currentAperture, available: ["1.8", "2.0", "2.2", "2.8", "3.2", "4.0", "4.8", "5.6", "8.0", "11.0", "18.0", "22.0"]),
@@ -416,6 +416,14 @@ public final class DummyCamera: Camera {
             }
             currentExposureComp = value
             eventCompletion?()
+            
+        case .startBulbCapture:
+            
+            callback(nil, nil)
+            
+        case .endBulbCapture:
+            
+            callback(nil, nil)
             
         case .startLiveView:
             
