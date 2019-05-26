@@ -46,6 +46,10 @@ public struct ShutterSpeed {
     }
 }
 
+extension ShutterSpeed: Codable {
+    
+}
+
 public extension ShutterSpeed {
     /// The actual time interval the given shutter speed will take
     var value: TimeInterval {
