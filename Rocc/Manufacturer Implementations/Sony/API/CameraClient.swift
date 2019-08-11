@@ -81,9 +81,9 @@ fileprivate extension FocusStatus {
             self = .notFocussing
         case "Failed":
             self = .failed
-        case "Focusing":
+        case let str where str.starts(with: "Focusing"):
             self = .focusing
-        case "Focused":
+        case let str where str.starts(with: "Focused"):
             self = .focused
         default:
             return nil
