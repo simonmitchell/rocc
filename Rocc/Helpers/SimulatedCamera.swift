@@ -243,7 +243,7 @@ public final class DummyCamera: Camera {
             status: .idle,
             liveViewInfo: nil,
             zoomPosition: nil,
-            availableFunctions: [.setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setSelfTimerDuration, .setWhiteBalance],
+            availableFunctions: [.setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setSelfTimerDuration, .setWhiteBalance, .startZooming],
             postViewPictureURLs: nil,
             storageInformation: nil,
             beepMode: nil,
