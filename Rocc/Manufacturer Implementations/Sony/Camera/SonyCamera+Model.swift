@@ -323,14 +323,16 @@ extension SonyCameraDevice {
             switch self {
             case .a7ii, .a7rii:
                 return "4.00"
-            case .a6000, .a7s, .a7r, .a7:
+            case .a6000:
+                return "3.21"
+            case .a7s, .a7r, .a7:
                 return "3.20"
             case .a5100:
                 return "3.10"
             case .a7sii:
                 return "3.00"
             case .a7iii, .a7riii:
-                return "2.10"
+                return "3.00"
             case .a6300:
                 return "2.01"
             case .a5000:
@@ -339,8 +341,19 @@ extension SonyCameraDevice {
                 return "1.05"
             case .NEX_6:
                 return "1.03"
+            case .a9:
+                return "5.0"
             default:
                 return nil
+            }
+        }
+        
+        var latestRemoteAppVersion: String? {
+            switch self {
+            case .a6500:
+                return "4.31"
+            default:
+                return "4.30"
             }
         }
         

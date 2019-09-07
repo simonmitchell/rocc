@@ -368,9 +368,9 @@ public final class LiveViewStream: NSObject {
         
         var payload = Payload(data: receivedData)
         
-        //TODO: Fix crash when remove out of range!
         if let _payload = payload {
-            receivedData.removeSubrange(_payload.dataRange)
+            let range = _payload.dataRange.clamped(to: receivedData.startIndex..<receivedData.endIndex)
+            receivedData.removeSubrange(range)
         }
         
         var payloads: [Payload] = []
