@@ -17,6 +17,7 @@ extension SonyCameraDevice {
         case a7r = "ILCE-7R"
         case a7rii = "ILCE-7RM2"
         case a7riii = "ILCE-7RM3"
+        case a7riv = "ILCE-7RM4"
         case a7s = "ILCE-7S"
         case a7sii = "ILCE-7SM2"
         case a7siii = "ILCE-7SM3"
@@ -24,8 +25,11 @@ extension SonyCameraDevice {
         case a5000 = "ILCE-5000"
         case a5100 = "ILCE-5100"
         case a6000 = "ILCE-6000"
+        case a6100 = "ILCE-6100"
         case a6300 = "ILCE-6300"
+        case a6400 = "ILCE-6400"
         case a6500 = "ILCE-6500"
+        case a6600 = "ILCE-6600"
         case cyberShot_HX60 = "DSC-HX60"
         case cyberShot_HX60V = "DSC-HX60V"
         case cyberShot_HX80 = "DSC-HX80"
@@ -68,6 +72,7 @@ extension SonyCameraDevice {
             case .a7r: return "ɑ7R"
             case .a7rii: return "ɑ7R II"
             case .a7riii: return "ɑ7R III"
+            case .a7riv: return "ɑ7R IV"
             case .a7s: return "ɑ7S"
             case .a7sii: return "ɑ7S II"
             case .a7siii: return "ɑ7S III"
@@ -75,8 +80,11 @@ extension SonyCameraDevice {
             case .a5000: return "ɑ5000"
             case .a5100: return "ɑ5100"
             case .a6000: return "ɑ6000"
+            case .a6100: return "ɑ6100"
             case .a6300: return "ɑ6300"
+            case .a6400: return "ɑ6400"
             case .a6500: return "ɑ6500"
+            case .a6600: return "ɑ6600"
             case .cyberShot_HX60: return "Cyber-Shot HX60"
             case .cyberShot_HX60V: return "Cyber-Shot HX60V"
             case .cyberShot_HX80: return "Cyber-Shot HX80"
@@ -333,6 +341,8 @@ extension SonyCameraDevice {
                 return "3.00"
             case .a7iii, .a7riii:
                 return "3.00"
+            case .a6600, .a6400:
+                return "2.00"
             case .a6300:
                 return "2.01"
             case .a5000:
