@@ -296,12 +296,24 @@ fileprivate extension CameraEvent {
         var _audioRecording: (current: String, available: [String])?
         var _windNoiseReduction: (current: String, available: [String])?
         var _bulbCapturingTime: TimeInterval?
+        var _bulbShootingURL: URL?
         
         result.forEach { (eventElement) in
             
             if let dictionaryElement = eventElement as? [AnyHashable : Any], let type = dictionaryElement["type"] as? String {
                 
                 switch type {
+                case "bulbShooting":
+                    guard let urlArrays = dictionaryElement["bulbShootingUrl"] as? [[AnyHashable : Any]] else {
+                        return
+                    }
+                    guard let urlString = urlArrays.compactMap({ (dict) -> String? in
+                        dict["postviewUrl"] as? String
+                    }).first else {
+                        return
+                    }
+                    _bulbShootingURL = URL(string: urlString)
+                    break
                 case "availableApiList":
                     _apiList = dictionaryElement["names"] as? [String]
                 case "cameraStatus":
@@ -606,8 +618,7 @@ fileprivate extension CameraEvent {
         audioRecording = _audioRecording
         windNoiseReduction = _windNoiseReduction
         bulbCapturingTime = _bulbCapturingTime
-        //TODO: Add this in!
-        bulbShootingUrl = nil
+        bulbShootingUrl = _bulbShootingURL
     }
 }
 
