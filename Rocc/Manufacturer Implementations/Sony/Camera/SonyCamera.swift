@@ -312,18 +312,18 @@ extension SonyCameraDevice: Camera {
             return
         }
         
-        switchCameraToRequiredFunctionFor(function) { [weak self] (error) in
+        switchCameraToRequiredFunctionFor(function) { [weak self] (fnError) in
             
-            guard let this = self, error == nil else {
-                callback(error)
+            guard let this = self, fnError == nil else {
+                callback(fnError)
                 return
             }
             
             switch function.function {
             case .takePicture, .startContinuousShooting, .startBulbCapture:
                 
-                camera.setShootMode(.photo, completion: { [weak this] (error) in
-                    
+                this.setToShootModeIfRequired(camera: camera, shootMode: .photo) { [weak this] (error) in
+                                        
                     switch function.function {
                     case .startContinuousShooting:
                         this?.setShutterSpeedAwayFromBulbIfRequired(camera: camera, { (_) in
@@ -383,34 +383,61 @@ extension SonyCameraDevice: Camera {
                             })
                         })
                     }
-                })
+                }
                 
             case .startIntervalStillRecording:
-                this.setShutterSpeedAwayFromBulbIfRequired(camera: camera, { (_) in
-                    camera.setShootMode(.interval, completion: { (error) in
-                        callback(error)
-                    })
+                this.setShutterSpeedAwayFromBulbIfRequired(camera: camera, { [weak this] (_) in
+                    this?.setToShootModeIfRequired(camera: camera, shootMode: .interval, callback)
                 })
             case .startAudioRecording:
-                this.setShutterSpeedAwayFromBulbIfRequired(camera: camera, { (_) in
-                    camera.setShootMode(.audio, completion: { (error) in
-                        callback(error)
-                    })
+                this.setShutterSpeedAwayFromBulbIfRequired(camera: camera, { [weak this] (_) in
+                    this?.setToShootModeIfRequired(camera: camera, shootMode: .audio, callback)
                 })
             case .startVideoRecording:
-                this.setShutterSpeedAwayFromBulbIfRequired(camera: camera, { (_) in
-                    camera.setShootMode(.video, completion: { (error) in
-                        callback(error)
-                    })
+                this.setShutterSpeedAwayFromBulbIfRequired(camera: camera, { [weak this] (_) in
+                    this?.setToShootModeIfRequired(camera: camera, shootMode: .video, callback)
                 })
             case .startLoopRecording:
-                this.setShutterSpeedAwayFromBulbIfRequired(camera: camera, { (_) in
-                    camera.setShootMode(.loop, completion: { (error) in
-                        callback(error)
-                    })
+                this.setShutterSpeedAwayFromBulbIfRequired(camera: camera, { [weak this] (_) in
+                    this?.setToShootModeIfRequired(camera: camera, shootMode: .loop, callback)
                 })
             default:
                 callback(nil)
+            }
+        }
+    }
+    
+    private func setToShootModeIfRequired(camera: CameraClient, shootMode: ShootingMode, _ completion: @escaping ((Error?) -> Void)) {
+        
+        // Last shoot mode should be up to date so do a quick check if we're already in the correct shoot mode
+        guard lastShootMode != shootMode else {
+            completion(nil)
+            return
+        }
+        
+        // Some cameras throw error if we try and set shoot mode to it's current value, so let's do a last-ditch attempt to check current shoot mode before changing
+        camera.getShootMode { (result) in
+            switch result {
+            case .success(let currentMode):
+                guard currentMode != shootMode else {
+                    completion(nil)
+                    return
+                }
+                camera.setShootMode(shootMode, completion: { [weak self] (error) in
+                    completion(error)
+                    guard error == nil else {
+                        return
+                    }
+                    self?.lastShootMode = shootMode
+                })
+            case .failure(_):
+                camera.setShootMode(shootMode, completion: { [weak self] (error) in
+                    completion(error)
+                    guard error == nil else {
+                        return
+                    }
+                    self?.lastShootMode = shootMode
+                })
             }
         }
     }
@@ -420,11 +447,10 @@ extension SonyCameraDevice: Camera {
         // We need to do this otherwise the camera can get stuck in continuous shooting mode!
         // If the shutter speed is BULB then we need to set it to something else!
         guard self.lastShutterSpeed?.isBulb == true else {
-            
             callback(nil)
-            
             return
         }
+        
         // Get available shutter speeds
         camera.getAvailableShutterSpeeds({ (shutterSpeedResults) in
             switch shutterSpeedResults {
