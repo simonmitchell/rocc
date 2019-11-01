@@ -135,7 +135,7 @@
 		B1BAAC8F222583B8007F0F61 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A1B67E21F8BC78008B5181 /* Logger.swift */; };
 		B1BAAC96222583B9007F0F61 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A1B67E21F8BC78008B5181 /* Logger.swift */; };
 		B1CDCB8322234CAA00DD0F0E /* UPnPService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1CDCB8222234CAA00DD0F0E /* UPnPService.swift */; };
-		B1CDCB8F2223524100DD0F0E /* ThunderRequestMac.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1AF5045208D34510029336B /* ThunderRequestMac.framework */; };
+		B1CDCB8F2223524100DD0F0E /* ThunderRequest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1AF5045208D34510029336B /* ThunderRequest.framework */; };
 		B1CDCB90222352BB00DD0F0E /* UPnPService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1CDCB8222234CAA00DD0F0E /* UPnPService.swift */; };
 		B1CE24AD2098FD1E0049EC87 /* LiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1CE24A72098FD1E0049EC87 /* LiveView.swift */; };
 		B1CE24B22099184B0049EC87 /* Zoom.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1CE24B12099184B0049EC87 /* Zoom.swift */; };
@@ -151,6 +151,14 @@
 		B1EF4C8B20A24DA100EEDE3E /* AutoPowerOff.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EF4C8A20A24DA100EEDE3E /* AutoPowerOff.swift */; };
 		B1EF4CAD20A3140A00EEDE3E /* BeepMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EF4CAC20A3140A00EEDE3E /* BeepMode.swift */; };
 		B1EF4CB020A3161700EEDE3E /* CurrentTime.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EF4CAF20A3161700EEDE3E /* CurrentTime.swift */; };
+		B1F7CEB8236CD326007E3921 /* Packet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F7CEB4236CD325007E3921 /* Packet.swift */; };
+		B1F7CEB9236CD326007E3921 /* Packet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F7CEB4236CD325007E3921 /* Packet.swift */; };
+		B1F7CEBA236CD326007E3921 /* PTPIPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F7CEB5236CD326007E3921 /* PTPIPClient.swift */; };
+		B1F7CEBB236CD326007E3921 /* PTPIPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F7CEB5236CD326007E3921 /* PTPIPClient.swift */; };
+		B1F7CEBC236CD326007E3921 /* ByteBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F7CEB6236CD326007E3921 /* ByteBuffer.swift */; };
+		B1F7CEBD236CD326007E3921 /* ByteBuffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F7CEB6236CD326007E3921 /* ByteBuffer.swift */; };
+		B1F7CEBE236CD326007E3921 /* PacketParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F7CEB7236CD326007E3921 /* PacketParser.swift */; };
+		B1F7CEBF236CD326007E3921 /* PacketParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F7CEB7236CD326007E3921 /* PacketParser.swift */; };
 		B1FB47FC209088FD00C33C86 /* SonyCameraAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB47FB209088FD00C33C86 /* SonyCameraAPIClient.swift */; };
 		B1FB47FD209088FD00C33C86 /* SonyCameraAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB47FB209088FD00C33C86 /* SonyCameraAPIClient.swift */; };
 		B1FB47FF209089CA00C33C86 /* CameraClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB47FE209089CA00C33C86 /* CameraClient.swift */; };
@@ -224,6 +232,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = B1AF5087208DC3A80029336B;
 			remoteInfo = CCKitMac;
+		};
+		B1F7CEB2236CD304007E3921 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B1AF5038208D34510029336B /* ThunderRequest.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = B190A829228DBA3A00E44821;
+			remoteInfo = "ThunderRequestTests-tvOS";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -307,6 +322,10 @@
 		B1EF4C8A20A24DA100EEDE3E /* AutoPowerOff.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AutoPowerOff.swift; sourceTree = "<group>"; };
 		B1EF4CAC20A3140A00EEDE3E /* BeepMode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BeepMode.swift; sourceTree = "<group>"; };
 		B1EF4CAF20A3161700EEDE3E /* CurrentTime.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CurrentTime.swift; sourceTree = "<group>"; };
+		B1F7CEB4236CD325007E3921 /* Packet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Packet.swift; sourceTree = "<group>"; };
+		B1F7CEB5236CD326007E3921 /* PTPIPClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PTPIPClient.swift; sourceTree = "<group>"; };
+		B1F7CEB6236CD326007E3921 /* ByteBuffer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ByteBuffer.swift; sourceTree = "<group>"; };
+		B1F7CEB7236CD326007E3921 /* PacketParser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PacketParser.swift; sourceTree = "<group>"; };
 		B1FB47FB209088FD00C33C86 /* SonyCameraAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SonyCameraAPIClient.swift; sourceTree = "<group>"; };
 		B1FB47FE209089CA00C33C86 /* CameraClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraClient.swift; sourceTree = "<group>"; };
 		B1FB4801209089D800C33C86 /* AVContentClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVContentClient.swift; sourceTree = "<group>"; };
@@ -338,7 +357,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B1CDCB8F2223524100DD0F0E /* ThunderRequestMac.framework in Frameworks */,
+				B1CDCB8F2223524100DD0F0E /* ThunderRequest.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -432,10 +451,11 @@
 			children = (
 				B1AF5041208D34510029336B /* ThunderRequest.framework */,
 				B1AF5043208D34510029336B /* ThunderRequestTests.xctest */,
-				B1AF5045208D34510029336B /* ThunderRequestMac.framework */,
+				B1AF5045208D34510029336B /* ThunderRequest.framework */,
 				B1AF5047208D34510029336B /* ThunderRequestMacTests.xctest */,
-				B1AF5049208D34510029336B /* ThunderRequestTV.framework */,
-				B115EFC021ECF88200667FB7 /* ThunderRequestWatch.framework */,
+				B1AF5049208D34510029336B /* ThunderRequest.framework */,
+				B1F7CEB3236CD304007E3921 /* ThunderRequestTests-tvOS.xctest */,
+				B115EFC021ECF88200667FB7 /* ThunderRequest.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -476,6 +496,7 @@
 		B1B43458209746E900A81B9D /* Helpers */ = {
 			isa = PBXGroup;
 			children = (
+				B1F7CEAA236CD304007E3921 /* PTP */,
 				B1CDCB8C2223513700DD0F0E /* Logging */,
 				B1CDCB8D2223514F00DD0F0E /* Networking */,
 				B1CDCB8E2223518700DD0F0E /* Strings */,
@@ -545,6 +566,17 @@
 				B1CDCB8222234CAA00DD0F0E /* UPnPService.swift */,
 			);
 			path = "Device Discovery";
+			sourceTree = "<group>";
+		};
+		B1F7CEAA236CD304007E3921 /* PTP */ = {
+			isa = PBXGroup;
+			children = (
+				B1F7CEB6236CD326007E3921 /* ByteBuffer.swift */,
+				B1F7CEB4236CD325007E3921 /* Packet.swift */,
+				B1F7CEB7236CD326007E3921 /* PacketParser.swift */,
+				B1F7CEB5236CD326007E3921 /* PTPIPClient.swift */,
+			);
+			path = PTP;
 			sourceTree = "<group>";
 		};
 		B1FB47E720906CDB00C33C86 /* API */ = {
@@ -760,10 +792,10 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		B115EFC021ECF88200667FB7 /* ThunderRequestWatch.framework */ = {
+		B115EFC021ECF88200667FB7 /* ThunderRequest.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
-			path = ThunderRequestWatch.framework;
+			path = ThunderRequest.framework;
 			remoteRef = B115EFBF21ECF88200667FB7 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
@@ -781,10 +813,10 @@
 			remoteRef = B1AF5042208D34510029336B /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		B1AF5045208D34510029336B /* ThunderRequestMac.framework */ = {
+		B1AF5045208D34510029336B /* ThunderRequest.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
-			path = ThunderRequestMac.framework;
+			path = ThunderRequest.framework;
 			remoteRef = B1AF5044208D34510029336B /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
@@ -795,11 +827,18 @@
 			remoteRef = B1AF5046208D34510029336B /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		B1AF5049208D34510029336B /* ThunderRequestTV.framework */ = {
+		B1AF5049208D34510029336B /* ThunderRequest.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
-			path = ThunderRequestTV.framework;
+			path = ThunderRequest.framework;
 			remoteRef = B1AF5048208D34510029336B /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		B1F7CEB3236CD304007E3921 /* ThunderRequestTests-tvOS.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "ThunderRequestTests-tvOS.xctest";
+			remoteRef = B1F7CEB2236CD304007E3921 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -860,9 +899,11 @@
 				B154535521EFDC1700C59096 /* Countable.swift in Sources */,
 				B1FB47FC209088FD00C33C86 /* SonyCameraAPIClient.swift in Sources */,
 				B1FB4802209089D800C33C86 /* AVContentClient.swift in Sources */,
+				B1F7CEBE236CD326007E3921 /* PacketParser.swift in Sources */,
 				B16BFBC820A49F92006BD081 /* Storage.swift in Sources */,
 				B100E19C209E47F8004F7AB8 /* TrackingFocus.swift in Sources */,
 				B1EF4C8820A24B6300EEDE3E /* InfraredRemoteControl.swift in Sources */,
+				B1F7CEB8236CD326007E3921 /* Packet.swift in Sources */,
 				B100E1B420A0D59E004F7AB8 /* ViewAngle.swift in Sources */,
 				B1561ED420976F7B0013D122 /* Capture.swift in Sources */,
 				B1316A742089C1D6006BD136 /* UDPClient.swift in Sources */,
@@ -883,6 +924,7 @@
 				B1751E7920A316C2001D05F1 /* SystemClient.swift in Sources */,
 				B100E1C620A105D9004F7AB8 /* TVColorSystem.swift in Sources */,
 				B100E19F20A04CEF004F7AB8 /* Exposure.swift in Sources */,
+				B1F7CEBA236CD326007E3921 /* PTPIPClient.swift in Sources */,
 				B1FB486F2092585400C33C86 /* SonyCamera.swift in Sources */,
 				B1FB48092090964100C33C86 /* BaseServiceClient.swift in Sources */,
 				B1A25F2121ADE6CE00D9EE81 /* ShutterSpeedFormatter.swift in Sources */,
@@ -910,6 +952,7 @@
 				B1316A7B2089C426006BD136 /* SonyConstants.swift in Sources */,
 				B1990A8320C3FDAA0090A2F6 /* Reachability.swift in Sources */,
 				B100E1B720A0D7C7004F7AB8 /* Scene.swift in Sources */,
+				B1F7CEBC236CD326007E3921 /* ByteBuffer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -953,9 +996,11 @@
 				B1A1AA3920A4E02200FD0A4A /* TrackingFocus.swift in Sources */,
 				B1A1AA2B20A4E02200FD0A4A /* ISO.swift in Sources */,
 				B1A1AA2520A4E02200FD0A4A /* Exposure.swift in Sources */,
+				B1F7CEBF236CD326007E3921 /* PacketParser.swift in Sources */,
 				B1A1AA1E20A4E02200FD0A4A /* Aperture.swift in Sources */,
 				B1A1AA2420A4E02200FD0A4A /* Event.swift in Sources */,
 				B1A1AA2820A4E02200FD0A4A /* Focus.swift in Sources */,
+				B1F7CEB9236CD326007E3921 /* Packet.swift in Sources */,
 				B1A1AA2E20A4E02200FD0A4A /* PostViewImage.swift in Sources */,
 				B1FB47FD209088FD00C33C86 /* SonyCameraAPIClient.swift in Sources */,
 				B1FB4803209089D800C33C86 /* AVContentClient.swift in Sources */,
@@ -976,6 +1021,7 @@
 				B163AEC020A8D6050061D1C4 /* CameraEventNotifier.swift in Sources */,
 				B1A1AA3D20A4E02200FD0A4A /* WindNoiseReduction.swift in Sources */,
 				B1FB48702092585400C33C86 /* SonyCamera.swift in Sources */,
+				B1F7CEBB236CD326007E3921 /* PTPIPClient.swift in Sources */,
 				B1A1AA3C20A4E02200FD0A4A /* WhiteBalance.swift in Sources */,
 				B1FB480A2090964100C33C86 /* BaseServiceClient.swift in Sources */,
 				B1A1AA2020A4E02200FD0A4A /* BeepMode.swift in Sources */,
@@ -1003,6 +1049,7 @@
 				B1AF509F208DC3AF0029336B /* SonyConstants.swift in Sources */,
 				B1990A8420C3FDAA0090A2F6 /* Reachability.swift in Sources */,
 				B1A1AA3120A4E02200FD0A4A /* Scene.swift in Sources */,
+				B1F7CEBD236CD326007E3921 /* ByteBuffer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
