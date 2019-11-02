@@ -46,7 +46,7 @@ struct ByteBuffer {
         
         var value: Int = 0
         for i in 0..<nBytes {
-            guard let byte = bytes[safe: offset + i] else { continue }
+            guard let byte = bytes[safe: offset + i] else { return nil }
             value = value + Int(byte) << (8 * i)
         }
         return value
@@ -68,6 +68,10 @@ struct ByteBuffer {
         bytes.append(value)
     }
     
+    mutating func append(bytes value: [Byte]) {
+        bytes.append(contentsOf: value)
+    }
+    
     mutating func append(wChar character: Character) {
         // As described in "PIMA 15740:2000", characters are encoded in PTP as
         // ISO10646 2-byte characters.
@@ -87,6 +91,10 @@ struct ByteBuffer {
         append(word: 0);
     }
     
+    mutating func clear() {
+        bytes = []
+    }
+    
     private mutating func set(dWord value: DWord, at offset: UInt) {
         setLittleEndian(offset: offset, value: UInt(value), nBytes: 4)
     }
@@ -95,9 +103,16 @@ struct ByteBuffer {
         setLittleEndian(offset: offset, value: UInt(value), nBytes: 2)
     }
     
+    func slice(_ offset: Int, _ end: Int? = nil) -> ByteBuffer {
+        let internalEnd = end ?? bytes.endIndex
+        let fixedOffset = max(offset, bytes.startIndex)
+        let fixedEnd = min(internalEnd, bytes.endIndex)
+        guard fixedOffset < bytes.count else { return ByteBuffer() }
+        return ByteBuffer(bytes: Array(bytes[fixedOffset..<fixedEnd]))
+    }
+    
     //MARK: - Reading -
     
-    //TODO: Fix this for debugging!
     var toHex: String {
                 
         let hexDigits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"]
@@ -165,6 +180,35 @@ extension ByteBuffer {
         set {
             guard let newValue = newValue else { return }
             set(dWord: newValue, at: index)
+        }
+    }
+    
+    subscript (wString index: UInt) -> String? {
+        get {
+            var string: String = ""
+            var i = index
+            while i < bytes.count {
+                guard let character = self[wChar: i], character != "\u{0000}" else {
+                    return string
+                }
+                string.append(character)
+                i += 2
+            }
+            return string.count > 0 ? string : nil
+        }
+        set {
+            print("Setting of wString by subscript is not yet supported!")
+        }
+    }
+    
+    subscript (wChar index: UInt) -> String? {
+        get {
+            guard let word = self[word: index] else { return nil }
+            let codeUnits = [word]
+            return String(utf16CodeUnits: codeUnits, count: 1)
+        }
+        set {
+            print("Setting of wChar by subscript is not yet supported!")
         }
     }
 }

@@ -169,6 +169,10 @@
 		B1F7CECD236D8261007E3921 /* SonyPTPIPCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F7CECB236D8261007E3921 /* SonyPTPIPCamera.swift */; };
 		B1F7CECF236D8968007E3921 /* SonyCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F7CECE236D8968007E3921 /* SonyCamera.swift */; };
 		B1F7CED0236D8968007E3921 /* SonyCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F7CECE236D8968007E3921 /* SonyCamera.swift */; };
+		B1F7CEDC236DE268007E3921 /* ByteBuffer+PacketParsing.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F7CEDB236DE268007E3921 /* ByteBuffer+PacketParsing.swift */; };
+		B1F7CEDD236DE274007E3921 /* ByteBuffer+PacketParsing.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F7CEDB236DE268007E3921 /* ByteBuffer+PacketParsing.swift */; };
+		B1F7CEDF236DE31C007E3921 /* InitCommandAckPacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F7CEDE236DE31C007E3921 /* InitCommandAckPacket.swift */; };
+		B1F7CEE0236DE31C007E3921 /* InitCommandAckPacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F7CEDE236DE31C007E3921 /* InitCommandAckPacket.swift */; };
 		B1FB47FC209088FD00C33C86 /* SonyCameraAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB47FB209088FD00C33C86 /* SonyCameraAPIClient.swift */; };
 		B1FB47FD209088FD00C33C86 /* SonyCameraAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB47FB209088FD00C33C86 /* SonyCameraAPIClient.swift */; };
 		B1FB47FF209089CA00C33C86 /* CameraClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB47FE209089CA00C33C86 /* CameraClient.swift */; };
@@ -341,6 +345,8 @@
 		B1F7CEC8236D81A7007E3921 /* SonyCameraDeviceInfoParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SonyCameraDeviceInfoParser.swift; sourceTree = "<group>"; };
 		B1F7CECB236D8261007E3921 /* SonyPTPIPCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SonyPTPIPCamera.swift; sourceTree = "<group>"; };
 		B1F7CECE236D8968007E3921 /* SonyCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SonyCamera.swift; sourceTree = "<group>"; };
+		B1F7CEDB236DE268007E3921 /* ByteBuffer+PacketParsing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ByteBuffer+PacketParsing.swift"; sourceTree = "<group>"; };
+		B1F7CEDE236DE31C007E3921 /* InitCommandAckPacket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitCommandAckPacket.swift; sourceTree = "<group>"; };
 		B1FB47FB209088FD00C33C86 /* SonyCameraAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SonyCameraAPIClient.swift; sourceTree = "<group>"; };
 		B1FB47FE209089CA00C33C86 /* CameraClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraClient.swift; sourceTree = "<group>"; };
 		B1FB4801209089D800C33C86 /* AVContentClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AVContentClient.swift; sourceTree = "<group>"; };
@@ -587,7 +593,8 @@
 			isa = PBXGroup;
 			children = (
 				B1F7CEB6236CD326007E3921 /* ByteBuffer.swift */,
-				B1F7CEB4236CD325007E3921 /* Packet.swift */,
+				B1F7CEDB236DE268007E3921 /* ByteBuffer+PacketParsing.swift */,
+				B1F7CED3236DE1F1007E3921 /* Packets */,
 				B1F7CEB7236CD326007E3921 /* PacketParser.swift */,
 				B1F7CEB5236CD326007E3921 /* PTPIPClient.swift */,
 			);
@@ -610,6 +617,15 @@
 				B1F7CEC8236D81A7007E3921 /* SonyCameraDeviceInfoParser.swift */,
 			);
 			path = "XML Parsers";
+			sourceTree = "<group>";
+		};
+		B1F7CED3236DE1F1007E3921 /* Packets */ = {
+			isa = PBXGroup;
+			children = (
+				B1F7CEB4236CD325007E3921 /* Packet.swift */,
+				B1F7CEDE236DE31C007E3921 /* InitCommandAckPacket.swift */,
+			);
+			path = Packets;
 			sourceTree = "<group>";
 		};
 		B1FB47E720906CDB00C33C86 /* API */ = {
@@ -919,6 +935,7 @@
 			files = (
 				B11D8E7321B9300F00719019 /* SimulatedCamera.swift in Sources */,
 				B1EF4CAD20A3140A00EEDE3E /* BeepMode.swift in Sources */,
+				B1F7CEDC236DE268007E3921 /* ByteBuffer+PacketParsing.swift in Sources */,
 				B1F7CEC6236D817E007E3921 /* SonyTransferDeviceParser.swift in Sources */,
 				B100E1C020A0E8F1004F7AB8 /* WindNoiseReduction.swift in Sources */,
 				B1561ED120976B850013D122 /* ShootMode.swift in Sources */,
@@ -945,6 +962,7 @@
 				B1561ED420976F7B0013D122 /* Capture.swift in Sources */,
 				B1316A742089C1D6006BD136 /* UDPClient.swift in Sources */,
 				B100E1BD20A0DE7D004F7AB8 /* IntervalTime.swift in Sources */,
+				B1F7CEDF236DE31C007E3921 /* InitCommandAckPacket.swift in Sources */,
 				B100E1DE20A1A60A004F7AB8 /* RemotePlayback.swift in Sources */,
 				B1D606542181225E001719EC /* UDPDeviceDiscoverer.swift in Sources */,
 				B16064A821E3A00A00AE3483 /* SonyTransferDevice.swift in Sources */,
@@ -1021,6 +1039,7 @@
 			files = (
 				B1A1AA3E20A4E02200FD0A4A /* Zoom.swift in Sources */,
 				B1FB4812209096FB00C33C86 /* Result.swift in Sources */,
+				B1F7CEDD236DE274007E3921 /* ByteBuffer+PacketParsing.swift in Sources */,
 				B1F7CEC7236D817E007E3921 /* SonyTransferDeviceParser.swift in Sources */,
 				B115EF2A21E9F27900667FB7 /* ShutterSpeedFormatter.swift in Sources */,
 				B1A1AA3B20A4E02200FD0A4A /* ViewAngle.swift in Sources */,
@@ -1047,6 +1066,7 @@
 				B1FB47FD209088FD00C33C86 /* SonyCameraAPIClient.swift in Sources */,
 				B1FB4803209089D800C33C86 /* AVContentClient.swift in Sources */,
 				B1A1AA3420A4E02200FD0A4A /* Shutter.swift in Sources */,
+				B1F7CEE0236DE31C007E3921 /* InitCommandAckPacket.swift in Sources */,
 				B115EF2421E9F26600667FB7 /* Errors.swift in Sources */,
 				B1A1AA2920A4E02200FD0A4A /* InfraredRemoteControl.swift in Sources */,
 				B1A1AA2720A4E02200FD0A4A /* FlipSetting.swift in Sources */,

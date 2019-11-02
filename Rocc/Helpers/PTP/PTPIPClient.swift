@@ -21,6 +21,8 @@ final class PTPIPClient: NSObject {
     
     var guid: String
     
+    var byteBuffer: ByteBuffer = ByteBuffer()
+    
     init?(camera: Camera, port: Int = 15740) {
         
         guard let host = camera.baseURL?.host else { return nil }
@@ -66,6 +68,8 @@ final class PTPIPClient: NSObject {
     var connectCallback: ((_ error: Error?) -> Void)?
     
     func connect(callback: @escaping (_ error: Error?) -> Void) {
+        
+        byteBuffer.clear()
         connectCallback = callback
         
         let guidData = guid.data(using: .utf8)
@@ -78,7 +82,7 @@ final class PTPIPClient: NSObject {
     
     fileprivate func readAvailableBytes(stream: InputStream) {
         
-        var bytes: [UInt8] = []
+        var bytes: [Byte] = Array<Byte>.init(repeating: .zero, count: 1024)
         
         while stream.hasBytesAvailable {
             
@@ -90,9 +94,15 @@ final class PTPIPClient: NSObject {
                 }
             }
             
-            //Construct the Message object
+            let nBytes = min(numberOfBytesRead, bytes.count)
+            let actualBytes = bytes[0..<nBytes]
             
+            byteBuffer.append(bytes: Array(actualBytes))
         }
+        
+        guard let packets = byteBuffer.parsePackets(), !packets.isEmpty else { return }
+        
+        print("Got packets", packets)
     }
 }
 

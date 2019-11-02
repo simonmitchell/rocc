@@ -16,10 +16,20 @@ extension ByteBuffer {
     }
 }
 
-struct Packet {
+protocol Packetable {
+        
+    var name: Packet.Name { get }
+    
+    var length: DWord { get }
+    
+    init?(length: DWord, name: Packet.Name, data: ByteBuffer)
+}
+    
+struct Packet: Packetable {
     
     enum Name: DWord {
-        case initCommandRequest = 1
+        case unknown
+        case initCommandRequest
         case initCommandAck
         case initEventRequest
         case initEventAck
@@ -35,9 +45,51 @@ struct Packet {
         case pong
     }
     
-    private static let headerLength: UInt = 8
+    private static let headerLength: Int = 8
     
     var data = ByteBuffer()
+    
+    let length: DWord
+    
+    let name: Name
+    
+    let unparsedData: ByteBuffer
+    
+    private static let nameToType: [Packet.Name : Packetable.Type] = [
+        .initCommandAck: InitCommandAckPacket.self
+    ]
+    
+    static func parse(from data: ByteBuffer) -> Packetable? {
+        
+        guard data.length >= 8 else {
+            return nil
+        }
+       
+        guard let length = data[dWord: 0] else { return nil }
+       
+        guard let typeInt = data[dWord: 4] else { return nil }
+        guard let type = Name(rawValue: typeInt) else { return nil }
+              
+        let unparsedData = data.slice(Packet.headerLength, Int(length))
+        
+        guard let packetType = nameToType[type] else {
+            return Packet(length: length, name: type, data: unparsedData)
+        }
+        
+        return packetType.init(length: length, name: type, data: unparsedData)
+    }
+        
+    init?(length: DWord, name: Packet.Name, data: ByteBuffer) {
+        self.length = length
+        self.name = name
+        self.unparsedData = data
+    }
+    
+    init() {
+        length = 0
+        name = .unknown
+        unparsedData = ByteBuffer()
+    }
     
     /// Creates the initial packet to setup the command loop for PTP-IP
     ///
@@ -53,7 +105,7 @@ struct Packet {
         
         var packet = Packet()
         for i in 0..<16 {
-            packet.data[headerLength + UInt(i)] = guid[safe: UInt(i)] ?? 0
+            packet.data[UInt(headerLength + i)] = guid[safe: UInt(i)] ?? 0
         }
         
         packet.data.append(wString: String(name.prefix(maxNameLength)))
@@ -68,7 +120,7 @@ struct Packet {
     static func initEventPacket(sessionId: DWord) -> Packet {
         
         var packet = Packet()
-        packet.data[dWord: headerLength] = sessionId
+        packet.data[dWord: UInt(headerLength)] = sessionId
         packet.data.set(header: .initEventRequest)
         return packet
     }
@@ -76,7 +128,7 @@ struct Packet {
     static func commandPacket(code commandCode: DWord, arguments: [DWord]?, transactionId: DWord = 0) -> Packet {
         
         var packet = Packet()
-        packet.data[dWord: headerLength] = 1
+        packet.data[dWord: UInt(headerLength)] = 1
         packet.data.append(dWord: commandCode)
         packet.data.append(dWord: transactionId)
         
@@ -92,7 +144,7 @@ struct Packet {
     static func startDataPacket(size: DWord, transactionId: DWord = 0) -> Packet {
         
         var packet = Packet()
-        packet.data[dWord: headerLength] = transactionId
+        packet.data[dWord: UInt(headerLength)] = transactionId
         packet.data.append(dWord: size)
         packet.data.set(header: .startDataPacket)
         
@@ -102,7 +154,7 @@ struct Packet {
     static func endDataPacket(payloadData: Data, transactionId: DWord = 0) -> Packet {
         
         var packet = Packet()
-        packet.data[dWord: headerLength] = transactionId
+        packet.data[dWord: UInt(headerLength)] = transactionId
         packet.data.append(data: payloadData)
         packet.data.set(header: .endDataPacket)
         
