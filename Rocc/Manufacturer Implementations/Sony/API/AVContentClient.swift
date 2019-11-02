@@ -146,7 +146,7 @@ internal final class AVContentClient: ServiceClient {
     
     typealias SchemesCompletion = (_ result: Result<[String]>) -> Void
     
-    internal convenience init?(apiInfo: SonyCameraDevice.ApiDeviceInfo) {
+    internal convenience init?(apiInfo: SonyAPICameraDevice.ApiDeviceInfo) {
         guard let cameraService = apiInfo.services.first(where: { $0.type == "avContent" }) else { return nil }
         self.init(service: cameraService)
     }

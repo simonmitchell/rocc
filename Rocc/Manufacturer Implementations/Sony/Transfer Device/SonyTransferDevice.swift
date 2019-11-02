@@ -27,7 +27,7 @@ internal final class SonyTransferDevice {
     
     var model: String?
     
-    var modelEnum: SonyCameraDevice.Model?
+    var modelEnum: SonyCamera.Model?
     
     var firmwareVersion: String?
     
@@ -69,7 +69,7 @@ internal final class SonyTransferDevice {
         identifier = udn ?? NSUUID().uuidString
         
         if let model = model {
-            modelEnum = SonyCameraDevice.Model(rawValue: model)
+            modelEnum = SonyCamera.Model(rawValue: model)
         } else {
             modelEnum = nil
         }

@@ -52,7 +52,7 @@ internal class ServiceClient {
 
     internal let requestController: RequestController
     
-    internal let service: SonyCameraDevice.ApiDeviceInfo.Service
+    internal let service: SonyAPICameraDevice.ApiDeviceInfo.Service
     
     internal var versions: [String]?
     
@@ -60,7 +60,7 @@ internal class ServiceClient {
     
     internal var availableApiList: [String]?
     
-    internal init?(service: SonyCameraDevice.ApiDeviceInfo.Service) {
+    internal init?(service: SonyAPICameraDevice.ApiDeviceInfo.Service) {
         requestController = RequestController(baseURL: service.url)
         requestController.logger = Logger.shared
         self.service = service

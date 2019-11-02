@@ -714,7 +714,7 @@ internal class CameraClient: ServiceClient {
     
     typealias GenericCompletion = (_ error: Error?) -> Void
     
-    internal convenience init?(apiInfo: SonyCameraDevice.ApiDeviceInfo) {
+    internal convenience init?(apiInfo: SonyAPICameraDevice.ApiDeviceInfo) {
         guard let cameraService = apiInfo.services.first(where: { $0.type == "camera" }) else { return nil }
         self.init(service: cameraService)
     }
