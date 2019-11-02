@@ -14,22 +14,6 @@ import ThunderRequestMac
 #endif
 import os
 
-extension SonyCameraDevice {
-    
-    func update(with deviceInfo: SonyDeviceInfo?) {
-        
-        // Keep name if modelEnum currently nil as user has renamed camera!
-        self.name = modelEnum == nil ? name : (deviceInfo?.model?.friendlyName ?? name)
-        self.modelEnum = deviceInfo?.model ?? modelEnum
-        if let modelEnum = deviceInfo?.model {
-            self.model = modelEnum.friendlyName
-        }
-        self.lensModelName = deviceInfo?.lensModelName
-        self.firmwareVersion = deviceInfo?.firmwareVersion
-        self.remoteAppVersion = deviceInfo?.installedPlayMemoriesApps.first(where :{ $0.name == "Smart Remote Control" })?.version
-    }
-}
-
 extension SonyTransferDevice {
     
     func updated(with deviceInfo: SonyDeviceInfo?) -> SonyTransferDevice {
@@ -177,6 +161,11 @@ internal final class SonyCameraDiscoverer: UDPDeviceDiscoverer {
         let parser = SonyCameraParser(xmlString: string)
         parser.parse { [weak self] (cameraDevice, error) in
             
+            guard let camera = cameraDevice as? Camera else {
+                callback(false)
+                return
+            }
+            
             guard let strongSelf = self else {
                 return
             }
@@ -188,8 +177,9 @@ internal final class SonyCameraDiscoverer: UDPDeviceDiscoverer {
             }
             
             callback(true)
+            
             guard let digitalImagingService = device.services?.first(where: { $0.type == .digitalImaging }) else {
-                strongSelf.sendDeviceToDelegate(device)
+                strongSelf.sendDeviceToDelegate(camera)
                 return
             }
             
@@ -202,7 +192,7 @@ internal final class SonyCameraDiscoverer: UDPDeviceDiscoverer {
                 }
                 
                 guard let string = response?.string else {
-                    _strongSelf.sendDeviceToDelegate(device)
+                    _strongSelf.sendDeviceToDelegate(camera)
                     return
                 }
                 
@@ -214,7 +204,7 @@ internal final class SonyCameraDiscoverer: UDPDeviceDiscoverer {
                     }
                     
                     device.update(with: deviceInfo)
-                    __strongSelf.sendDeviceToDelegate(device)
+                    __strongSelf.sendDeviceToDelegate(camera)
                 })
             })
             

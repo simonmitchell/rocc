@@ -16,7 +16,7 @@ internal class SonyCameraAPIClient {
     
     let system: SystemClient?
     
-    internal init(apiInfo: SonyCameraDevice.ApiDeviceInfo) {
+    internal init(apiInfo: SonyAPICameraDevice.ApiDeviceInfo) {
         
         self.camera = CameraClient(apiInfo: apiInfo)
         self.avContent = AVContentClient(apiInfo: apiInfo)

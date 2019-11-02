@@ -28,33 +28,33 @@ internal struct PlayMemoriesApp {
 
 internal struct SonyDeviceInfo {
     
-    let model: SonyCameraDevice.Model?
+    let model: SonyCamera.Model?
     
     let firmwareVersion: String?
     
     let lensModelName: String?
+    
+    let serverType: String?
+    
+    let serverVersion: String?
+    
+    let macAddress: String?
     
     let installedPlayMemoriesApps: [PlayMemoriesApp]
     
     init(dictionary: [AnyHashable : Any]) {
         
         if let modelString = dictionary["X_ModelName"] as? String {
-            model = SonyCameraDevice.Model(rawValue: modelString)
+            model = SonyCamera.Model(rawValue: modelString)
         } else {
             model = nil
         }
         
-        if let firmwareString = dictionary["X_FirmwareVersion"] as? String {
-            firmwareVersion = firmwareString
-        } else {
-            firmwareVersion = nil
-        }
-        
-        if let lensModel = dictionary["X_LensModelName"] as? String {
-            lensModelName = lensModel
-        } else {
-            lensModelName = nil
-        }
+        firmwareVersion = dictionary["X_FirmwareVersion"] as? String
+        lensModelName = dictionary["X_LensModelName"] as? String
+        serverType = dictionary["X_ServerType"] as? String
+        serverVersion = dictionary["X_ServerVersion"] as? String
+        macAddress = dictionary["X_MacAddress"] as? String
         
         if let apps = dictionary["X_InstalledPlayMemoriesCameraApps"] as? [[AnyHashable : Any]] {
             installedPlayMemoriesApps = apps.compactMap({ PlayMemoriesApp(dictionary: $0) })

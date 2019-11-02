@@ -18,7 +18,7 @@ internal final class SystemClient: ServiceClient {
     
     typealias GenericCompletion = (_ error: Error?) -> Void
     
-    internal convenience init?(apiInfo: SonyCameraDevice.ApiDeviceInfo) {
+    internal convenience init?(apiInfo: SonyAPICameraDevice.ApiDeviceInfo) {
         guard let systemService = apiInfo.services.first(where: { $0.type == "system" }) else { return nil }
         self.init(service: systemService)
     }

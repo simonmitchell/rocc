@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension SonyCameraDevice {
+extension SonyCamera {
     
     enum Model: String, CaseIterable {
         case a7 = "ILCE-7"
