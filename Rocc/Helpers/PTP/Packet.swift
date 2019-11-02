@@ -57,11 +57,13 @@ struct Packet {
         }
         
         packet.data.append(wString: String(name.prefix(maxNameLength)))
-        packet.data.append(dWord: 1)
+        //TODO: This should be a version number, in this case hard-coded to 1.0
+        packet.data.append(word: 0)
+        packet.data.append(word: 1)
         packet.data.set(header: .initCommandRequest)
         
         print("Packet data", packet.data.bytes.compactMap({ $0 }), packet.data.toHex)
-        
+                
         return packet
     }
     
