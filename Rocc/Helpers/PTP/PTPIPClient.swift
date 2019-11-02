@@ -15,13 +15,20 @@ final class PTPIPClient: NSObject {
     
     let eventWriteStream: OutputStream
     
-//    let controlReadStream: InputStream
+    let controlReadStream: InputStream
     
-//    let controlWriteStream: OutputStream
+    let controlWriteStream: OutputStream
+    
+    var guid: String
     
     init?(camera: Camera, port: Int = 15740) {
         
         guard let host = camera.baseURL?.host else { return nil }
+        
+        // Remove any unwanted components from camera's identifier
+        guid = camera.identifier.replacingOccurrences(of: "uuid", with: "").components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
+        // Trim GUID to 16 characters
+        guid = String(guid.suffix(16))
         
         var eReadStream: InputStream?
         var eWriteStream: OutputStream?
@@ -29,33 +36,31 @@ final class PTPIPClient: NSObject {
         var cWriteStream: OutputStream?
         
         Stream.getStreamsToHost(withName: host, port: port, inputStream: &eReadStream, outputStream: &eWriteStream)
-//        Stream.getStreamsToHost(withName: host, port: port, inputStream: &cReadStream, outputStream: &cWriteStream)
+        Stream.getStreamsToHost(withName: host, port: port, inputStream: &cReadStream, outputStream: &cWriteStream)
         
-        guard let _eReadStream = eReadStream, let _eWriteStream = eWriteStream/*, let _cReadStream = cReadStream, let _cWriteStream = cWriteStream*/ else {
+        guard let _eReadStream = eReadStream, let _eWriteStream = eWriteStream, let _cReadStream = cReadStream, let _cWriteStream = cWriteStream else {
             return nil
         }
         
         eventReadStream = _eReadStream
         eventWriteStream = _eWriteStream
-//        controlReadStream = _cReadStream
-//        controlWriteStream = _cWriteStream
+        controlReadStream = _cReadStream
+        controlWriteStream = _cWriteStream
         
         super.init()
         
         eventReadStream.delegate = self
         eventWriteStream.delegate = self
-//        controlReadStream.delegate = self
-//        controlWriteStream.delegate = self
+        controlReadStream.delegate = self
+        controlWriteStream.delegate = self
         
         eventReadStream.schedule(in: RunLoop.current, forMode: .default)
         eventWriteStream.schedule(in: RunLoop.current, forMode: .default)
-//        controlReadStream.schedule(in: RunLoop.current, forMode: .default)
-//        controlWriteStream.schedule(in: RunLoop.current, forMode: .default)
-        
-        eventReadStream.open()
-        eventWriteStream.open()
-//        controlReadStream.open()
-//        controlWriteStream.open()
+        controlReadStream.schedule(in: RunLoop.current, forMode: .default)
+        controlWriteStream.schedule(in: RunLoop.current, forMode: .default)
+    
+        controlReadStream.open()
+        controlWriteStream.open()
     }
     
     var connectCallback: ((_ error: Error?) -> Void)?
@@ -63,9 +68,12 @@ final class PTPIPClient: NSObject {
     func connect(callback: @escaping (_ error: Error?) -> Void) {
         connectCallback = callback
         
-        let guid = "ff:ff:52:54:00:b6:fd:a9:ff:ff:52:3c:28:07:a9:3a".data(using: .utf8)
-        let connectPacket = Packet.initCommandPacket(guid: guid?.toBytes ?? [], name: "Test")
-        eventWriteStream.write(connectPacket)
+        let guidData = guid.data(using: .utf8)
+        let connectPacket = Packet.initCommandPacket(guid: guidData?.toBytes ?? [], name: UIDevice.current.name)
+        controlWriteStream.write(connectPacket)
+        
+//        eventReadStream.open()
+//        eventWriteStream.open()
     }
     
     fileprivate func readAvailableBytes(stream: InputStream) {

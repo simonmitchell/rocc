@@ -83,7 +83,7 @@ public protocol Camera {
     var apiVersion: String? { get }
     
     /// The base url of the camera
-    var baseURL: URL? { get }
+    var baseURL: URL? { get set }
     
     /// The manufacturer of the camera.
     var manufacturer: String { get }

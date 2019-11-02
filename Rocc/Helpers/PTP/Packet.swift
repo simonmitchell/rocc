@@ -60,6 +60,8 @@ struct Packet {
         packet.data.append(dWord: 1)
         packet.data.set(header: .initCommandRequest)
         
+        print("Packet data", packet.data.bytes.compactMap({ $0 }), packet.data.toHex)
+        
         return packet
     }
     

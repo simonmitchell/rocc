@@ -14,7 +14,7 @@ internal final class SonyPTPIPCameraDevice: SonyCamera {
     
     var apiVersion: String? = nil
     
-    var baseURL: URL? = nil
+    var baseURL: URL?
     
     var manufacturer: String
     
@@ -39,6 +39,8 @@ internal final class SonyPTPIPCameraDevice: SonyCamera {
     var connectionMode: ConnectionMode = .remoteControl
     
     let apiDeviceInfo: ApiDeviceInfo
+    
+    var ptpIPClient: PTPIPClient?
     
     struct ApiDeviceInfo {
         
@@ -106,6 +108,10 @@ extension SonyPTPIPCameraDevice: Camera {
     
     func connect(completion: @escaping SonyPTPIPCameraDevice.ConnectedCompletion) {
         
+        ptpIPClient = PTPIPClient(camera: self)
+        ptpIPClient?.connect(callback: { [weak self] (error) in
+            
+        })
     }
     
     func supportsFunction<T>(_ function: T, callback: @escaping ((Bool?, Error?, [T.SendType]?) -> Void)) where T : CameraFunction {

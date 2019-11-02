@@ -12,6 +12,13 @@ typealias Byte = UInt8
 typealias Word = UInt16
 typealias DWord = UInt32
 
+infix operator >>> : BitwiseShiftPrecedence
+
+func >>> (lhs: Int64, rhs: Int64) -> Int64 {
+    return Int64(bitPattern: UInt64(bitPattern: lhs) >> UInt64(rhs))
+}
+
+
 extension Data {
     /// Converts a `Data` object to it's `UInt8` byte array equivalent
     var toBytes: [Byte] {
@@ -78,7 +85,7 @@ struct ByteBuffer {
     mutating func append(wString string: String) {
         
         let lengthWithNull = string.count + 1;
-        append(byte: UInt8(lengthWithNull));
+        append(byte: Byte(lengthWithNull));
         string.forEach { (character) in
             append(wChar: character)
         }
@@ -94,6 +101,20 @@ struct ByteBuffer {
     }
     
     //MARK: - Reading -
+    
+    //TODO: Fix this for debugging!
+//    var toHex: String {
+//        var mapping = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"]
+//        var result = "";
+//        bytes.forEach { (byte) in
+//            guard let _byte = byte else {
+//                result += "00"
+//                return
+//            }
+//            result += mapping[_byte >>> 4] + mapping[_byte % 16] + " "
+//        }
+//        return result
+//    }
     
     var toString: String {
         var s = ""
