@@ -20,6 +20,8 @@ struct InitCommandAckPacket: Packetable {
     
     let deviceName: String?
     
+    var data: ByteBuffer = ByteBuffer()
+    
     init?(length: DWord, name: Packet.Name, data: ByteBuffer) {
         
         self.name = name
@@ -28,7 +30,7 @@ struct InitCommandAckPacket: Packetable {
         guard let sessionId = data[dWord: 0] else { return nil }
         self.sessionId = sessionId
         
-        let guidData = data.slice(4, 16 + 4)
+        let guidData = data.sliced(4, 16 + 4)
         guard guidData.length == 16 else { return nil }
         
         self.guid = guidData.bytes.compactMap({ $0 })

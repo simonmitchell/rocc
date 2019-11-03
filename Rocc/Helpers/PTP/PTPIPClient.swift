@@ -14,9 +14,9 @@ final class PTPIPClient: NSObject {
     
     fileprivate let ptpClientLog = OSLog(subsystem: "com.yellow-brick-bear.rocc", category: "PTPIPClient")
     
-    let eventReadStream: InputStream
+    var eventReadStream: InputStream?
     
-    let eventWriteStream: OutputStream
+    var eventWriteStream: OutputStream?
     
     let controlReadStream: InputStream
     
@@ -28,41 +28,40 @@ final class PTPIPClient: NSObject {
     
     var openStreams: [Stream] = []
     
+    let host: String
+    
+    let port: Int
+    
     init?(camera: Camera, port: Int = 15740) {
         
         guard let host = camera.baseURL?.host else { return nil }
+        
+        self.port = port
+        self.host = host
         
         // Remove any unwanted components from camera's identifier
         guid = camera.identifier.replacingOccurrences(of: "uuid", with: "").components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
         // Trim GUID to 16 characters
         guid = String(guid.suffix(16))
         
-        var eReadStream: InputStream?
-        var eWriteStream: OutputStream?
+        
         var cReadStream: InputStream?
         var cWriteStream: OutputStream?
         
-        Stream.getStreamsToHost(withName: host, port: port, inputStream: &eReadStream, outputStream: &eWriteStream)
         Stream.getStreamsToHost(withName: host, port: port, inputStream: &cReadStream, outputStream: &cWriteStream)
         
-        guard let _eReadStream = eReadStream, let _eWriteStream = eWriteStream, let _cReadStream = cReadStream, let _cWriteStream = cWriteStream else {
+        guard let _cReadStream = cReadStream, let _cWriteStream = cWriteStream else {
             return nil
         }
-        
-        eventReadStream = _eReadStream
-        eventWriteStream = _eWriteStream
+
         controlReadStream = _cReadStream
         controlWriteStream = _cWriteStream
         
         super.init()
         
-        eventReadStream.delegate = self
-        eventWriteStream.delegate = self
         controlReadStream.delegate = self
         controlWriteStream.delegate = self
         
-        eventReadStream.schedule(in: RunLoop.current, forMode: .default)
-        eventWriteStream.schedule(in: RunLoop.current, forMode: .default)
         controlReadStream.schedule(in: RunLoop.current, forMode: .default)
         controlWriteStream.schedule(in: RunLoop.current, forMode: .default)
     
@@ -74,19 +73,92 @@ final class PTPIPClient: NSObject {
     
     func connect(callback: @escaping (_ error: Error?) -> Void) {
         
+        pendingControlPackets = []
+        pendingEventPackets = []
         openStreams = []
         byteBuffer.clear()
         connectCallback = callback
         
         let guidData = guid.data(using: .utf8)
         let connectPacket = Packet.initCommandPacket(guid: guidData?.toBytes ?? [], name: UIDevice.current.name)
-        controlWriteStream.write(connectPacket)
+        sendControlPacket(connectPacket)
         
         Logger.log(message: "Sending InitCommandPacket to PTP IP Device", category: "PTPIPClient")
         os_log("Sending InitCommandPacket to PTP IP Device", log: ptpClientLog, type: .debug)
     }
     
+    private func setupEventStreams() {
+        
+        var eReadStream: InputStream?
+        var eWriteStream: OutputStream?
+        
+        Stream.getStreamsToHost(withName: host, port: port, inputStream: &eReadStream, outputStream: &eWriteStream)
+        
+        guard let _eReadStream = eReadStream, let _eWriteStream = eWriteStream else {
+            return
+        }
+        
+        eventReadStream = _eReadStream
+        eventWriteStream = _eWriteStream
+        
+        eventReadStream!.delegate = self
+        eventWriteStream!.delegate = self
+        
+        eventReadStream!.schedule(in: RunLoop.current, forMode: .default)
+        eventWriteStream!.schedule(in: RunLoop.current, forMode: .default)
+        
+        eventReadStream!.open()
+        eventWriteStream!.open()
+    }
+    
+    fileprivate var pendingEventPackets: [Packetable] = []
+    
+    fileprivate var pendingControlPackets: [Packetable] = []
+    
+    fileprivate func sendQueuedEventPackets() {
+        guard let eventWriteStream = eventWriteStream else { return }
+        for (index, packet) in pendingEventPackets.enumerated() {
+            let response = eventWriteStream.write(packet)
+            guard response == packet.length else {
+                break
+            }
+            pendingEventPackets.remove(at: index)
+        }
+    }
+    
+    fileprivate func sendQueuedControlPackets() {
+        for (index, packet) in pendingControlPackets.enumerated() {
+            let response = controlWriteStream.write(packet)
+            guard response == packet.length else {
+                break
+            }
+            pendingControlPackets.remove(at: index)
+        }
+    }
+    
     var onEventStreamsOpened: (() -> Void)?
+    
+    fileprivate func sendEventPacket(_ packet: Packetable) {
+        
+        guard let eventWriteStream = eventWriteStream else {
+            return
+        }
+        
+        guard eventWriteStream.hasSpaceAvailable else {
+            pendingEventPackets.append(packet)
+            return
+        }
+        eventWriteStream.write(packet)
+    }
+    
+    fileprivate func sendControlPacket(_ packet: Packetable) {
+        
+        guard controlWriteStream.hasSpaceAvailable else {
+            pendingControlPackets.append(packet)
+            return
+        }
+        controlWriteStream.write(packet)
+    }
     
     fileprivate func handle(packet: Packetable) {
         
@@ -95,13 +167,19 @@ final class PTPIPClient: NSObject {
             
             onEventStreamsOpened = { [weak self] in
                 let initEventPacket = Packet.initEventPacket(sessionId: initCommandAckPacket.sessionId)
-                self?.eventWriteStream.write(initEventPacket)
+                self?.sendEventPacket(initEventPacket)
             }
             
-            eventReadStream.open()
-            eventWriteStream.open()
+            setupEventStreams()
             
         default:
+            switch packet.name {
+            case .initEventAck:
+                // We're done with setting up sockets here, any further handshake should be done by the caller of `connect`
+                connectCallback?(nil)
+            default:
+                break
+            }
             break
         }
     }
@@ -139,7 +217,7 @@ final class PTPIPClient: NSObject {
 }
 
 extension OutputStream {
-    @discardableResult func write(_ packet: Packet) -> Int {
+    @discardableResult func write(_ packet: Packetable) -> Int {
         var bytes = packet.data.bytes.compactMap({ $0 })
         let response = write(&bytes, maxLength: bytes.count)
         return response
@@ -152,7 +230,20 @@ extension PTPIPClient: StreamDelegate {
         
         switch eventCode {
         case Stream.Event.errorOccurred:
+            guard let error = aStream.streamError else { return }
+            print("Stream error \(error.localizedDescription), \((error as NSError).code)")
             break
+        case Stream.Event.hasSpaceAvailable:
+            switch aStream {
+            case eventWriteStream:
+                sendQueuedEventPackets()
+                break
+            case controlWriteStream:
+                sendQueuedControlPackets()
+                break
+            default:
+                break
+            }
         case Stream.Event.hasBytesAvailable:
             readAvailableBytes(stream: aStream as! InputStream)
             break
@@ -165,6 +256,9 @@ extension PTPIPClient: StreamDelegate {
             default:
                 break
             }
+            break
+        case Stream.Event.endEncountered:
+            print("End encountered!", aStream)
             break
         default:
             break

@@ -10,7 +10,7 @@ import Foundation
 
 extension ByteBuffer {
     
-    func parsePackets(removingParsedData: Bool = true) -> [Packetable]? {
+    mutating func parsePackets(removingParsedData removeParsed: Bool = true) -> [Packetable]? {
         
         // Packets have min length of 8
         
@@ -26,12 +26,16 @@ extension ByteBuffer {
             offset += Int(packet.length)
         }
         
+        if removeParsed {
+            slice(offset)
+        }
+        
         return packets.isEmpty ? nil : packets
     }
     
     func parsePacket(offset: Int) -> (packet: Packetable, length: DWord)? {
         guard length >= 8 else { return nil }
-        let packetData = slice(offset)
+        let packetData = sliced(offset)
         guard let packet = Packet.parse(from: packetData) else {
             return nil
         }

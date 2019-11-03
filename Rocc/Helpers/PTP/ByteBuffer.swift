@@ -103,12 +103,19 @@ struct ByteBuffer {
         setLittleEndian(offset: offset, value: UInt(value), nBytes: 2)
     }
     
-    func slice(_ offset: Int, _ end: Int? = nil) -> ByteBuffer {
+    func sliced(_ offset: Int, _ end: Int? = nil) -> ByteBuffer {
         let internalEnd = end ?? bytes.endIndex
         let fixedOffset = max(offset, bytes.startIndex)
         let fixedEnd = min(internalEnd, bytes.endIndex)
         guard fixedOffset < bytes.count else { return ByteBuffer() }
         return ByteBuffer(bytes: Array(bytes[fixedOffset..<fixedEnd]))
+    }
+    
+    mutating func slice(_ offset: Int, _ end: Int? = nil) {
+        let internalEnd = end ?? bytes.endIndex
+        let fixedOffset = max(offset, bytes.startIndex)
+        let fixedEnd = min(internalEnd, bytes.endIndex)
+        bytes = Array(bytes[fixedOffset..<fixedEnd])
     }
     
     //MARK: - Reading -

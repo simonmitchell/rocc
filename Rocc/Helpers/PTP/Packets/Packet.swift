@@ -22,6 +22,8 @@ protocol Packetable {
     
     var length: DWord { get }
     
+    var data: ByteBuffer { get }
+    
     init?(length: DWord, name: Packet.Name, data: ByteBuffer)
 }
     
@@ -49,8 +51,10 @@ struct Packet: Packetable {
     
     var data = ByteBuffer()
     
-    let length: DWord
-    
+    var length: DWord {
+        return UInt32(data.length)
+    }
+        
     let name: Name
     
     let unparsedData: ByteBuffer
@@ -70,7 +74,7 @@ struct Packet: Packetable {
         guard let typeInt = data[dWord: 4] else { return nil }
         guard let type = Name(rawValue: typeInt) else { return nil }
               
-        let unparsedData = data.slice(Packet.headerLength, Int(length))
+        let unparsedData = data.sliced(Packet.headerLength, Int(length))
         
         guard let packetType = nameToType[type] else {
             return Packet(length: length, name: type, data: unparsedData)
@@ -80,13 +84,12 @@ struct Packet: Packetable {
     }
         
     init?(length: DWord, name: Packet.Name, data: ByteBuffer) {
-        self.length = length
         self.name = name
         self.unparsedData = data
+        self.data.set(header: name)
     }
     
     init() {
-        length = 0
         name = .unknown
         unparsedData = ByteBuffer()
     }
