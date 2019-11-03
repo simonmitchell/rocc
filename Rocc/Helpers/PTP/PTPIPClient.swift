@@ -7,9 +7,12 @@
 //
 
 import Foundation
+import os.log
 
 /// A client for transferring images using the PTP IP protocol
 final class PTPIPClient: NSObject {
+    
+    fileprivate let ptpClientLog = OSLog(subsystem: "com.yellow-brick-bear.rocc", category: "PTPIPClient")
     
     let eventReadStream: InputStream
     
@@ -22,6 +25,8 @@ final class PTPIPClient: NSObject {
     var guid: String
     
     var byteBuffer: ByteBuffer = ByteBuffer()
+    
+    var openStreams: [Stream] = []
     
     init?(camera: Camera, port: Int = 15740) {
         
@@ -69,6 +74,7 @@ final class PTPIPClient: NSObject {
     
     func connect(callback: @escaping (_ error: Error?) -> Void) {
         
+        openStreams = []
         byteBuffer.clear()
         connectCallback = callback
         
@@ -76,8 +82,34 @@ final class PTPIPClient: NSObject {
         let connectPacket = Packet.initCommandPacket(guid: guidData?.toBytes ?? [], name: UIDevice.current.name)
         controlWriteStream.write(connectPacket)
         
-//        eventReadStream.open()
-//        eventWriteStream.open()
+        Logger.log(message: "Sending InitCommandPacket to PTP IP Device", category: "PTPIPClient")
+        os_log("Sending InitCommandPacket to PTP IP Device", log: ptpClientLog, type: .debug)
+    }
+    
+    var onEventStreamsOpened: (() -> Void)?
+    
+    fileprivate func handle(packet: Packetable) {
+        
+        switch packet {
+        case let initCommandAckPacket as InitCommandAckPacket:
+            
+            onEventStreamsOpened = { [weak self] in
+                let initEventPacket = Packet.initEventPacket(sessionId: initCommandAckPacket.sessionId)
+                self?.eventWriteStream.write(initEventPacket)
+            }
+            
+            eventReadStream.open()
+            eventWriteStream.open()
+            
+        default:
+            break
+        }
+    }
+    
+    fileprivate func handle(packets: [Packetable]) {
+        packets.forEach { (packet) in
+            handle(packet: packet)
+        }
     }
     
     fileprivate func readAvailableBytes(stream: InputStream) {
@@ -102,7 +134,7 @@ final class PTPIPClient: NSObject {
         
         guard let packets = byteBuffer.parsePackets(), !packets.isEmpty else { return }
         
-        print("Got packets", packets)
+        handle(packets: packets)
     }
 }
 
@@ -125,6 +157,14 @@ extension PTPIPClient: StreamDelegate {
             readAvailableBytes(stream: aStream as! InputStream)
             break
         case Stream.Event.openCompleted:
+            switch aStream {
+            case eventReadStream, eventWriteStream:
+                openStreams.append(aStream)
+                guard openStreams.count == 2 else { return }
+                self.onEventStreamsOpened?()
+            default:
+                break
+            }
             break
         default:
             break
