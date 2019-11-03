@@ -1,0 +1,40 @@
+//
+//  InitCommandAckPacket.swift
+//  Rocc
+//
+//  Created by Simon Mitchell on 02/11/2019.
+//  Copyright © 2019 Simon Mitchell. All rights reserved.
+//
+
+import Foundation
+
+struct InitCommandAckPacket: Packetable {
+    
+    var name: Packet.Name
+    
+    var length: DWord
+    
+    let guid: [Byte]
+    
+    let sessionId: DWord
+    
+    let deviceName: String?
+    
+    var data: ByteBuffer = ByteBuffer()
+    
+    init?(length: DWord, name: Packet.Name, data: ByteBuffer) {
+        
+        self.name = name
+        self.length = length
+        
+        guard let sessionId = data[dWord: 0] else { return nil }
+        self.sessionId = sessionId
+        
+        let guidData = data.sliced(4, 16 + 4)
+        guard guidData.length == 16 else { return nil }
+        
+        self.guid = guidData.bytes.compactMap({ $0 })
+        
+        deviceName = data[wString: 16 + 4]
+    }
+}

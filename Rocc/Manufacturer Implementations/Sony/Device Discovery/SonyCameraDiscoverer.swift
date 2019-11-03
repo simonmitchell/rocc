@@ -161,7 +161,7 @@ internal final class SonyCameraDiscoverer: UDPDeviceDiscoverer {
         let parser = SonyCameraParser(xmlString: string)
         parser.parse { [weak self] (cameraDevice, error) in
             
-            guard let camera = cameraDevice as? Camera else {
+            guard var camera = cameraDevice as? Camera else {
                 callback(false)
                 return
             }
@@ -174,6 +174,11 @@ internal final class SonyCameraDiscoverer: UDPDeviceDiscoverer {
                 callback(false)
                 strongSelf.sendErrorToDelegate(error ?? CameraDiscoveryError.unknown)
                 return
+            }
+            
+            // Some cameras we can't get the base URL from the device description XML files, so set it here
+            if camera.baseURL == nil {
+                camera.baseURL = baseURL
             }
             
             callback(true)

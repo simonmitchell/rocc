@@ -7,70 +7,192 @@
 //
 
 import Foundation
+import os.log
 
 /// A client for transferring images using the PTP IP protocol
 final class PTPIPClient: NSObject {
     
-    let eventReadStream: InputStream
+    fileprivate let ptpClientLog = OSLog(subsystem: "com.yellow-brick-bear.rocc", category: "PTPIPClient")
     
-    let eventWriteStream: OutputStream
+    var eventReadStream: InputStream?
     
-//    let controlReadStream: InputStream
+    var eventWriteStream: OutputStream?
     
-//    let controlWriteStream: OutputStream
+    let controlReadStream: InputStream
+    
+    let controlWriteStream: OutputStream
+    
+    var guid: String
+    
+    var byteBuffer: ByteBuffer = ByteBuffer()
+    
+    var openStreams: [Stream] = []
+    
+    let host: String
+    
+    let port: Int
     
     init?(camera: Camera, port: Int = 15740) {
         
         guard let host = camera.baseURL?.host else { return nil }
         
-        var eReadStream: InputStream?
-        var eWriteStream: OutputStream?
+        self.port = port
+        self.host = host
+        
+        // Remove any unwanted components from camera's identifier
+        guid = camera.identifier.replacingOccurrences(of: "uuid", with: "").components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
+        // Trim GUID to 16 characters
+        guid = String(guid.suffix(16))
+        
+        
         var cReadStream: InputStream?
         var cWriteStream: OutputStream?
         
-        Stream.getStreamsToHost(withName: host, port: port, inputStream: &eReadStream, outputStream: &eWriteStream)
-//        Stream.getStreamsToHost(withName: host, port: port, inputStream: &cReadStream, outputStream: &cWriteStream)
+        Stream.getStreamsToHost(withName: host, port: port, inputStream: &cReadStream, outputStream: &cWriteStream)
         
-        guard let _eReadStream = eReadStream, let _eWriteStream = eWriteStream/*, let _cReadStream = cReadStream, let _cWriteStream = cWriteStream*/ else {
+        guard let _cReadStream = cReadStream, let _cWriteStream = cWriteStream else {
             return nil
         }
-        
-        eventReadStream = _eReadStream
-        eventWriteStream = _eWriteStream
-//        controlReadStream = _cReadStream
-//        controlWriteStream = _cWriteStream
+
+        controlReadStream = _cReadStream
+        controlWriteStream = _cWriteStream
         
         super.init()
         
-        eventReadStream.delegate = self
-        eventWriteStream.delegate = self
-//        controlReadStream.delegate = self
-//        controlWriteStream.delegate = self
+        controlReadStream.delegate = self
+        controlWriteStream.delegate = self
         
-        eventReadStream.schedule(in: RunLoop.current, forMode: .default)
-        eventWriteStream.schedule(in: RunLoop.current, forMode: .default)
-//        controlReadStream.schedule(in: RunLoop.current, forMode: .default)
-//        controlWriteStream.schedule(in: RunLoop.current, forMode: .default)
-        
-        eventReadStream.open()
-        eventWriteStream.open()
-//        controlReadStream.open()
-//        controlWriteStream.open()
+        controlReadStream.schedule(in: RunLoop.current, forMode: .default)
+        controlWriteStream.schedule(in: RunLoop.current, forMode: .default)
+    
+        controlReadStream.open()
+        controlWriteStream.open()
     }
     
     var connectCallback: ((_ error: Error?) -> Void)?
     
     func connect(callback: @escaping (_ error: Error?) -> Void) {
+        
+        pendingControlPackets = []
+        pendingEventPackets = []
+        openStreams = []
+        byteBuffer.clear()
         connectCallback = callback
         
-        let guid = "ff:ff:52:54:00:b6:fd:a9:ff:ff:52:3c:28:07:a9:3a".data(using: .utf8)
-        let connectPacket = Packet.initCommandPacket(guid: guid?.toBytes ?? [], name: "Test")
-        eventWriteStream.write(connectPacket)
+        let guidData = guid.data(using: .utf8)
+        let connectPacket = Packet.initCommandPacket(guid: guidData?.toBytes ?? [], name: UIDevice.current.name)
+        sendControlPacket(connectPacket)
+        
+        Logger.log(message: "Sending InitCommandPacket to PTP IP Device", category: "PTPIPClient")
+        os_log("Sending InitCommandPacket to PTP IP Device", log: ptpClientLog, type: .debug)
+    }
+    
+    private func setupEventStreams() {
+        
+        var eReadStream: InputStream?
+        var eWriteStream: OutputStream?
+        
+        Stream.getStreamsToHost(withName: host, port: port, inputStream: &eReadStream, outputStream: &eWriteStream)
+        
+        guard let _eReadStream = eReadStream, let _eWriteStream = eWriteStream else {
+            return
+        }
+        
+        eventReadStream = _eReadStream
+        eventWriteStream = _eWriteStream
+        
+        eventReadStream!.delegate = self
+        eventWriteStream!.delegate = self
+        
+        eventReadStream!.schedule(in: RunLoop.current, forMode: .default)
+        eventWriteStream!.schedule(in: RunLoop.current, forMode: .default)
+        
+        eventReadStream!.open()
+        eventWriteStream!.open()
+    }
+    
+    fileprivate var pendingEventPackets: [Packetable] = []
+    
+    fileprivate var pendingControlPackets: [Packetable] = []
+    
+    fileprivate func sendQueuedEventPackets() {
+        guard let eventWriteStream = eventWriteStream else { return }
+        for (index, packet) in pendingEventPackets.enumerated() {
+            let response = eventWriteStream.write(packet)
+            guard response == packet.length else {
+                break
+            }
+            pendingEventPackets.remove(at: index)
+        }
+    }
+    
+    fileprivate func sendQueuedControlPackets() {
+        for (index, packet) in pendingControlPackets.enumerated() {
+            let response = controlWriteStream.write(packet)
+            guard response == packet.length else {
+                break
+            }
+            pendingControlPackets.remove(at: index)
+        }
+    }
+    
+    var onEventStreamsOpened: (() -> Void)?
+    
+    fileprivate func sendEventPacket(_ packet: Packetable) {
+        
+        guard let eventWriteStream = eventWriteStream else {
+            return
+        }
+        
+        guard eventWriteStream.hasSpaceAvailable else {
+            pendingEventPackets.append(packet)
+            return
+        }
+        eventWriteStream.write(packet)
+    }
+    
+    fileprivate func sendControlPacket(_ packet: Packetable) {
+        
+        guard controlWriteStream.hasSpaceAvailable else {
+            pendingControlPackets.append(packet)
+            return
+        }
+        controlWriteStream.write(packet)
+    }
+    
+    fileprivate func handle(packet: Packetable) {
+        
+        switch packet {
+        case let initCommandAckPacket as InitCommandAckPacket:
+            
+            onEventStreamsOpened = { [weak self] in
+                let initEventPacket = Packet.initEventPacket(sessionId: initCommandAckPacket.sessionId)
+                self?.sendEventPacket(initEventPacket)
+            }
+            
+            setupEventStreams()
+            
+        default:
+            switch packet.name {
+            case .initEventAck:
+                // We're done with setting up sockets here, any further handshake should be done by the caller of `connect`
+                connectCallback?(nil)
+            default:
+                break
+            }
+            break
+        }
+    }
+    
+    fileprivate func handle(packets: [Packetable]) {
+        packets.forEach { (packet) in
+            handle(packet: packet)
+        }
     }
     
     fileprivate func readAvailableBytes(stream: InputStream) {
         
-        var bytes: [UInt8] = []
+        var bytes: [Byte] = Array<Byte>.init(repeating: .zero, count: 1024)
         
         while stream.hasBytesAvailable {
             
@@ -82,14 +204,20 @@ final class PTPIPClient: NSObject {
                 }
             }
             
-            //Construct the Message object
+            let nBytes = min(numberOfBytesRead, bytes.count)
+            let actualBytes = bytes[0..<nBytes]
             
+            byteBuffer.append(bytes: Array(actualBytes))
         }
+        
+        guard let packets = byteBuffer.parsePackets(), !packets.isEmpty else { return }
+        
+        handle(packets: packets)
     }
 }
 
 extension OutputStream {
-    @discardableResult func write(_ packet: Packet) -> Int {
+    @discardableResult func write(_ packet: Packetable) -> Int {
         var bytes = packet.data.bytes.compactMap({ $0 })
         let response = write(&bytes, maxLength: bytes.count)
         return response
@@ -102,11 +230,35 @@ extension PTPIPClient: StreamDelegate {
         
         switch eventCode {
         case Stream.Event.errorOccurred:
+            guard let error = aStream.streamError else { return }
+            print("Stream error \(error.localizedDescription), \((error as NSError).code)")
             break
+        case Stream.Event.hasSpaceAvailable:
+            switch aStream {
+            case eventWriteStream:
+                sendQueuedEventPackets()
+                break
+            case controlWriteStream:
+                sendQueuedControlPackets()
+                break
+            default:
+                break
+            }
         case Stream.Event.hasBytesAvailable:
             readAvailableBytes(stream: aStream as! InputStream)
             break
         case Stream.Event.openCompleted:
+            switch aStream {
+            case eventReadStream, eventWriteStream:
+                openStreams.append(aStream)
+                guard openStreams.count == 2 else { return }
+                self.onEventStreamsOpened?()
+            default:
+                break
+            }
+            break
+        case Stream.Event.endEncountered:
+            print("End encountered!", aStream)
             break
         default:
             break

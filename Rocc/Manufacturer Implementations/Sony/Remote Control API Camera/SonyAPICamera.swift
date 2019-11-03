@@ -129,9 +129,12 @@ internal final class SonyAPICameraDevice: SonyCamera {
     public var lensModelName: String?
     
     public var baseURL: URL? {
-        return apiDeviceInfo.services.first?.url
+        get {
+            return apiDeviceInfo.services.first?.url
+        }
+        set { }
     }
-    
+        
     var connectionMode: ConnectionMode {
         return .remoteControl
     }
