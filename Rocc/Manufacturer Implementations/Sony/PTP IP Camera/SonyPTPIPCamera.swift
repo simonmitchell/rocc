@@ -66,6 +66,8 @@ internal final class SonyPTPIPCameraDevice: SonyCamera {
         }
     }
     
+    //MARK: - Initialisation -
+    
     override init?(dictionary: [AnyHashable : Any]) {
         
         guard let apiDeviceInfoDict = dictionary["av:X_ScalarWebAPI_DeviceInfo"] as? [AnyHashable : Any], let apiInfo = ApiDeviceInfo(dictionary: apiDeviceInfoDict) else {
@@ -102,7 +104,36 @@ internal final class SonyPTPIPCameraDevice: SonyCamera {
         lensModelName = deviceInfo?.lensModelName
         firmwareVersion = deviceInfo?.firmwareVersion
     }
+    
+    //MARK: - Handshake methods -
+    
+    private func sendStartSessionPacket(completion: @escaping SonyPTPIPCameraDevice.ConnectedCompletion) {
+        
+        // First argument here is the session ID. We don't need a transaction ID because this is the "first"
+        // command we send and so we can use the default 0 value the function provides.
+        let packet = Packet.commandRequestPacket(code: .openSession, arguments: [0x00000001])
+        ptpIPClient?.sendCommandRequestPacket(packet, callback: { [weak self] (response) in
+            guard response.code == .okay else {
+                completion(PTPError.commandRequestFailed, false)
+                return
+            }
+            self?.getDeviceInfo(completion: completion)
+        }, callCallbackForAnyResponse: true)
+    }
+    
+    private func getDeviceInfo(completion: @escaping SonyPTPIPCameraDevice.ConnectedCompletion) {
+        
+        let packet = Packet.commandRequestPacket(code: .getDeviceInfo, arguments: nil, transactionId: 1)
+        
+        ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
+    }
+    
+    enum PTPError: Error {
+        case commandRequestFailed
+    }
 }
+
+//MARK: - Camera protocol conformance -
 
 extension SonyPTPIPCameraDevice: Camera {
     
@@ -110,7 +141,7 @@ extension SonyPTPIPCameraDevice: Camera {
         
         ptpIPClient = PTPIPClient(camera: self)
         ptpIPClient?.connect(callback: { [weak self] (error) in
-            
+            self?.sendStartSessionPacket(completion: completion)
         })
     }
     
