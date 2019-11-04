@@ -199,7 +199,7 @@ extension ByteBuffer {
                     return string.count > 0 ? string : nil
                 }
                 string.append(character)
-                i += 2
+                i += UInt(MemoryLayout<Word>.size)
             }
             return string.count > 0 ? string : nil
         }
@@ -213,7 +213,7 @@ extension ByteBuffer {
             guard let length = self[index] else { return nil }
             var string: String = ""
             for i in 0..<UInt(length) {
-                guard let character = self[wChar: index + 1 + 2 * i], character != "\u{0000}" else {
+                guard let character = self[wChar: index + UInt(MemoryLayout<Byte>.size) + UInt(MemoryLayout<Word>.size) * i], character != "\u{0000}" else {
                     return string.count > 0 ? string : nil
                 }
                 string.append(character)
@@ -233,6 +233,21 @@ extension ByteBuffer {
         }
         set {
             print("Setting of wChar by subscript is not yet supported!")
+        }
+    }
+    
+    subscript (wordArray index: UInt) -> [Word]? {
+        get {
+            guard let length = self[dWord: index] else { return nil }
+            var arrayElements: [Word] = []
+            for i in 0..<UInt(length) {
+                guard let word = self[word: index + UInt(MemoryLayout<DWord>.size) + (UInt(MemoryLayout<Word>.size) * i)] else { continue }
+                arrayElements.append(word)
+            }
+            return arrayElements
+        }
+        set {
+            print("Setting of word array by subscript is not yet supported!")
         }
     }
 }

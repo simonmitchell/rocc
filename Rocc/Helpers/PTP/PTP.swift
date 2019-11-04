@@ -48,6 +48,13 @@ struct PTP {
         case getControlDeviceDesc = 0x9206
         case setControlDeviceB = 0x9207
         case getAllDevicePropData = 0x9209
+        case startMovieRec = 0x920a
+        case endMovieRec = 0x920b
+        case terminateCapture = 0x920c
         case unknownHandshakeRequest = 0x920D
+        case getObjectProperties = 0x9801
+        case getObjectPropertyDescription = 0x9802
+        case getObjectPropertyValue = 0x9803
+        case getObjectPropertyList = 0x9805
     }
 }

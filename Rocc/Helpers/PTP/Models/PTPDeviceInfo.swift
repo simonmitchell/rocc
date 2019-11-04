@@ -23,6 +23,8 @@ extension PTP {
         
         let functionalMode: Word
         
+        let supportedOperations: [PTP.CommandCode]
+        
         /// Allocates device info from a data buffer
         ///
         /// - Note: Credit to [libgphoto2](https://github.com/gphoto/libgphoto2/blob/f55306ff3cc054da193ee1d48c44c95ec283873f/camlibs/ptp2/ptp-pack.c#L369) for breaking down how this works
@@ -47,10 +49,13 @@ extension PTP {
             vendorExtensionDescription = _vendorExtensionDescription
             offset += 1 + UInt(_vendorExtensionDescription.count * 2) + 2
             
-            guard let _functionalMode = data[word:  offset] else { return nil }
+            guard let _functionalMode = data[word: offset] else { return nil }
             functionalMode = _functionalMode
+            offset += 2
             
-            
+            guard let supportedOperationWords = data[wordArray: offset] else { return nil }
+            supportedOperations = supportedOperationWords.compactMap({ PTP.CommandCode(rawValue: $0) })
+            offset += 1 + UInt(supportedOperationWords.count * 2)
         }
     }
 }
