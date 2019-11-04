@@ -34,7 +34,7 @@ extension ByteBuffer {
     }
     
     func parsePacket(offset: Int) -> (packet: Packetable, length: DWord)? {
-        guard length >= 8 else { return nil }
+        guard length - offset >= 8 else { return nil }
         let packetData = sliced(offset)
         guard let packet = Packet.parse(from: packetData) else {
             return nil

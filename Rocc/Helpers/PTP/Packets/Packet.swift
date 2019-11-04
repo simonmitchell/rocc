@@ -63,7 +63,8 @@ struct Packet: Packetable {
         .initCommandAck: InitCommandAckPacket.self,
         .cmdResponse: CommandResponsePacket.self,
         .startDataPacket: StartDataPacket.self,
-        .dataPacket: DataPacket.self
+        .dataPacket: DataPacket.self,
+        .endDataPacket: EndDataPacket.self
     ]
     
     static func parse(from data: ByteBuffer) -> Packetable? {

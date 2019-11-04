@@ -30,7 +30,7 @@ struct StartDataPacket: Packetable {
         guard let transactionId = data[dWord: 0] else { return nil }
         self.transactionId = transactionId
         
-        guard let dataLength = data[dWord: 3] else { return nil }
+        guard let dataLength = data[dWord: 4] else { return nil }
         self.dataLength = dataLength
     }
     

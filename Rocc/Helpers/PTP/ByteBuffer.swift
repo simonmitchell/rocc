@@ -190,13 +190,13 @@ extension ByteBuffer {
         }
     }
     
-    subscript (wString index: UInt) -> String? {
+    subscript (wStringWithoutCount index: UInt) -> String? {
         get {
             var string: String = ""
             var i = index
             while i < bytes.count {
                 guard let character = self[wChar: i], character != "\u{0000}" else {
-                    return string
+                    return string.count > 0 ? string : nil
                 }
                 string.append(character)
                 i += 2
@@ -205,6 +205,23 @@ extension ByteBuffer {
         }
         set {
             print("Setting of wString by subscript is not yet supported!")
+        }
+    }
+    
+    subscript (wString index: UInt) -> String? {
+        get {
+            guard let length = self[index] else { return nil }
+            var string: String = ""
+            for i in 0..<UInt(length) {
+                guard let character = self[wChar: index + 1 + 2 * i], character != "\u{0000}" else {
+                    return string.count > 0 ? string : nil
+                }
+                string.append(character)
+            }
+            return string.count > 0 ? string : nil
+        }
+        set {
+            print("Setting of wString (with length byte) by subscript is not yet supported!")
         }
     }
     

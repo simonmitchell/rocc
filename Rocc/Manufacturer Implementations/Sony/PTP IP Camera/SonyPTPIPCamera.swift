@@ -124,7 +124,12 @@ internal final class SonyPTPIPCameraDevice: SonyCamera {
     private func getDeviceInfo(completion: @escaping SonyPTPIPCameraDevice.ConnectedCompletion) {
         
         let packet = Packet.commandRequestPacket(code: .getDeviceInfo, arguments: nil, transactionId: 1)
-        
+        ptpIPClient?.awaitDataFor(transactionId: 1, callback: { (dataContainer) in
+            guard let deviceInfo = PTP.DeviceInfo(data: dataContainer.data) else {
+                //TODO: Do something? Maybe not!
+                return
+            }
+        })
         ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
     }
     

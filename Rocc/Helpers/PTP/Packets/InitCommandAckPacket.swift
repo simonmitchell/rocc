@@ -35,6 +35,7 @@ struct InitCommandAckPacket: Packetable {
         
         self.guid = guidData.bytes.compactMap({ $0 })
         
-        deviceName = data[wString: 16 + 4]
+        // For some reason the device name isn't sent with a UInt8 beginning byte of it's length.
+        deviceName = data[wStringWithoutCount: 16 + 4]
     }
 }
