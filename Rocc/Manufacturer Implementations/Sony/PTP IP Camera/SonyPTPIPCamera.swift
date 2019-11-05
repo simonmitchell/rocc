@@ -95,6 +95,10 @@ internal final class SonyPTPIPCameraDevice: SonyCamera {
     
     var isConnected: Bool = false
     
+    var deviceInfo: PTP.DeviceInfo?
+    
+    var extDeviceInfo: PTP.SDIOExtDeviceInfo?
+    
     override func update(with deviceInfo: SonyDeviceInfo?) {
         name = modelEnum == nil ? name : (deviceInfo?.model?.friendlyName ?? name)
         modelEnum = deviceInfo?.model ?? modelEnum
@@ -124,17 +128,46 @@ internal final class SonyPTPIPCameraDevice: SonyCamera {
     private func getDeviceInfo(completion: @escaping SonyPTPIPCameraDevice.ConnectedCompletion) {
         
         let packet = Packet.commandRequestPacket(code: .getDeviceInfo, arguments: nil, transactionId: 1)
-        ptpIPClient?.awaitDataFor(transactionId: 1, callback: { (dataContainer) in
+        ptpIPClient?.awaitDataFor(transactionId: 1, callback: { [weak self] (dataContainer) in
             guard let deviceInfo = PTP.DeviceInfo(data: dataContainer.data) else {
-                //TODO: Do something? Maybe not!
+                completion(PTPError.fetchDeviceInfoFailed, false)
                 return
             }
+            self?.deviceInfo = deviceInfo
+            self?.performSdioConnect(completion: completion)
         })
         ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
     }
     
+    private func performSdioConnect(completion: @escaping SonyPTPIPCameraDevice.ConnectedCompletion) {
+        
+        //TODO: Try and find out what the arguments are for this!
+        let packet = Packet.commandRequestPacket(code: .sdioConnect, arguments: [0x0001, 0x0000, 0x0000], transactionId: 2)
+        ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { [weak self] (dataContainer) in
+            //TODO: Currently not idea what we need to do with this!
+            self?.getSdioExtDeviceInfo(completion: completion)
+        })
+        ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
+    }
+    
+    private func getSdioExtDeviceInfo(completion: @escaping SonyPTPIPCameraDevice.ConnectedCompletion) {
+        
+        let packet = Packet.commandRequestPacket(code: .sdioGetExtDeviceInfo, arguments: [0x0000012c], transactionId: 3)
+        ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { [weak self] (dataContainer) in
+            guard let extDeviceInfo = PTP.SDIOExtDeviceInfo(data: dataContainer.data) else {
+                completion(PTPError.fetchSdioExtDeviceInfoFailed, false)
+                return
+            }
+            self?.extDeviceInfo = extDeviceInfo
+            completion(nil, false)
+        })
+    }
+    
     enum PTPError: Error {
         case commandRequestFailed
+        case fetchDeviceInfoFailed
+        case fetchSdioExtDeviceInfoFailed
+        case sdioExtDeviceInfoNotAvailable
     }
 }
 
@@ -151,7 +184,10 @@ extension SonyPTPIPCameraDevice: Camera {
     }
     
     func supportsFunction<T>(_ function: T, callback: @escaping ((Bool?, Error?, [T.SendType]?) -> Void)) where T : CameraFunction {
-        
+        guard let sdioExtDeviceInfo = extDeviceInfo else {
+            callback(nil, PTPError.sdioExtDeviceInfoNotAvailable, nil)
+            return
+        }
     }
     
     func isFunctionAvailable<T>(_ function: T, callback: @escaping ((Bool?, Error?, [T.SendType]?) -> Void)) where T : CameraFunction {
