@@ -9,10 +9,16 @@
 import Foundation
 import os.log
 
+typealias CommandRequestPacketResponse = (_ packet: CommandResponsePacket) -> Void
+
+typealias DataResponse = (_ dataContainer: PTPIPClient.DataContainer) -> Void
+
 /// A client for transferring images using the PTP IP protocol
 final class PTPIPClient: NSObject {
     
-    fileprivate let ptpClientLog = OSLog(subsystem: "com.yellow-brick-bear.rocc", category: "PTPIPClient")
+    //MARK: - Initialisation -
+    
+    internal let ptpClientLog = OSLog(subsystem: "com.yellow-brick-bear.rocc", category: "PTPIPClient")
     
     var eventReadStream: InputStream?
     
@@ -69,10 +75,14 @@ final class PTPIPClient: NSObject {
         controlWriteStream.open()
     }
     
+    //MARK: - Connection -
+    
     var connectCallback: ((_ error: Error?) -> Void)?
     
     func connect(callback: @escaping (_ error: Error?) -> Void) {
         
+        commandRequestCallbacks = [:]
+        dataContainers = [:]
         pendingControlPackets = []
         pendingEventPackets = []
         openStreams = []
@@ -111,6 +121,8 @@ final class PTPIPClient: NSObject {
         eventWriteStream!.open()
     }
     
+    //MARK: - Sending Packets -
+    
     fileprivate var pendingEventPackets: [Packetable] = []
     
     fileprivate var pendingControlPackets: [Packetable] = []
@@ -138,6 +150,8 @@ final class PTPIPClient: NSObject {
     
     var onEventStreamsOpened: (() -> Void)?
     
+    /// Sends a packet to the event loop of the PTP IP connection
+    /// - Parameter packet: The packet to send
     fileprivate func sendEventPacket(_ packet: Packetable) {
         
         guard let eventWriteStream = eventWriteStream else {
@@ -151,7 +165,9 @@ final class PTPIPClient: NSObject {
         eventWriteStream.write(packet)
     }
     
-    fileprivate func sendControlPacket(_ packet: Packetable) {
+    /// Sends a packet to the control loop of the PTP IP connection
+    /// - Parameter packet: The packet to send
+    func sendControlPacket(_ packet: Packetable) {
         
         guard controlWriteStream.hasSpaceAvailable else {
             pendingControlPackets.append(packet)
@@ -159,6 +175,26 @@ final class PTPIPClient: NSObject {
         }
         controlWriteStream.write(packet)
     }
+    
+    //MARK: Command Requests
+    
+    private var commandRequestCallbacks: [DWord : (callback: CommandRequestPacketResponse, callForAnyResponse: Bool)] = [:]
+        
+    /// Sends a command request packet to the control loop of the PTP IP connection with optional callback
+    /// - Important: If you are making a call that you do not expect to receive a CommandResponse in response to
+    /// then `callback` may never be called.
+    ///
+    /// - Parameter packet: The packet to send
+    /// - Parameter callback: An optional callback which will be called with the received CommandResponse packet
+    /// - Parameter callCallbackForAnyResponse: Whether the callback should be called for any response received regardless of whether it contains a transaction ID or what it's transaction ID is. This fixes issues with the OpenSession command response Sony sends which doesn't contain a transaction ID.
+    func sendCommandRequestPacket(_ packet: CommandRequestPacket, callback: CommandRequestPacketResponse?, callCallbackForAnyResponse: Bool = false) {
+        if let _callback = callback {
+            commandRequestCallbacks[packet.transactionId] = (_callback, callCallbackForAnyResponse)
+        }
+        sendControlPacket(packet)
+    }
+    
+    //MARK: - Handling Responses -
     
     fileprivate func handle(packet: Packetable) {
         
@@ -171,7 +207,14 @@ final class PTPIPClient: NSObject {
             }
             
             setupEventStreams()
-            
+        case let commandResponsePacket as CommandResponsePacket:
+            handleCommandResponsePacket(commandResponsePacket)
+        case let dataStartPacket as StartDataPacket:
+            handleStartDataPacket(dataStartPacket)
+        case let dataPacket as DataPacket:
+            handleDataPacket(dataPacket)
+        case let endDataPacket as EndDataPacket:
+            handleEndDataPacket(endDataPacket)
         default:
             switch packet.name {
             case .initEventAck:
@@ -189,6 +232,31 @@ final class PTPIPClient: NSObject {
             handle(packet: packet)
         }
     }
+    
+    //MARK: Commands
+    
+    fileprivate func handleCommandResponsePacket(_ packet: CommandResponsePacket) {
+        
+        guard let transactionId = packet.transactionId else {
+            commandRequestCallbacks = commandRequestCallbacks.filter { (_, value) -> Bool in
+                // If not called for any response, then leave it in the callbacks dictionary
+                guard value.callForAnyResponse else { return true }
+                value.callback(packet)
+                return false
+            }
+            return
+        }
+        commandRequestCallbacks[transactionId]?.callback(packet)
+        commandRequestCallbacks[transactionId] = nil
+    }
+    
+    //MARK: Data
+    
+    internal var dataCallbacks: [DWord : DataResponse] = [:]
+    
+    internal var dataContainers: [DWord : DataContainer] = [:]
+    
+    //MARK: - Reading Bytes -
     
     fileprivate func readAvailableBytes(stream: InputStream) {
         
@@ -223,6 +291,8 @@ extension OutputStream {
         return response
     }
 }
+
+//MARK: - StreamDelegate implementation
 
 extension PTPIPClient: StreamDelegate {
     

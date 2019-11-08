@@ -60,7 +60,12 @@ struct Packet: Packetable {
     let unparsedData: ByteBuffer
     
     private static let nameToType: [Packet.Name : Packetable.Type] = [
-        .initCommandAck: InitCommandAckPacket.self
+        .initCommandAck: InitCommandAckPacket.self,
+        .cmdResponse: CommandResponsePacket.self,
+        .startDataPacket: StartDataPacket.self,
+        .dataPacket: DataPacket.self,
+        .endDataPacket: EndDataPacket.self,
+        .event: EventPacket.self
     ]
     
     static func parse(from data: ByteBuffer) -> Packetable? {
@@ -128,11 +133,12 @@ struct Packet: Packetable {
         return packet
     }
     
-    static func commandPacket(code commandCode: DWord, arguments: [DWord]?, transactionId: DWord = 0) -> Packet {
+    static func commandRequestPacket(code commandCode: PTP.CommandCode, arguments: [DWord]?, transactionId: DWord = 0, dataPhaseInfo: DWord = 1) -> CommandRequestPacket {
         
-        var packet = Packet()
-        packet.data[dWord: UInt(headerLength)] = 1
-        packet.data.append(dWord: commandCode)
+        var packet = CommandRequestPacket(transactionId: transactionId)
+        packet.name = .cmdRequest
+        packet.data[dWord: UInt(Packet.headerLength)] = dataPhaseInfo
+        packet.data.append(word: commandCode.rawValue)
         packet.data.append(dWord: transactionId)
         
         arguments?.forEach({ (arg) in
@@ -144,11 +150,12 @@ struct Packet: Packetable {
         return packet
     }
     
-    static func startDataPacket(size: DWord, transactionId: DWord = 0) -> Packet {
+    static func startDataPacket(size: DWord, transactionId: DWord = 0) -> StartDataPacket {
         
-        var packet = Packet()
+        var packet = StartDataPacket(transactionId: transactionId, dataLength: size)
         packet.data[dWord: UInt(headerLength)] = transactionId
-        packet.data.append(dWord: size)
+        packet.data.append(dWord: size) //TODO: This should be a single QWord
+        packet.data.append(dWord: 0) //Fake to simulate 16 bytes
         packet.data.set(header: .startDataPacket)
         
         return packet

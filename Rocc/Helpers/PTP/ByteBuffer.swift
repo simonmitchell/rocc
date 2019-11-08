@@ -190,21 +190,38 @@ extension ByteBuffer {
         }
     }
     
-    subscript (wString index: UInt) -> String? {
+    subscript (wStringWithoutCount index: UInt) -> String? {
         get {
             var string: String = ""
             var i = index
             while i < bytes.count {
                 guard let character = self[wChar: i], character != "\u{0000}" else {
-                    return string
+                    return string.count > 0 ? string : nil
                 }
                 string.append(character)
-                i += 2
+                i += UInt(MemoryLayout<Word>.size)
             }
             return string.count > 0 ? string : nil
         }
         set {
             print("Setting of wString by subscript is not yet supported!")
+        }
+    }
+    
+    subscript (wString index: UInt) -> String? {
+        get {
+            guard let length = self[index] else { return nil }
+            var string: String = ""
+            for i in 0..<UInt(length) {
+                guard let character = self[wChar: index + UInt(MemoryLayout<Byte>.size) + UInt(MemoryLayout<Word>.size) * i], character != "\u{0000}" else {
+                    return string.count > 0 ? string : nil
+                }
+                string.append(character)
+            }
+            return string.count > 0 ? string : nil
+        }
+        set {
+            print("Setting of wString (with length byte) by subscript is not yet supported!")
         }
     }
     
@@ -216,6 +233,21 @@ extension ByteBuffer {
         }
         set {
             print("Setting of wChar by subscript is not yet supported!")
+        }
+    }
+    
+    subscript (wordArray index: UInt) -> [Word]? {
+        get {
+            guard let length = self[dWord: index] else { return nil }
+            var arrayElements: [Word] = []
+            for i in 0..<UInt(length) {
+                guard let word = self[word: index + UInt(MemoryLayout<DWord>.size) + (UInt(MemoryLayout<Word>.size) * i)] else { continue }
+                arrayElements.append(word)
+            }
+            return arrayElements
+        }
+        set {
+            print("Setting of word array by subscript is not yet supported!")
         }
     }
 }
