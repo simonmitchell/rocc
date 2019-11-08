@@ -285,6 +285,26 @@ extension SonyPTPIPDevice: Camera {
                     value: value.sonyPTPValue
                 )
             )
+        case .setWhiteBalance:
+            guard let value = payload as? WhiteBalance.Value else {
+                callback(FunctionError.invalidPayload, nil)
+                return
+            }
+            ptpIPClient?.sendSetControlDeviceAValue(
+                PTP.DeviceProperty.Value(
+                    code: value.mode.code,
+                    type: value.mode.type,
+                    value: value.mode.sonyPTPValue
+                )
+            )
+            guard let colorTemp = value.temperature else { return }
+            ptpIPClient?.sendSetControlDeviceAValue(
+                PTP.DeviceProperty.Value(
+                    code: .colorTemp,
+                    type: .uint16,
+                    value: Word(colorTemp)
+                )
+            )
         default:
             return
         }

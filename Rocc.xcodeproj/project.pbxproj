@@ -151,6 +151,8 @@
 		B1AEE50B2375CB7F00224152 /* ShutterSpeed+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AEE5092375CB7F00224152 /* ShutterSpeed+SonyPTPPropValueConvertable.swift */; };
 		B1AEE50D2375D19A00224152 /* ApertureValue+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AEE50C2375D19A00224152 /* ApertureValue+SonyPTPPropValueConvertable.swift */; };
 		B1AEE50E2375D19A00224152 /* ApertureValue+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AEE50C2375D19A00224152 /* ApertureValue+SonyPTPPropValueConvertable.swift */; };
+		B1AEE51C237612DE00224152 /* WhiteBalanceValue+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AEE514237612DE00224152 /* WhiteBalanceValue+SonyPTPPropValueConvertable.swift */; };
+		B1AEE51D237612DE00224152 /* WhiteBalanceValue+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AEE514237612DE00224152 /* WhiteBalanceValue+SonyPTPPropValueConvertable.swift */; };
 		B1AF502A208A51D00029336B /* NetworkInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AF5029208A51D00029336B /* NetworkInterface.swift */; };
 		B1AF504B208D345A0029336B /* ThunderRequest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1AF5041208D34510029336B /* ThunderRequest.framework */; };
 		B1AF5091208DC3A80029336B /* RoccMac.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1AF5088208DC3A80029336B /* RoccMac.framework */; };
@@ -364,6 +366,7 @@
 		B1AEE5062375CB5000224152 /* ISOValue+SonyPTPPropValueConvertable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ISOValue+SonyPTPPropValueConvertable.swift"; sourceTree = "<group>"; };
 		B1AEE5092375CB7F00224152 /* ShutterSpeed+SonyPTPPropValueConvertable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShutterSpeed+SonyPTPPropValueConvertable.swift"; sourceTree = "<group>"; };
 		B1AEE50C2375D19A00224152 /* ApertureValue+SonyPTPPropValueConvertable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ApertureValue+SonyPTPPropValueConvertable.swift"; sourceTree = "<group>"; };
+		B1AEE514237612DE00224152 /* WhiteBalanceValue+SonyPTPPropValueConvertable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "WhiteBalanceValue+SonyPTPPropValueConvertable.swift"; sourceTree = "<group>"; };
 		B1AF5029208A51D00029336B /* NetworkInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkInterface.swift; sourceTree = "<group>"; };
 		B1AF5038208D34510029336B /* ThunderRequest.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ThunderRequest.xcodeproj; path = ThunderRequest/ThunderRequest.xcodeproj; sourceTree = "<group>"; };
 		B1AF5088208DC3A80029336B /* RoccMac.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = RoccMac.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -554,6 +557,7 @@
 				B1AEE50C2375D19A00224152 /* ApertureValue+SonyPTPPropValueConvertable.swift */,
 				B1AEE5062375CB5000224152 /* ISOValue+SonyPTPPropValueConvertable.swift */,
 				B1AEE5092375CB7F00224152 /* ShutterSpeed+SonyPTPPropValueConvertable.swift */,
+				B1AEE514237612DE00224152 /* WhiteBalanceValue+SonyPTPPropValueConvertable.swift */,
 			);
 			path = PropValueConversion;
 			sourceTree = "<group>";
@@ -1084,6 +1088,7 @@
 				B16BFD1121F5F0E600AF3F24 /* SimplePing.m in Sources */,
 				B1A25F3221AE950E00D9EE81 /* Errors.swift in Sources */,
 				B163AEBF20A8D6050061D1C4 /* CameraEventNotifier.swift in Sources */,
+				B1AEE51C237612DE00224152 /* WhiteBalanceValue+SonyPTPPropValueConvertable.swift in Sources */,
 				B1FF7A382371EC180010D5F0 /* SDIOExtDeviceInfo.swift in Sources */,
 				B1751E7920A316C2001D05F1 /* SystemClient.swift in Sources */,
 				B1AEE50A2375CB7F00224152 /* ShutterSpeed+SonyPTPPropValueConvertable.swift in Sources */,
@@ -1206,6 +1211,7 @@
 				B16BFD1221F5F0E600AF3F24 /* SimplePing.m in Sources */,
 				B11D8E7421B9300F00719019 /* SimulatedCamera.swift in Sources */,
 				B164F02721811BD400590A05 /* SonyCameraDiscoverer.swift in Sources */,
+				B1AEE51D237612DE00224152 /* WhiteBalanceValue+SonyPTPPropValueConvertable.swift in Sources */,
 				B1FF7A392371EC180010D5F0 /* SDIOExtDeviceInfo.swift in Sources */,
 				B163AEC020A8D6050061D1C4 /* CameraEventNotifier.swift in Sources */,
 				B1AEE50B2375CB7F00224152 /* ShutterSpeed+SonyPTPPropValueConvertable.swift in Sources */,

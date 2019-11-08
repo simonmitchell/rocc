@@ -109,6 +109,47 @@ fileprivate extension Aperture.Value {
     }
 }
 
+fileprivate extension WhiteBalance.Mode {
+    
+    init?(sonyString: String) {
+                
+        switch sonyString.lowercased() {
+        case "auto wb":
+            self = .auto
+        case "daylight":
+            self = .daylight
+        case "color temperature":
+            self = .colorTemp
+        case "shade":
+            self = .shade
+        case "cloudy":
+            self = .cloudy
+        case "incandescent":
+            self = .incandescent
+        case "fluorescent: warm white (-1)", "fluorescent warm white", "fluorescent: warm white":
+            self = .fluorescent_warm_white
+        case "fluorescent: cool white (0)", "fluorescent cool white", "fluorescent: cool white":
+            self = .fluorescent_cool_white
+        case "fluorescent: day white (+1)", "fluorescent day white", "fluorescent: day white":
+            self = .fluorescent_day_white
+        case "fluorescent: daylight (+2)", "fluorescent daylight", "fluorescent: daylight":
+            self = .fluorescent_daylight
+        case "flash":
+            self = .flash
+        case "underwater auto":
+            self = .underwater_auto
+        case "custom 1":
+            self = .c1
+        case "custom 2":
+            self = .c2
+        case "custom 3":
+            self = .c3
+        default:
+            return nil
+        }
+    }
+}
+
 fileprivate extension FocusStatus {
     
     init?(sonyString: String) {
@@ -441,9 +482,9 @@ fileprivate extension CameraEvent {
                     guard let currentString = dictionaryElement["currentShutterSpeed"] as? String, let current = shutterSpeedFormatter.shutterSpeed(from: currentString), let candidateStrings = dictionaryElement["shutterSpeedCandidates"] as? [String] else { return }
                     _shutterSpeed = (current, candidateStrings.compactMap({ shutterSpeedFormatter.shutterSpeed(from: $0) }))
                 case "whiteBalance":
-                    guard let check = dictionaryElement["checkAvailability"] as? Bool, let currentMode = dictionaryElement["currentWhiteBalanceMode"] as? String else { return }
+                    guard let check = dictionaryElement["checkAvailability"] as? Bool, let currentMode = dictionaryElement["currentWhiteBalanceMode"] as? String, let modeEnum = WhiteBalance.Mode(sonyString: currentMode) else { return }
                     let currentTemp = dictionaryElement["currentColorTemperature"] as? Int
-                    _whiteBalance = WhiteBalanceInformation(shouldCheck: check, whitebalanceValue: WhiteBalance.Value(mode: currentMode, temperature: currentTemp != -1 ? currentTemp : nil))
+                    _whiteBalance = WhiteBalanceInformation(shouldCheck: check, whitebalanceValue: WhiteBalance.Value(mode: modeEnum, temperature: currentTemp != -1 ? currentTemp : nil, rawInternal: currentMode), available: nil)
                 case "touchAFPosition":
                     _touchAF = TouchAF.Information(dictionary: dictionaryElement)
                 case "focusStatus":
@@ -699,16 +740,17 @@ fileprivate extension WhiteBalance.Value {
     
     init?(dictionary: [AnyHashable : Any]) {
         
-        guard let mode = dictionary["whiteBalanceMode"] as? String else {
+        guard let mode = dictionary["whiteBalanceMode"] as? String, let modeEnum = WhiteBalance.Mode(sonyString: mode) else {
             return nil
         }
         
-        self.mode = mode
+        self.mode = modeEnum
+        rawInternal = mode
         temperature = dictionary["colorTemperature"] as? Int
     }
     
     var sonySerialisable: [Any] {
-        return [self.mode, temperature != nil, self.temperature ?? 2500]
+        return [self.rawInternal, temperature != nil, self.temperature ?? 2500]
     }
 }
 
@@ -1134,17 +1176,17 @@ internal class CameraClient: ServiceClient {
             
             supported.forEach({ (whiteBalanceDict) in
                 
-                guard let mode = whiteBalanceDict["whiteBalanceMode"] as? String, let colorTempRange = whiteBalanceDict["colorTemperatureRange"] as? [Int] else {
+                guard let mode = whiteBalanceDict["whiteBalanceMode"] as? String, let modeEnum = WhiteBalance.Mode(sonyString: mode), let colorTempRange = whiteBalanceDict["colorTemperatureRange"] as? [Int] else {
                     return
                 }
                 
                 guard !colorTempRange.isEmpty else {
-                    supportedWhiteBalances.append(WhiteBalance.Value(mode: mode, temperature: nil))
+                    supportedWhiteBalances.append(WhiteBalance.Value(mode: modeEnum, temperature: nil, rawInternal: mode))
                     return
                 }
                 
                 colorTempRange.forEach({ (temperature) in
-                    supportedWhiteBalances.append(WhiteBalance.Value(mode: mode, temperature: temperature))
+                    supportedWhiteBalances.append(WhiteBalance.Value(mode: modeEnum, temperature: temperature, rawInternal: mode))
                 })
             })
             
@@ -1172,17 +1214,17 @@ internal class CameraClient: ServiceClient {
             
             available.forEach({ (whiteBalanceDict) in
                 
-                guard let mode = whiteBalanceDict["whiteBalanceMode"] as? String, let colorTempRange = whiteBalanceDict["colorTemperatureRange"] as? [Int] else {
+                guard let mode = whiteBalanceDict["whiteBalanceMode"] as? String, let modeEnum = WhiteBalance.Mode(sonyString: mode), let colorTempRange = whiteBalanceDict["colorTemperatureRange"] as? [Int] else {
                     return
                 }
                 
                 guard !colorTempRange.isEmpty else {
-                    availableWhiteBalances.append(WhiteBalance.Value(mode: mode, temperature: nil))
+                    availableWhiteBalances.append(WhiteBalance.Value(mode: modeEnum, temperature: nil, rawInternal: mode))
                     return
                 }
                 
                 colorTempRange.forEach({ (temperature) in
-                    availableWhiteBalances.append(WhiteBalance.Value(mode: mode, temperature: temperature))
+                    availableWhiteBalances.append(WhiteBalance.Value(mode: modeEnum, temperature: temperature, rawInternal: mode))
                 })
             })
             

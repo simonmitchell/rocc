@@ -35,6 +35,7 @@ extension CameraEvent {
         var _iso: (current: ISO.Value, available: [ISO.Value])?
         isProgramShifted = false
         var shutterSpeed: (current: ShutterSpeed, available: [ShutterSpeed])?
+        var whiteBalance: WhiteBalanceInformation?
         whiteBalance = nil
         touchAF = nil
         focusStatus = nil
@@ -133,6 +134,59 @@ extension CameraEvent {
                 aperture = (value, available)
                 break
                 
+            case .whiteBalance:
+                
+                switch deviceProperty.getSet {
+                case .get:
+                    functions.append(.getWhiteBalance)
+                case .getSet:
+                    functions.append(.getWhiteBalance)
+                    functions.append(.setWhiteBalance)
+                default:
+                    break
+                }
+                
+                guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
+                    return
+                }
+                guard let currentMode = WhiteBalance.Mode(sonyValue: deviceProperty.currentValue) else {
+                    return
+                }
+                let availableModes = enumProperty.available.compactMap({ WhiteBalance.Mode(sonyValue: $0) })
+                var availableValues: [WhiteBalance.Value] = []
+                let currentTemp: UInt16?
+                
+                // If we were sent the colour temp properties back from camera do some voodoo!
+                if let colorTempProperty = sonyDeviceProperties.first(where: { $0.code == .colorTemp }) as? PTP.DeviceProperty.Range, availableModes.firstIndex(where: { $0 == .colorTemp }) != nil {
+                    
+                    currentTemp = colorTempProperty.currentValue as? UInt16
+                    // Remove all modes which are `colorTemp` as we'll add these back in manually using `colorTempProperty` properties
+                    let availableModesWithoutColorTemp = availableModes.filter({ $0.code != .colorTemp })
+                    availableValues = availableModesWithoutColorTemp.map({ WhiteBalance.Value(mode: $0, temperature: nil, rawInternal: "") })
+                    
+                    if let min = colorTempProperty.min.toInt, let max = colorTempProperty.max.toInt, let step = colorTempProperty.step.toInt {
+                        // Add back in a `colorTemp` mode for every value available in color temperatures
+                        for temp in stride(from: min, to: max, by: step) {
+                            availableValues.append(WhiteBalance.Value(mode: .colorTemp, temperature: temp, rawInternal: ""))
+                        }
+                    } else {
+                        availableValues.append(WhiteBalance.Value(mode: .colorTemp, temperature: nil, rawInternal: ""))
+                    }
+                    
+                } else {
+                    availableValues = availableModes.map({ WhiteBalance.Value(mode: $0, temperature: nil, rawInternal: "") })
+                    currentTemp = nil
+                }
+                
+                // Only set color temp if current mode is `.colorTemp`
+                let intCurrentTemp = currentMode == .colorTemp ? (currentTemp != nil ? Int(currentTemp!) : nil) : nil
+                
+                whiteBalance = WhiteBalanceInformation(
+                    shouldCheck: false,
+                    whitebalanceValue: WhiteBalance.Value(mode: currentMode, temperature: intCurrentTemp, rawInternal: ""),
+                    available: availableValues
+                )
+                
             default:
                 break
             }
@@ -142,5 +196,6 @@ extension CameraEvent {
         self.iso = _iso
         self.availableFunctions = functions
         self.aperture = aperture
+        self.whiteBalance = whiteBalance
     }
 }

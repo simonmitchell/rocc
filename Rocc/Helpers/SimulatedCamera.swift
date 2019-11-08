@@ -298,7 +298,7 @@ public final class DummyCamera: Camera {
                 ShutterSpeed(numerator: 25, denominator: 1),
                 ShutterSpeed(numerator: 30, denominator: 1)
                 ]),
-            whiteBalance: CameraEvent.WhiteBalanceInformation(shouldCheck: true, whitebalanceValue: WhiteBalance.Value(mode: "Daylight", temperature: nil)),
+            whiteBalance: CameraEvent.WhiteBalanceInformation(shouldCheck: true, whitebalanceValue: WhiteBalance.Value(mode: .daylight, temperature: nil, rawInternal: ""), available: nil),
             touchAF: nil,
             focusStatus: nil,
             zoomSetting: nil,

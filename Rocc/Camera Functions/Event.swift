@@ -119,6 +119,9 @@ public struct CameraEvent {
         
         /// The current white balance value.
         public let whitebalanceValue: WhiteBalance.Value
+        
+        /// The currently available white balance values.
+        public let available: [WhiteBalance.Value]?
     }
     
     /// The current status of the camera.
