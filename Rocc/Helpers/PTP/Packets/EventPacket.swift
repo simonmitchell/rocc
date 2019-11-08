@@ -16,7 +16,7 @@ struct EventPacket: Packetable {
     
     var data: ByteBuffer
     
-    let code: PTP.CommandCode
+    let code: PTP.EventCode
         
     init?(length: DWord, name: Packet.Name, data: ByteBuffer) {
         
@@ -24,7 +24,7 @@ struct EventPacket: Packetable {
         self.name = name
                 
         guard let codeWord = data[word: 0] else { return nil }
-        guard let code = PTP.CommandCode(rawValue: codeWord) else { return nil }
+        guard let code = PTP.EventCode(rawValue: codeWord) else { return nil }
         self.code = code
         
         // Use `length` here as otherwise we may end up stealing data from other packets!

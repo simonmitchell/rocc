@@ -14,6 +14,30 @@ import ThunderRequestMac
 import ThunderRequest
 #endif
 
+fileprivate extension ISO.Value {
+    
+    init?(sonyString: String) {
+        switch sonyString.lowercased() {
+        case "auto":
+            self = .auto
+        default:
+            guard let number = Int(sonyString) else { return nil }
+            self = number < 100 ? .extended(number) : .native(number)
+        }
+    }
+    
+    var sonyString: String {
+        switch self {
+        case .auto:
+            return "AUTO"
+        case .extended(let value):
+            return "\(value)"
+        case .native(let value):
+            return "\(value)"
+        }
+    }
+}
+
 fileprivate extension ShootingMode {
     
     init?(sonyString: String) {
@@ -70,6 +94,18 @@ fileprivate extension ContinuousShootingSpeed {
         case .low:
             return "Low"
         }
+    }
+}
+
+fileprivate extension Aperture.Value {
+    
+    init?(sonyString: String) {
+        guard let doubleValue = Double(sonyString) else { return nil }
+        value = doubleValue
+    }
+    
+    var sonyString: String {
+        return "\(value)"
     }
 }
 
@@ -266,9 +302,9 @@ fileprivate extension CameraEvent {
         var _shootMode: (current: ShootingMode, available: [ShootingMode]?)?
         var _exposureCompensation: (current: Double, available: [Double])?
         var _flashMode: (current: String, available: [String])?
-        var _aperture: (current: String, available: [String])?
+        var _aperture: (current: Aperture.Value, available: [Aperture.Value])?
         var _focusMode: (current: String, available: [String])?
-        var _ISO: (current: String, available: [String])?
+        var _ISO: (current: ISO.Value, available: [ISO.Value])?
         var _isProgramShifted: Bool?
         var _shutterSpeed: (current: ShutterSpeed, available: [ShutterSpeed])?
         var _whiteBalance: WhiteBalanceInformation?
@@ -389,14 +425,15 @@ fileprivate extension CameraEvent {
                     guard let current = dictionaryElement["currentFlashMode"] as? String, let candidates = dictionaryElement["flashModeCandidates"] as? [String] else { return }
                     _flashMode = (current, candidates)
                 case "fNumber":
-                    guard let current = dictionaryElement["currentFNumber"] as? String, let candidates = dictionaryElement["fNumberCandidates"] as? [String] else { return }
-                    _aperture = (current, candidates)
+                    guard let current = dictionaryElement["currentFNumber"] as? String, let aperture = Aperture.Value(sonyString: current), let candidates = dictionaryElement["fNumberCandidates"] as? [String] else { return }
+                    _aperture = (aperture, candidates.compactMap({ Aperture.Value(sonyString: $0) }))
                 case "focusMode":
                     guard let current = dictionaryElement["currentFocusMode"] as? String, let candidates = dictionaryElement["focusModeCandidates"] as? [String] else { return }
                     _focusMode = (current, candidates)
                 case "isoSpeedRate":
-                    guard let current = dictionaryElement["currentIsoSpeedRate"] as? String, let candidates = dictionaryElement["isoSpeedRateCandidates"] as? [String] else { return }
-                    _ISO = (current, candidates)
+                    guard let current = dictionaryElement["currentIsoSpeedRate"] as? String, let currentEnum = ISO.Value(sonyString: current), let candidates = dictionaryElement["isoSpeedRateCandidates"] as? [String] else { return }
+                    let candidateEnums = candidates.compactMap({ ISO.Value(sonyString: $0) })
+                    _ISO = (currentEnum, candidateEnums)
                 case "programShift":
                     _isProgramShifted = dictionaryElement["isShifted"] as? Bool
                 case "shutterSpeed":
@@ -590,7 +627,7 @@ fileprivate extension CameraEvent {
         flashMode = _flashMode
         aperture = _aperture
         focusMode = _focusMode
-        ISO = _ISO
+        iso = _ISO
         isProgramShifted = _isProgramShifted
         shutterSpeed = _shutterSpeed
         whiteBalance = _whiteBalance
@@ -841,9 +878,9 @@ internal class CameraClient: ServiceClient {
     
     //MARK: - Aperture
     
-    typealias AperturesCompletion = (_ result: Result<[String]>) -> Void
+    typealias AperturesCompletion = (_ result: Result<[Aperture.Value]>) -> Void
 
-    typealias ApertureCompletion = (_ result: Result<String>) -> Void
+    typealias ApertureCompletion = (_ result: Result<Aperture.Value>) -> Void
     
     func getSupportedApertures(_ completion: @escaping AperturesCompletion) {
         
@@ -861,7 +898,7 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            completion(Result(value: supported, error: nil))
+            completion(Result(value: supported.compactMap({ Aperture.Value(sonyString: $0) }), error: nil))
         }
     }
     
@@ -881,13 +918,13 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            completion(Result(value: available, error: nil))
+            completion(Result(value: available.compactMap({ Aperture.Value(sonyString: $0) }), error: nil))
         }
     }
     
-    func setAperture(_ aperture: String, completion: @escaping GenericCompletion) {
+    func setAperture(_ aperture: Aperture.Value, completion: @escaping GenericCompletion) {
         
-        let body = SonyRequestBody(method: "setFNumber", params: [aperture], id: 1, version: "1.0")
+        let body = SonyRequestBody(method: "setFNumber", params: [aperture.sonyString], id: 1, version: "1.0")
         
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             completion(error ?? CameraError(responseDictionary: response?.dictionary, methodName: "setFNumber"))
@@ -905,7 +942,7 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            guard let result = response?.dictionary?["result"] as? [String], let aperture = result.first else {
+            guard let result = response?.dictionary?["result"] as? [String], let apertureString = result.first, let aperture = Aperture.Value(sonyString: apertureString) else {
                 completion(Result(value: nil, error: CameraError.invalidResponse("getFNumber")))
                 return
             }
@@ -916,9 +953,9 @@ internal class CameraClient: ServiceClient {
     
     //MARK: - ISO
     
-    typealias ISOValuesCompletion = (_ result: Result<[String]>) -> Void
+    typealias ISOValuesCompletion = (_ result: Result<[ISO.Value]>) -> Void
     
-    typealias ISOCompletion = (_ result: Result<String>) -> Void
+    typealias ISOCompletion = (_ result: Result<ISO.Value>) -> Void
     
     func getSupportedISOValues(_ completion: @escaping ISOValuesCompletion) {
         
@@ -936,7 +973,7 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            completion(Result(value: supported, error: nil))
+            completion(Result(value: supported.compactMap({ ISO.Value(sonyString: $0) }), error: nil))
         }
     }
     
@@ -956,13 +993,13 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            completion(Result(value: available, error: nil))
+            completion(Result(value: available.compactMap({ ISO.Value(sonyString: $0) }), error: nil))
         }
     }
     
-    func setISO(_ ISO: String, completion: @escaping GenericCompletion) {
+    func setISO(_ ISO: ISO.Value, completion: @escaping GenericCompletion) {
         
-        let body = SonyRequestBody(method: "setIsoSpeedRate", params: [ISO], id: 1, version: "1.0")
+        let body = SonyRequestBody(method: "setIsoSpeedRate", params: [ISO.sonyString], id: 1, version: "1.0")
         
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             completion(error ?? CameraError(responseDictionary: response?.dictionary, methodName: "setIsoSpeedRate"))
@@ -980,12 +1017,12 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            guard let result = response?.dictionary?["result"] as? [String], let ISO = result.first else {
+            guard let result = response?.dictionary?["result"] as? [String], let iso = result.first, let ISOValue = ISO.Value(sonyString: iso) else {
                 completion(Result(value: nil, error: CameraError.invalidResponse("getIsoSpeedRate")))
                 return
             }
             
-            completion(Result(value: ISO, error: nil))
+            completion(Result(value: ISOValue, error: nil))
         }
     }
     

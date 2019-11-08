@@ -55,6 +55,8 @@ internal final class SonyTransferDevice {
     
     var pushContentDevice: UPnPDevice?
     
+    var onEventAvailable: (() -> Void)?
+    
     init?(dictionary: [AnyHashable : Any]) {
         
         guard let serviceDictionaries = dictionary["serviceList"] as? [[AnyHashable : Any]] else {
@@ -99,6 +101,10 @@ extension UPnPFolder: Countable {
 }
 
 extension SonyTransferDevice: Camera {
+    
+    var eventPollingMode: PollingMode {
+        return .none
+    }
     
     func handleEvent(event: CameraEvent) {
         
@@ -181,10 +187,6 @@ extension SonyTransferDevice: Camera {
     
     var lensModelName: String? {
         return nil
-    }
-    
-    var supportsPolledEvents: Bool {
-        return false
     }
     
     func supportsFunction<T>(_ function: T, callback: @escaping ((Bool?, Error?, [T.SendType]?) -> Void)) where T : CameraFunction {

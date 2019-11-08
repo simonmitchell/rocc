@@ -75,6 +75,8 @@ final class PTPIPClient: NSObject {
         controlWriteStream.open()
     }
     
+    var onEvent: ((_ event: EventPacket) -> Void)?
+    
     //MARK: - Connection -
     
     var connectCallback: ((_ error: Error?) -> Void)?
@@ -194,6 +196,20 @@ final class PTPIPClient: NSObject {
         sendControlPacket(packet)
     }
     
+    func sendSetControlDeviceAValue(_ value: PTP.DeviceProperty.Value) {
+        
+        let opRequestPacket = Packet.commandRequestPacket(code: .setControlDeviceA, arguments: [UInt32(value.code.rawValue)], transactionId: 8)
+        var data = ByteBuffer()
+        data.appendValue(value.value, ofType: value.type)
+        let dataPackets = Packet.dataSendPackets(data: data, transactionId: 8)
+        
+        //TODO: Do we have to wait for callback?
+        sendCommandRequestPacket(opRequestPacket, callback: nil)
+        dataPackets.forEach { (dataPacket) in
+            sendControlPacket(dataPacket)
+        }
+    }
+    
     //MARK: - Handling Responses -
     
     fileprivate func handle(packet: Packetable) {
@@ -215,6 +231,8 @@ final class PTPIPClient: NSObject {
             handleDataPacket(dataPacket)
         case let endDataPacket as EndDataPacket:
             handleEndDataPacket(endDataPacket)
+        case let eventPacket as EventPacket:
+            onEvent?(eventPacket)
         default:
             switch packet.name {
             case .initEventAck:

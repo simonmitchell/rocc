@@ -102,6 +102,8 @@ internal final class SonyAPICameraDevice: SonyCamera {
         
     var type: String?
     
+    public var onEventAvailable: (() -> Void)?
+    
     public var apiVersion: String?
     
     public var name: String?
@@ -178,7 +180,7 @@ internal final class SonyAPICameraDevice: SonyCamera {
 }
 
 extension SonyAPICameraDevice: Camera {
-    
+        
     func finishTransfer(callback: @escaping ((Error?) -> Void)) {
         callback(CameraError.noSuchMethod("Finish Transfer"))
     }
@@ -198,8 +200,8 @@ extension SonyAPICameraDevice: Camera {
         focusChangeAwaitingCallbacks.append(callback)
     }
     
-    public var supportsPolledEvents: Bool {
-        return true
+    var eventPollingMode: PollingMode {
+        return .continuous
     }
     
     public func connect(completion: @escaping Camera.ConnectedCompletion) {
@@ -2231,7 +2233,7 @@ extension SonyAPICameraDevice: Camera {
                 
             case .setAperture:
                 
-                guard let aperture = payload as? String else {
+                guard let aperture = payload as? Aperture.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2253,7 +2255,7 @@ extension SonyAPICameraDevice: Camera {
                 
             case .setISO:
                 
-                guard let ISO = payload as? String else {
+                guard let ISO = payload as? ISO.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }

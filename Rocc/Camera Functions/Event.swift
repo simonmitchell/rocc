@@ -180,13 +180,13 @@ public struct CameraEvent {
     public let flashMode: (current: String, available: [String])?
     
     /// Current and available apertures.
-    public let aperture: (current: String, available: [String])?
+    public let aperture: (current: Aperture.Value, available: [Aperture.Value])?
     
     /// Current and available focus modes.
     public let focusMode: (current: String, available: [String])?
     
     /// Current and available ISO.
-    public let ISO: (current: String, available: [String])?
+    public let iso: (current: ISO.Value, available: [ISO.Value])?
     
     /// Whether or not the camera is program shifted.
     public let isProgramShifted: Bool?

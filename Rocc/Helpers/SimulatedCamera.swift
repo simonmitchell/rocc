@@ -97,6 +97,8 @@ extension File {
 
 public final class DummyCamera: Camera {
     
+    public var onEventAvailable: (() -> Void)?
+    
     public func handleEvent(event: CameraEvent) {
         
     }
@@ -137,15 +139,17 @@ public final class DummyCamera: Camera {
     
     public var name: String? = "Sony a7ii"
     
-    public var supportsPolledEvents: Bool = true
+    public var eventPollingMode: PollingMode {
+        return .continuous
+    }
     
     public var hasFetchedEvent: Bool = false
     
-    private var currentISO: String = "AUTO"
+    private var currentISO: ISO.Value = .auto
     
     private var currentShutterSpeed: ShutterSpeed = ShutterSpeed(numerator: 1.0, denominator: 1250)
     
-    private var currentAperture: String = "1.8"
+    private var currentAperture: Aperture.Value = Aperture.Value(value: 1.8)
     
     private var currentSelfTimer: TimeInterval = 0.0
     
@@ -259,9 +263,9 @@ public final class DummyCamera: Camera {
             shootMode: (current: currentShootMode, available: [.photo, .continuous, .timelapse, .video, .continuous, .bulb]),
             exposureCompensation: (current: currentExposureComp, available: [-3.0, -2.66, -2.33, -2.0, -1.66, -1.33, -1.0, -0.66, -0.33, 0, 0.33, 0.66, 1.0, 1.33, 1.66, 2.0, 2.33, 2.66, 3.0]),
             flashMode: nil,
-            aperture: (current: currentAperture, available: ["1.8", "2.0", "2.2", "2.8", "3.2", "4.0", "4.8", "5.6", "8.0", "11.0", "18.0", "22.0"]),
+            aperture: (current: currentAperture, available: [Aperture.Value(value: 1.8), Aperture.Value(value: 2.0), Aperture.Value(value: 2.2), Aperture.Value(value: 2.8), Aperture.Value(value: 3.2), Aperture.Value(value: 4.0), Aperture.Value(value: 4.8), Aperture.Value(value: 5.6), Aperture.Value(value: 8.0), Aperture.Value(value: 11.0), Aperture.Value(value: 18.0), Aperture.Value(value: 22.0)]),
             focusMode: (current: currentFocusMode, available: ["AF-S", "MF"]),
-            ISO: (current: currentISO, available: ["AUTO", "50", "100", "200", "400", "1600", "3200", "6400"]),
+            iso: (current: currentISO, available: [.auto, .native(100), .native(200), .native(400), .native(1600), .native(3200), .native(6400)]),
             isProgramShifted: false,
             shutterSpeed: (current: currentShutterSpeed, available: [
                 ShutterSpeed(numerator: 1, denominator: 8000),
@@ -363,7 +367,7 @@ public final class DummyCamera: Camera {
             
         case .setAperture:
             
-            guard let value = payload as? String else {
+            guard let value = payload as? Aperture.Value else {
                 return
             }
             currentAperture = value
@@ -379,7 +383,7 @@ public final class DummyCamera: Camera {
             
         case .setISO:
             
-            guard let value = payload as? String else {
+            guard let value = payload as? ISO.Value else {
                 return
             }
             currentISO = value

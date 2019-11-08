@@ -150,6 +150,27 @@ struct Packet: Packetable {
         return packet
     }
     
+    static func dataSendPackets(data: ByteBuffer, transactionId: DWord = 0) -> [Packetable] {
+        
+        let size = data.length
+
+        let _startDataPacket = startDataPacket(size: DWord(size), transactionId: transactionId)
+        let _dataPacket = dataPacket(data: data, transactionId: transactionId)
+        let _endDataPacket = endDataPacket(transactionId: transactionId)
+
+        return [_startDataPacket, _dataPacket, _endDataPacket]
+    }
+    
+    static func dataPacket(data: ByteBuffer, transactionId: DWord = 0) -> DataPacket {
+        
+        var packet = DataPacket(transactionId: transactionId)
+        packet.data[dWord: UInt(headerLength)] = transactionId
+        packet.data.append(bytes: data.bytes.compactMap({ $0 }))
+        packet.data.set(header: .dataPacket)
+        
+        return packet
+    }
+    
     static func startDataPacket(size: DWord, transactionId: DWord = 0) -> StartDataPacket {
         
         var packet = StartDataPacket(transactionId: transactionId, dataLength: size)
@@ -161,11 +182,10 @@ struct Packet: Packetable {
         return packet
     }
     
-    static func endDataPacket(payloadData: Data, transactionId: DWord = 0) -> Packet {
+    static func endDataPacket(transactionId: DWord = 0) -> Packet {
         
         var packet = Packet()
         packet.data[dWord: UInt(headerLength)] = transactionId
-        packet.data.append(data: payloadData)
         packet.data.set(header: .endDataPacket)
         
         return packet

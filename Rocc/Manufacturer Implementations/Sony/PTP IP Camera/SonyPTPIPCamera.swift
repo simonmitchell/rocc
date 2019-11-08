@@ -8,7 +8,7 @@
 
 import Foundation
 
-internal final class SonyPTPIPCameraDevice: SonyCamera {
+internal final class SonyPTPIPDevice: SonyCamera {
     
     var ipAddress: sockaddr_in? = nil
     
@@ -33,8 +33,13 @@ internal final class SonyPTPIPCameraDevice: SonyCamera {
     var latestRemoteAppVersion: String? = nil
     
     var lensModelName: String? = nil
+    
+    var onEventAvailable: (() -> Void)?
         
-    var supportsPolledEvents: Bool = false
+    var eventPollingMode: PollingMode {
+        guard let deviceInfo = deviceInfo else { return .timed }
+        return deviceInfo.supportedEventCodes.contains(.propertyChanged) ? .cameraDriven : .timed
+    }
     
     var connectionMode: ConnectionMode = .remoteControl
     
@@ -78,9 +83,6 @@ internal final class SonyPTPIPCameraDevice: SonyCamera {
         manufacturer = dictionary["manufacturer"] as? String ?? "Sony"
         
         super.init(dictionary: dictionary)
-        
-//        apiClient = SonyCameraAPIClient(apiInfo: apiDeviceInfo)
-//        apiVersion = apiDeviceInfo.version
 
         name = dictionary["friendlyName"] as? String
 
@@ -109,7 +111,7 @@ internal final class SonyPTPIPCameraDevice: SonyCamera {
     
     //MARK: - Handshake methods -
     
-    private func sendStartSessionPacket(completion: @escaping SonyPTPIPCameraDevice.ConnectedCompletion) {
+    private func sendStartSessionPacket(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
         
         // First argument here is the session ID. We don't need a transaction ID because this is the "first"
         // command we send and so we can use the default 0 value the function provides.
@@ -123,7 +125,7 @@ internal final class SonyPTPIPCameraDevice: SonyCamera {
         }, callCallbackForAnyResponse: true)
     }
     
-    private func getDeviceInfo(completion: @escaping SonyPTPIPCameraDevice.ConnectedCompletion) {
+    private func getDeviceInfo(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
         
         let packet = Packet.commandRequestPacket(code: .getDeviceInfo, arguments: nil, transactionId: 1)
         ptpIPClient?.awaitDataFor(transactionId: 1, callback: { [weak self] (dataContainer) in
@@ -152,7 +154,7 @@ internal final class SonyPTPIPCameraDevice: SonyCamera {
         ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
     }
     
-    private func getSdioExtDeviceInfo(completion: @escaping SonyPTPIPCameraDevice.ConnectedCompletion) {
+    private func getSdioExtDeviceInfo(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
         
         // 1. call sdio connect twice
         // 2. call sdio get ext device info
@@ -174,6 +176,10 @@ internal final class SonyPTPIPCameraDevice: SonyCamera {
                             return
                         }
                         _this?.deviceInfo?.update(with: extDeviceInfo)
+                        _this?.performSdioConnect(completion: { _ in }, number: 3, transactionId: 5)
+//                        _this?.performFunction(Event.get, payload: nil, callback: { (error, event) in
+//                            print("Got event", event)
+//                        })
                         completion(nil, false)
                     })
                     _this.ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
@@ -194,14 +200,18 @@ internal final class SonyPTPIPCameraDevice: SonyCamera {
 
 //MARK: - Camera protocol conformance -
 
-extension SonyPTPIPCameraDevice: Camera {
-    
-    func connect(completion: @escaping SonyPTPIPCameraDevice.ConnectedCompletion) {
+extension SonyPTPIPDevice: Camera {
+        
+    func connect(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
         
         ptpIPClient = PTPIPClient(camera: self)
         ptpIPClient?.connect(callback: { [weak self] (error) in
             self?.sendStartSessionPacket(completion: completion)
         })
+        ptpIPClient?.onEvent = { [weak self] (event) in
+            guard event.code == .propertyChanged else { return }
+            self?.onEventAvailable?()
+        }
     }
     
     func supportsFunction<T>(_ function: T, callback: @escaping ((Bool?, Error?, [T.SendType]?) -> Void)) where T : CameraFunction {
@@ -236,15 +246,48 @@ extension SonyPTPIPCameraDevice: Camera {
     }
     
     func isFunctionAvailable<T>(_ function: T, callback: @escaping ((Bool?, Error?, [T.SendType]?) -> Void)) where T : CameraFunction {
-        
+        //TODO: Implement this properly!
+        callback(true, nil, nil)
     }
     
     func makeFunctionAvailable<T>(_ function: T, callback: @escaping ((Error?) -> Void)) where T : CameraFunction {
-        
+        //TODO: Implement this properly!
+        callback(nil)
     }
     
     func performFunction<T>(_ function: T, payload: T.SendType?, callback: @escaping ((Error?, T.ReturnType?) -> Void)) where T : CameraFunction {
         
+        switch function.function {
+        case .getEvent:
+            let packet = Packet.commandRequestPacket(code: .getAllDevicePropData, arguments: [0], transactionId: 7)
+            ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { (data) in
+                guard let numberOfProperties = data.data[qWord: 0] else { return }
+                var offset: UInt = UInt(MemoryLayout<QWord>.size)
+                var properties: [PTPDeviceProperty] = []
+                for _ in 0..<numberOfProperties {
+                    guard let property = data.data.getDeviceProperty(at: offset) else { break }
+                    properties.append(property)
+                    offset += property.length
+                }
+                let event = CameraEvent(sonyDeviceProperties: properties)
+                callback(nil, event as? T.ReturnType)
+            })
+            ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
+        case .setISO, .setShutterSpeed, .setAperture:
+            guard let value = payload as? SonyPTPPropValueConvertable else {
+                callback(FunctionError.invalidPayload, nil)
+                return
+            }
+            ptpIPClient?.sendSetControlDeviceAValue(
+                PTP.DeviceProperty.Value(
+                    code: value.code,
+                    type: value.type,
+                    value: value.sonyPTPValue
+                )
+            )
+        default:
+            return
+        }
     }
     
     func loadFilesToTransfer(callback: @escaping ((Error?, [File]?) -> Void)) {

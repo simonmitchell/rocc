@@ -11,11 +11,16 @@ import Foundation
 /// Functions for controlling the Aperture (F Stop) of the camera
 public struct Aperture: CameraFunction {
     
+    public struct Value {
+        
+        public let value: Double
+    }
+    
     public var function: _CameraFunction
     
-    public typealias SendType = String
+    public typealias SendType = Aperture.Value
     
-    public typealias ReturnType = String
+    public typealias ReturnType = Aperture.Value
     
     /// Set's the aperture of the camera
     public static let set = Aperture(function: .setAperture)

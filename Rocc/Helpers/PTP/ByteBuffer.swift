@@ -11,6 +11,7 @@ import Foundation
 typealias Byte = UInt8
 typealias Word = UInt16
 typealias DWord = UInt32
+typealias QWord = UInt64
 
 extension Data {
     /// Converts a `Data` object to it's `UInt8` byte array equivalent
@@ -95,11 +96,23 @@ struct ByteBuffer {
         bytes = []
     }
     
+    private mutating func set(qWord value: QWord, at offset: UInt) {
+        setLittleEndian(offset: offset, value: UInt(value), nBytes: 8)
+    }
+    
     private mutating func set(dWord value: DWord, at offset: UInt) {
         setLittleEndian(offset: offset, value: UInt(value), nBytes: 4)
     }
     
     private mutating func set(word value: Word, at offset: UInt) {
+        setLittleEndian(offset: offset, value: UInt(value), nBytes: 2)
+    }
+    
+    private mutating func set(int16 value: Int16, at offset: UInt) {
+        setLittleEndian(offset: offset, value: UInt(value), nBytes: 2)
+    }
+    
+    private mutating func set(int8 value: Int8, at offset: UInt) {
         setLittleEndian(offset: offset, value: UInt(value), nBytes: 2)
     }
     
@@ -151,9 +164,53 @@ struct ByteBuffer {
     var length: Int {
         return bytes.count
     }
+    
+    init() { }
+    
+    init(bytes: [Byte?]) {
+        self.bytes = bytes
+    }
+    
+    init(hexString: String) {
+        
+        let hexCharacters = "0123456789abcdefABCDEF"
+        let fixedString = hexString.filter { (character) -> Bool in
+            hexCharacters.contains(character)
+        }
+        
+        let length = fixedString.count
+
+        var bytes = [UInt8]()
+        bytes.reserveCapacity(length/2)
+        
+        var index = fixedString.startIndex
+        
+        for _ in 0..<length/2 {
+            let nextIndex = fixedString.index(index, offsetBy: 2)
+            if let b = UInt8(fixedString[index..<nextIndex], radix: 16) {
+                bytes.append(b)
+            }
+            index = nextIndex
+        }
+        
+        self.bytes = bytes
+    }
 }
 
 extension ByteBuffer {
+    
+    subscript (int8 index: UInt) -> Int8? {
+        get {
+            guard let littleEndian = getLittleEndian(offset: index, nBytes: 2) else {
+                return nil
+            }
+            return Int8(bitPattern: UInt8(littleEndian))
+        }
+        set {
+            guard let newValue = newValue else { return }
+            set(int8: newValue, at: index)
+        }
+    }
     
     subscript (index: UInt) -> Byte? {
         get {
@@ -177,6 +234,19 @@ extension ByteBuffer {
         }
     }
     
+    subscript (int16 index: UInt) -> Int16? {
+        get {
+            guard let littleEndian = getLittleEndian(offset: index, nBytes: 2) else {
+                return nil
+            }
+            return Int16(bitPattern: UInt16(littleEndian))
+        }
+        set {
+            guard let newValue = newValue else { return }
+            set(int16: newValue, at: index)
+        }
+    }
+    
     subscript (dWord index: UInt) -> DWord? {
         get {
             guard let littleEndian = getLittleEndian(offset: index, nBytes: 4) else {
@@ -187,6 +257,19 @@ extension ByteBuffer {
         set {
             guard let newValue = newValue else { return }
             set(dWord: newValue, at: index)
+        }
+    }
+    
+    subscript (qWord index: UInt) -> QWord? {
+        get {
+            guard let littleEndian = getLittleEndian(offset: index, nBytes: 8) else {
+                return nil
+            }
+            return QWord(littleEndian)
+        }
+        set {
+            guard let newValue = newValue else { return }
+            set(qWord: newValue, at: index)
         }
     }
     

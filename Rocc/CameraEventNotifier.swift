@@ -55,23 +55,28 @@ public final class CameraEventNotifier {
     /// - Important: To avoid polling errors, if you are unsure if you are already being notified please only call this once per instance of `CameraEventNotifier`
     public func startNotifying() {
         
-        defer {
+        switch camera.eventPollingMode {
+        case .none:
+            break
+        case .continuous:
             fetchEvent(true)
+        case .cameraDriven:
+            fetchEvent(true)
+            camera.onEventAvailable = { [weak self] in
+                self?.fetchEvent()
+            }
+        case .timed:
+            fetchEvent(true)
+            eventTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true, block: { [weak self] (timer) in
+                self?.fetchEvent()
+            })
         }
-        
-        guard !camera.supportsPolledEvents else {
-            return
-        }
-        
-        eventTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true, block: { [weak self] (timer) in
-            self?.fetchEvent()
-        })
     }
     
     func fetchEvent(_ isInitial: Bool = false) {
         
         // Don't poll with the initial event so we get full information
-        camera.performFunction(Event.get, payload: isInitial ? false : camera.supportsPolledEvents) { [weak self] (error, event) in
+        camera.performFunction(Event.get, payload: isInitial ? false : camera.eventPollingMode == .continuous) { [weak self] (error, event) in
             
             guard let self = self else { return }
             
@@ -99,7 +104,7 @@ public final class CameraEventNotifier {
                 self.camera.handleEvent(event: _event)
             }
             
-            guard self.camera.supportsPolledEvents, event != nil else {
+            guard self.camera.eventPollingMode == .continuous, event != nil else {
                 return
             }
             
