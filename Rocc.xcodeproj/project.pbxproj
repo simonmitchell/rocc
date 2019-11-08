@@ -97,6 +97,8 @@
 		B1990A8420C3FDAA0090A2F6 /* Reachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1990A8220C3FDAA0090A2F6 /* Reachability.swift */; };
 		B1990A8620C408C20090A2F6 /* Ping.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1990A8520C408C20090A2F6 /* Ping.swift */; };
 		B1990A8720C408C20090A2F6 /* Ping.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1990A8520C408C20090A2F6 /* Ping.swift */; };
+		B19DDEE82372F211004C0EBF /* PTPDeviceInfo+SDIO.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19DDEE72372F211004C0EBF /* PTPDeviceInfo+SDIO.swift */; };
+		B19DDEE92372F211004C0EBF /* PTPDeviceInfo+SDIO.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19DDEE72372F211004C0EBF /* PTPDeviceInfo+SDIO.swift */; };
 		B1A1AA1A20A4E01D00FD0A4A /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A1AA1420A4E01D00FD0A4A /* Event.swift */; };
 		B1A1AA1E20A4E02200FD0A4A /* Aperture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB48722092743100C33C86 /* Aperture.swift */; };
 		B1A1AA1F20A4E02200FD0A4A /* AutoPowerOff.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EF4C8A20A24DA100EEDE3E /* AutoPowerOff.swift */; };
@@ -136,6 +138,8 @@
 		B1A25F3221AE950E00D9EE81 /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A25F3121AE950E00D9EE81 /* Errors.swift */; };
 		B1A3EC1E21F11AA500670712 /* FileSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B4342920939EF500A81B9D /* FileSystem.swift */; };
 		B1A3EC2521F11AB700670712 /* CameraFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B4344F209746B000A81B9D /* CameraFunctions.swift */; };
+		B1AEE4DD2374C3E200224152 /* ByteBuffer+DeviceProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AEE4DC2374C3E200224152 /* ByteBuffer+DeviceProperty.swift */; };
+		B1AEE4DE2374C3E200224152 /* ByteBuffer+DeviceProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AEE4DC2374C3E200224152 /* ByteBuffer+DeviceProperty.swift */; };
 		B1AF502A208A51D00029336B /* NetworkInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AF5029208A51D00029336B /* NetworkInterface.swift */; };
 		B1AF504B208D345A0029336B /* ThunderRequest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1AF5041208D34510029336B /* ThunderRequest.framework */; };
 		B1AF5091208DC3A80029336B /* RoccMac.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1AF5088208DC3A80029336B /* RoccMac.framework */; };
@@ -206,6 +210,8 @@
 		B1FB48732092743100C33C86 /* Aperture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB48722092743100C33C86 /* Aperture.swift */; };
 		B1FF7A382371EC180010D5F0 /* SDIOExtDeviceInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FF7A372371EC180010D5F0 /* SDIOExtDeviceInfo.swift */; };
 		B1FF7A392371EC180010D5F0 /* SDIOExtDeviceInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FF7A372371EC180010D5F0 /* SDIOExtDeviceInfo.swift */; };
+		B1FF7A422371F4AB0010D5F0 /* DeviceProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FF7A412371F4AB0010D5F0 /* DeviceProperty.swift */; };
+		B1FF7A432371F4AB0010D5F0 /* DeviceProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FF7A412371F4AB0010D5F0 /* DeviceProperty.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -334,11 +340,13 @@
 		B1990A7F20C3FA1D0090A2F6 /* DeviceConnectivityNotifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceConnectivityNotifier.swift; sourceTree = "<group>"; };
 		B1990A8220C3FDAA0090A2F6 /* Reachability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Reachability.swift; sourceTree = "<group>"; };
 		B1990A8520C408C20090A2F6 /* Ping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ping.swift; sourceTree = "<group>"; };
+		B19DDEE72372F211004C0EBF /* PTPDeviceInfo+SDIO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PTPDeviceInfo+SDIO.swift"; sourceTree = "<group>"; };
 		B1A1AA1420A4E01D00FD0A4A /* Event.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Event.swift; sourceTree = "<group>"; };
 		B1A1B67E21F8BC78008B5181 /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		B1A25F2021ADE6CE00D9EE81 /* ShutterSpeedFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShutterSpeedFormatter.swift; sourceTree = "<group>"; };
 		B1A25F2821ADEAAC00D9EE81 /* ShutterSpeedFormatterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShutterSpeedFormatterTests.swift; sourceTree = "<group>"; };
 		B1A25F3121AE950E00D9EE81 /* Errors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Errors.swift; sourceTree = "<group>"; };
+		B1AEE4DC2374C3E200224152 /* ByteBuffer+DeviceProperty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ByteBuffer+DeviceProperty.swift"; sourceTree = "<group>"; };
 		B1AF5029208A51D00029336B /* NetworkInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkInterface.swift; sourceTree = "<group>"; };
 		B1AF5038208D34510029336B /* ThunderRequest.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ThunderRequest.xcodeproj; path = ThunderRequest/ThunderRequest.xcodeproj; sourceTree = "<group>"; };
 		B1AF5088208DC3A80029336B /* RoccMac.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = RoccMac.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -382,6 +390,7 @@
 		B1FB486E2092585400C33C86 /* SonyAPICamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SonyAPICamera.swift; sourceTree = "<group>"; };
 		B1FB48722092743100C33C86 /* Aperture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Aperture.swift; sourceTree = "<group>"; };
 		B1FF7A372371EC180010D5F0 /* SDIOExtDeviceInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDIOExtDeviceInfo.swift; sourceTree = "<group>"; };
+		B1FF7A412371F4AB0010D5F0 /* DeviceProperty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceProperty.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -500,8 +509,17 @@
 			children = (
 				B180A7E8236F62C7001AAF5D /* PTPDeviceInfo.swift */,
 				B1FF7A372371EC180010D5F0 /* SDIOExtDeviceInfo.swift */,
+				B1FF7A412371F4AB0010D5F0 /* DeviceProperty.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		B19DDEDF2372F1F9004C0EBF /* Helpers */ = {
+			isa = PBXGroup;
+			children = (
+				B19DDEE72372F211004C0EBF /* PTPDeviceInfo+SDIO.swift */,
+			);
+			path = Helpers;
 			sourceTree = "<group>";
 		};
 		B1AF5039208D34510029336B /* Products */ = {
@@ -628,8 +646,10 @@
 		B1F7CEAA236CD304007E3921 /* PTP */ = {
 			isa = PBXGroup;
 			children = (
+				B19DDEDF2372F1F9004C0EBF /* Helpers */,
 				B180A7E7236F629F001AAF5D /* Models */,
 				B1F7CEB6236CD326007E3921 /* ByteBuffer.swift */,
+				B1AEE4DC2374C3E200224152 /* ByteBuffer+DeviceProperty.swift */,
 				B1F7CEDB236DE268007E3921 /* ByteBuffer+PacketParsing.swift */,
 				B1F7CED3236DE1F1007E3921 /* Packets */,
 				B1F7CEB5236CD326007E3921 /* PTPIPClient.swift */,
@@ -992,6 +1012,7 @@
 				B1CDCB8322234CAA00DD0F0E /* UPnPService.swift in Sources */,
 				B1FB47FF209089CA00C33C86 /* CameraClient.swift in Sources */,
 				B1A1AA1A20A4E01D00FD0A4A /* Event.swift in Sources */,
+				B1FF7A422371F4AB0010D5F0 /* DeviceProperty.swift in Sources */,
 				B164F02921811C1200590A05 /* String+Regex.swift in Sources */,
 				B1CE24B22099184B0049EC87 /* Zoom.swift in Sources */,
 				B100E1AB20A0A42D004F7AB8 /* PostViewImage.swift in Sources */,
@@ -1041,6 +1062,7 @@
 				B180A7D6236F1B9D001AAF5D /* CommandResponsePacket.swift in Sources */,
 				B154525C21EE61B800C59096 /* SOAPRequestBody.swift in Sources */,
 				B1CE24AD2098FD1E0049EC87 /* LiveView.swift in Sources */,
+				B1AEE4DD2374C3E200224152 /* ByteBuffer+DeviceProperty.swift in Sources */,
 				B16BFD1621F5F0F100AF3F24 /* Pinger.swift in Sources */,
 				B100E1A220A04EE0004F7AB8 /* Focus.swift in Sources */,
 				B1CE24B42099AA7D0049EC87 /* Shutter.swift in Sources */,
@@ -1055,6 +1077,7 @@
 				B1D3591120AADC810069C698 /* Data+Conversion.swift in Sources */,
 				B100E1A520A09986004F7AB8 /* ProgramShift.swift in Sources */,
 				B1990A8620C408C20090A2F6 /* Ping.swift in Sources */,
+				B19DDEE82372F211004C0EBF /* PTPDeviceInfo+SDIO.swift in Sources */,
 				B10A22F9237060D3000BEA56 /* EventPacket.swift in Sources */,
 				B1F7CEC9236D81A8007E3921 /* SonyCameraDeviceInfoParser.swift in Sources */,
 				B1990A8020C3FA1D0090A2F6 /* DeviceConnectivityNotifier.swift in Sources */,
@@ -1105,6 +1128,7 @@
 				B1A1AA2A20A4E02200FD0A4A /* IntervalTime.swift in Sources */,
 				B16064A921E3A00A00AE3483 /* SonyTransferDevice.swift in Sources */,
 				B1A1AA2C20A4E02200FD0A4A /* LiveView.swift in Sources */,
+				B1FF7A432371F4AB0010D5F0 /* DeviceProperty.swift in Sources */,
 				B164F02A21811C1200590A05 /* String+Regex.swift in Sources */,
 				B1A1AA3520A4E02200FD0A4A /* SteadyMode.swift in Sources */,
 				B1A1AA3220A4E02200FD0A4A /* ShootMode.swift in Sources */,
@@ -1154,6 +1178,7 @@
 				B180A7D7236F1B9D001AAF5D /* CommandResponsePacket.swift in Sources */,
 				B1CDCB90222352BB00DD0F0E /* UPnPService.swift in Sources */,
 				B154525D21EE61B800C59096 /* SOAPRequestBody.swift in Sources */,
+				B1AEE4DE2374C3E200224152 /* ByteBuffer+DeviceProperty.swift in Sources */,
 				B1A1AA2F20A4E02200FD0A4A /* ProgramShift.swift in Sources */,
 				B16BFD1721F5F0F100AF3F24 /* Pinger.swift in Sources */,
 				B1AF50A0208DC3B20029336B /* DeviceDiscovery.swift in Sources */,
@@ -1168,6 +1193,7 @@
 				B1D3591220AADC810069C698 /* Data+Conversion.swift in Sources */,
 				B10B38F121E0F6C300FED24F /* Function.swift in Sources */,
 				B1B43451209746B000A81B9D /* CameraFunctions.swift in Sources */,
+				B19DDEE92372F211004C0EBF /* PTPDeviceInfo+SDIO.swift in Sources */,
 				B10A22FA237060D3000BEA56 /* EventPacket.swift in Sources */,
 				B1F7CECA236D81A8007E3921 /* SonyCameraDeviceInfoParser.swift in Sources */,
 				B1990A8720C408C20090A2F6 /* Ping.swift in Sources */,

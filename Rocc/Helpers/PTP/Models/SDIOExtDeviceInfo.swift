@@ -15,7 +15,7 @@ extension PTP {
         //TODO: Work out how this works! Seems to be related to the initial request...
         let unknownWord: Word
         
-        let supportedProperties: [DeviceProperty]
+        let supportedPropCodes: [Word]
         
         init?(data: ByteBuffer) {
             
@@ -23,7 +23,7 @@ extension PTP {
             unknownWord = _unknownWord
             
             guard let propertiesWordArray = data[wordArray: UInt(MemoryLayout<Word>.size)] else { return nil }
-            supportedProperties = propertiesWordArray.compactMap({ DeviceProperty(rawValue: $0) })
+            supportedPropCodes = propertiesWordArray
         }
     }
 }

@@ -135,8 +135,8 @@ struct Packet: Packetable {
     
     static func commandRequestPacket(code commandCode: PTP.CommandCode, arguments: [DWord]?, transactionId: DWord = 0, dataPhaseInfo: DWord = 1) -> CommandRequestPacket {
         
-        var packet = CommandRequestPacket(length: 0, name: .cmdRequest, data: ByteBuffer())!
-            
+        var packet = CommandRequestPacket(transactionId: transactionId)
+        packet.name = .cmdRequest
         packet.data[dWord: UInt(Packet.headerLength)] = dataPhaseInfo
         packet.data.append(word: commandCode.rawValue)
         packet.data.append(dWord: transactionId)

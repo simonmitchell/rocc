@@ -23,11 +23,11 @@ extension PTP {
         
         let functionalMode: Word
         
-        let supportedOperations: [CommandCode]
+        var supportedOperations: [CommandCode]
         
-        let supportedEventCodes: [EventCode]
+        var supportedEventCodes: [EventCode]
         
-        let supportedDeviceProperties: [Word]
+        var supportedDeviceProperties: [DeviceProperty.Code]
         
         let supportedCaptureFormats: [Word]
         
@@ -78,8 +78,8 @@ extension PTP {
             offset += UInt(MemoryLayout<DWord>.size) + UInt(supportedEventWords.count * MemoryLayout<Word>.size)
             
             guard let _supportedDeviceProperties = data[wordArray: offset] else { return nil }
-            supportedDeviceProperties = _supportedDeviceProperties
-            offset += UInt(MemoryLayout<DWord>.size) + UInt(supportedDeviceProperties.count * MemoryLayout<Word>.size)
+            supportedDeviceProperties = _supportedDeviceProperties.compactMap({ DeviceProperty.Code(rawValue: $0) })
+            offset += UInt(MemoryLayout<DWord>.size) + UInt(_supportedDeviceProperties.count * MemoryLayout<Word>.size)
             
             guard let _supportedCaptureFormats = data[wordArray: offset] else { return nil }
             supportedCaptureFormats = _supportedCaptureFormats
