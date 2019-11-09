@@ -31,7 +31,7 @@ class PTPDevicePropertyTests: XCTestCase {
         XCTAssertFalse(header.isRange)
         XCTAssertEqual(header.code, .whiteBalance)
         XCTAssertEqual(header.length, 11)
-        XCTAssertEqual(header.getSet, 0x0101)
+        XCTAssertEqual(header.getSet, .getSet)
     }
 
     func testIncorrectDataTypeFailsParsing() {
