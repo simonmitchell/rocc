@@ -93,16 +93,16 @@ extension ByteBuffer {
         switch type {
         case .int8:
             guard let int8 = value as? Int8 else { return }
-            append(byte: Byte(int8))
+            append(int8: int8)
         case .uint8:
             guard let uint8 = value as? UInt8 else { return }
             append(byte: uint8)
         case .int16:
             guard let int16 = value as? Int16 else { return }
-            append(word: Word(int16))
+            append(int16: int16)
         case .uint16:
-             guard let uint16 = value as? UInt16 else { return }
-             append(word: uint16)
+            guard let uint16 = value as? UInt16 else { return }
+            append(word: uint16)
         case .uint32:
             guard let uint32 = value as? UInt32 else { return }
             append(dWord: uint32)

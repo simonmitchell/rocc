@@ -24,10 +24,10 @@ extension Exposure.Compensation.Value: SonyPTPPropValueConvertable {
             return nil
         }
         
-        value = Double(binaryInt)
+        value = Double(binaryInt)/1000.0
     }
     
     var sonyPTPValue: PTPDevicePropertyDataType {
-        return Int16(value)
+        return Int16(value * 1000)
     }
 }

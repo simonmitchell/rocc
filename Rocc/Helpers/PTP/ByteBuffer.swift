@@ -33,13 +33,13 @@ struct ByteBuffer {
     
     //MARK: - Writing -
     
-    private mutating func setLittleEndian(offset: UInt, value: UInt, nBytes: UInt) {
+    private mutating func setLittleEndian(offset: UInt, value: Int, nBytes: UInt) {
         for i in 0..<nBytes {
             // >> 8 * i shifts a whole byte to the right adding 0s to replace missing bits
             // (say i = 1) 01010101 11101110 01010101 01010101 -> 00000000 01010101 11101110 01010101
             // & Byte(0xff) does a logical AND between the shifted bits and 00000000 00000000 00000000 11111111
             // so 00000000 01010101 11101110 01010101 & 0xff -> 00000000 00000000 00000000 01010101
-            bytes[safe: offset + i] = Byte((value >> (8 * i)) & UInt(0xff))
+            bytes[safe: offset + i] = Byte((value >> (8 * i)) & Int(0xff))
         }
     }
     
@@ -58,11 +58,19 @@ struct ByteBuffer {
     }
     
     mutating func append(dWord value: DWord) {
-        setLittleEndian(offset: UInt(bytes.count), value: UInt(value), nBytes: 4)
+        setLittleEndian(offset: UInt(bytes.count), value: Int(value), nBytes: 4)
     }
     
     mutating func append(word value: Word) {
-        setLittleEndian(offset: UInt(bytes.count), value: UInt(value), nBytes: 2)
+        setLittleEndian(offset: UInt(bytes.count), value: Int(value), nBytes: 2)
+    }
+    
+    mutating func append(int8 value: Int8) {
+        setLittleEndian(offset: UInt(bytes.count), value: Int(value), nBytes: 1)
+    }
+    
+    mutating func append(int16 value: Int16) {
+        setLittleEndian(offset: UInt(bytes.count), value: Int(value), nBytes: 2)
     }
     
     mutating func append(byte value: Byte) {
@@ -97,23 +105,23 @@ struct ByteBuffer {
     }
     
     private mutating func set(qWord value: QWord, at offset: UInt) {
-        setLittleEndian(offset: offset, value: UInt(value), nBytes: 8)
+        setLittleEndian(offset: offset, value: Int(value), nBytes: 8)
     }
     
     private mutating func set(dWord value: DWord, at offset: UInt) {
-        setLittleEndian(offset: offset, value: UInt(value), nBytes: 4)
+        setLittleEndian(offset: offset, value: Int(value), nBytes: 4)
     }
     
     private mutating func set(word value: Word, at offset: UInt) {
-        setLittleEndian(offset: offset, value: UInt(value), nBytes: 2)
+        setLittleEndian(offset: offset, value: Int(value), nBytes: 2)
     }
     
     private mutating func set(int16 value: Int16, at offset: UInt) {
-        setLittleEndian(offset: offset, value: UInt(value), nBytes: 2)
+        setLittleEndian(offset: offset, value: Int(value), nBytes: 2)
     }
     
     private mutating func set(int8 value: Int8, at offset: UInt) {
-        setLittleEndian(offset: offset, value: UInt(value), nBytes: 2)
+        setLittleEndian(offset: offset, value: Int(value), nBytes: 1)
     }
     
     func sliced(_ offset: Int, _ end: Int? = nil) -> ByteBuffer {
