@@ -149,7 +149,7 @@ extension CameraEvent {
         exposureMode = nil
         postViewImageSize = nil
         var selfTimer: (current: TimeInterval, available: [TimeInterval])?
-        shootMode = nil
+        var shootMode: (current: ShootingMode, available: [ShootingMode]) = (.photo, [])
         var exposureCompensation: (current: Exposure.Compensation.Value, available: [Exposure.Compensation.Value])?
         flashMode = nil
         var aperture: (current: Aperture.Value, available: [Aperture.Value])?
@@ -218,7 +218,15 @@ extension CameraEvent {
                 }
                 let available = enumProperty.available.compactMap({ SonyStillCaptureMode(sonyValue: $0) })
                 
-                //TODO: Maybe we shouldn't be doing this!
+                // Adjust `ShootingMode`s that are available
+                available.forEach {
+                    guard let mode = $0.shootMode else { return }
+                    if !shootMode.available.contains(mode) {
+                        shootMode.available.append(mode)
+                    }
+                }
+                
+                //TODO: Maybe we shouldn't be doing this?
                 switch current.shootMode {
                 case .photo:
                     functions.append(.takePicture)
@@ -230,6 +238,11 @@ extension CameraEvent {
                     break
                 }
                 
+                // Adjust our current shoot mode
+                if let currentShootMode = current.shootMode {
+                    shootMode.current = currentShootMode
+                }
+                
                 let selfTimerSingleModes = available.filter({ $0.isSingleTimerMode })
                 if !selfTimerSingleModes.isEmpty {
                     //TODO: What if current is a multiple timer mode?
@@ -237,6 +250,10 @@ extension CameraEvent {
                     durations.append(0.0)
                     selfTimer = (current.timerDuration, durations.sorted())
                     functions.append(.setSelfTimerDuration)
+                }
+                
+                if shootMode.available.contains(.photo) {
+                    shootMode.available.append(.timelapse)
                 }
                                 
                 //TODO: Munge to camera protocol format!
@@ -345,5 +362,6 @@ extension CameraEvent {
         self.whiteBalance = whiteBalance
         self.exposureCompensation = exposureCompensation
         self.selfTimer = selfTimer
+        self.shootMode = shootMode
     }
 }
