@@ -93,7 +93,9 @@ extension CameraEvent {
                 guard let compensation = Exposure.Compensation.Value(sonyValue: enumProperty.currentValue) else {
                     return
                 }
-                let available = enumProperty.available.compactMap({ Exposure.Compensation.Value(sonyValue: $0) })
+                let available = enumProperty.available.compactMap({ Exposure.Compensation.Value(sonyValue: $0) }).sorted { (value1, value2) -> Bool in
+                    return value1.value < value2.value
+                }
                 exposureCompensation = (compensation, available)
                 
             case .ISO:
