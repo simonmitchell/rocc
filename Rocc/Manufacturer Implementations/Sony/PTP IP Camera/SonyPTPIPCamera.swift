@@ -279,11 +279,29 @@ extension SonyPTPIPDevice: Camera {
                 return
             }
             ptpIPClient?.sendSetControlDeviceAValue(
-                PTP.DeviceProperty.Value(
-                    code: value.code,
-                    type: value.type,
-                    value: value.sonyPTPValue
-                )
+                PTP.DeviceProperty.Value(value)
+            )
+        case .setSelfTimerDuration:
+            guard let timeInterval = payload as? TimeInterval else {
+                callback(FunctionError.invalidPayload, nil)
+                return
+            }
+            let value: SonyStillCaptureMode
+            switch timeInterval {
+            case 0.0:
+                value = .single
+            case 2.0:
+                value = .timer_2
+            case 5.0:
+                value = .timer_5
+            case 10.0:
+                //TODO: Pick out the one which is available! How!?
+                value = .timer_10_a
+            default:
+                value = .single
+            }
+            ptpIPClient?.sendSetControlDeviceAValue(
+                PTP.DeviceProperty.Value(value)
             )
         case .setWhiteBalance:
             guard let value = payload as? WhiteBalance.Value else {
@@ -291,11 +309,7 @@ extension SonyPTPIPDevice: Camera {
                 return
             }
             ptpIPClient?.sendSetControlDeviceAValue(
-                PTP.DeviceProperty.Value(
-                    code: value.mode.code,
-                    type: value.mode.type,
-                    value: value.mode.sonyPTPValue
-                )
+                PTP.DeviceProperty.Value(value.mode)
             )
             guard let colorTemp = value.temperature else { return }
             ptpIPClient?.sendSetControlDeviceAValue(
