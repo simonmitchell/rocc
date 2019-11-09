@@ -177,7 +177,7 @@ public struct CameraEvent {
     public var shootMode: (current: ShootingMode, available: [ShootingMode]?)?
     
     /// Current and available exposure compensation.
-    public let exposureCompensation: (current: Double, available: [Double])?
+    public let exposureCompensation: (current: Exposure.Compensation.Value, available: [Exposure.Compensation.Value])?
     
     /// Current and available flash modes.
     public let flashMode: (current: String, available: [String])?

@@ -157,7 +157,7 @@ public final class DummyCamera: Camera {
     
     var currentFocusMode: String = "AF-S"
     
-    private var currentExposureComp: Double = 0.0
+    private var currentExposureComp: Exposure.Compensation.Value = Exposure.Compensation.Value(value: 0.0)
     
     private var eventCompletion: (() -> Void)?
     
@@ -261,7 +261,7 @@ public final class DummyCamera: Camera {
             postViewImageSize: nil,
             selfTimer: (current: currentSelfTimer, available: [0.0, 2.0, 5.0]),
             shootMode: (current: currentShootMode, available: [.photo, .continuous, .timelapse, .video, .continuous, .bulb]),
-            exposureCompensation: (current: currentExposureComp, available: [-3.0, -2.66, -2.33, -2.0, -1.66, -1.33, -1.0, -0.66, -0.33, 0, 0.33, 0.66, 1.0, 1.33, 1.66, 2.0, 2.33, 2.66, 3.0]),
+            exposureCompensation: (current: currentExposureComp, available: [-3.0, -2.66, -2.33, -2.0, -1.66, -1.33, -1.0, -0.66, -0.33, 0, 0.33, 0.66, 1.0, 1.33, 1.66, 2.0, 2.33, 2.66, 3.0].map({ Exposure.Compensation.Value(value: $0) })),
             flashMode: nil,
             aperture: (current: currentAperture, available: [Aperture.Value(value: 1.8), Aperture.Value(value: 2.0), Aperture.Value(value: 2.2), Aperture.Value(value: 2.8), Aperture.Value(value: 3.2), Aperture.Value(value: 4.0), Aperture.Value(value: 4.8), Aperture.Value(value: 5.6), Aperture.Value(value: 8.0), Aperture.Value(value: 11.0), Aperture.Value(value: 18.0), Aperture.Value(value: 22.0)]),
             focusMode: (current: currentFocusMode, available: ["AF-S", "MF"]),
@@ -415,7 +415,7 @@ public final class DummyCamera: Camera {
             
         case .setExposureCompensation:
             
-            guard let value = payload as? Double else {
+            guard let value = payload as? Exposure.Compensation.Value else {
                 return
             }
             currentExposureComp = value

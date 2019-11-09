@@ -2131,7 +2131,7 @@ extension SonyAPICameraDevice: Camera {
                 
             case .setExposureCompensation:
                 
-                guard let compensation = payload as? Double else {
+                guard let compensation = payload as? Exposure.Compensation.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2144,13 +2144,13 @@ extension SonyAPICameraDevice: Camera {
                         
                         // Find the zero-based index of the compensation we are trying to set.
                         guard let index = availableCompensations.firstIndex(where: {
-                            Double.equal($0, compensation, precision: 2)
+                            Double.equal($0.value, compensation.value, precision: 2)
                         }) else {
                             callback(FunctionError.invalidPayload, nil)
                             return
                         }
                         guard let zeroIndex = availableCompensations.firstIndex(where: {
-                            Double.equal($0, 0.0, precision: 4)
+                            Double.equal($0.value, 0.0, precision: 4)
                         }) else {
                             callback(FunctionError.invalidPayload, nil)
                             return
@@ -2185,7 +2185,7 @@ extension SonyAPICameraDevice: Camera {
                                 callback(error, nil)
                             case .success(let compensationIndex):
                                 
-                                guard let zeroIndex = availableCompensations.firstIndex(of: 0.0) else {
+                                guard let zeroIndex = availableCompensations.firstIndex(where: { $0.value == 0.0 }) else {
                                     callback(FunctionError.invalidResponse, nil)
                                     return
                                 }

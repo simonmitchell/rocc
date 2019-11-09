@@ -8,6 +8,256 @@
 
 import Foundation
 
+extension PTP.DeviceProperty.Code {
+    
+    var setFunctions: [_CameraFunction]? {
+        switch self {
+        case .exposureBiasCompensation:
+            return [.setExposureCompensation]
+        case .undefined:
+            return nil
+        case .batteryLevel:
+            return nil
+        case .functionalMode:
+            //TODO: Unsure
+            return nil
+        case .imageSize:
+            return [.setStillSize]
+        case .compressionSetting:
+            //TODO: Add function
+            return nil
+        case .whiteBalance:
+            return [.setWhiteBalance]
+        case .rgbGain:
+            //TODO: Add function
+            return nil
+        case .fNumber:
+            return [.setAperture]
+        case .focalLength:
+            //TODO: Add function
+            return nil
+        case .focusDistance:
+            //TODO: Add function
+            return nil
+        case .focusMode:
+            return [.setFocusMode]
+        case .exposureMeteringMode:
+            //TODO: Add function
+            return nil
+        case .flashMode:
+            return [.setFlashMode]
+        case .exposureTime:
+            return [.setShutterSpeed]
+        case .exposureProgramMode:
+            return [.setExposureMode]
+        case .exposureIndex:
+            //TODO: Add function
+            return nil
+        case .dateTime:
+            //TODO: Is this correct?
+            return [.setCurrentTime]
+        case .captureDelay:
+            return [.setSelfTimerDuration]
+        case .stillCaptureMode:
+            return [.setShootMode]
+        case .contrast:
+            //TODO: Add function
+            return nil
+        case .sharpness:
+            //TODO: Add function
+            return nil
+        case .digitalZoom:
+            return [.startZooming, .stopZooming]
+        case .effectMode:
+            //TODO: Add function
+            return nil
+        case .burstNumber:
+            //TODO: Add function
+            return nil
+        case .burstInterval:
+            //TODO: Add function
+            return nil
+        case .timelapseNumber:
+            //TODO: Add function
+            return nil
+        case .timelapseInterval:
+            //TODO: Add function
+            return nil
+        case .focusMeteringMode:
+            //TODO: Add function
+            return nil
+        case .uploadURL:
+            return nil
+        case .artist:
+            return nil
+        case .copyrightInfo:
+            return nil
+        case .DPCCompensation:
+            //TODO: Add function
+            return nil
+        case .dRangeOptimize:
+            //TODO: Add function
+            return nil
+        case .imageSizeSony:
+            return [.setStillSize]
+        case .shutterSpeed:
+            return [.setShutterSpeed]
+        case .unknown_0xd20e:
+            return nil
+        case .colorTemp:
+            return nil
+        case .cCFilter:
+            //TODO: Add function
+            return nil
+        case .aspectRatio:
+            //TODO: Add function
+            return nil
+        case .focusFound:
+            return nil
+        case .objectInMemory:
+            return nil
+        case .exposeIndex:
+            //TODO: Add function?
+            return nil
+        case .batteryLevelSony:
+            return nil
+        case .pictureEffect:
+            return nil
+        case .ABFilter:
+            return nil
+        case .ISO:
+            return [.setISO]
+        case .movie:
+            return nil
+        case .stillImage:
+            return nil
+        }
+    }
+    
+    var getFunction: _CameraFunction? {
+        switch self {
+        case .exposureBiasCompensation:
+            return .getExposureCompensation
+        case .undefined:
+            return nil
+        case .batteryLevel:
+            return nil
+        case .functionalMode:
+            //TODO: Unsure
+            return nil
+        case .imageSize:
+            return .getStillSize
+        case .compressionSetting:
+            //TODO: Add function
+            return nil
+        case .whiteBalance:
+            return .getWhiteBalance
+        case .rgbGain:
+            //TODO: Add function
+            return nil
+        case .fNumber:
+            return .getAperture
+        case .focalLength:
+            //TODO: Add function
+            return nil
+        case .focusDistance:
+            //TODO: Add function
+            return nil
+        case .focusMode:
+            return .getFocusMode
+        case .exposureMeteringMode:
+            //TODO: Add function
+            return nil
+        case .flashMode:
+            return .getFlashMode
+        case .exposureTime:
+            return .getShutterSpeed
+        case .exposureProgramMode:
+            return .getExposureMode
+        case .exposureIndex:
+            //TODO: Add function
+            return nil
+        case .dateTime:
+            return nil
+        case .captureDelay:
+            return .getSelfTimerDuration
+        case .stillCaptureMode:
+            return .getShootMode
+        case .contrast:
+            //TODO: Add function
+            return nil
+        case .sharpness:
+            //TODO: Add function
+            return nil
+        case .digitalZoom:
+            return nil
+        case .effectMode:
+            //TODO: Add function
+            return nil
+        case .burstNumber:
+            //TODO: Add function
+            return nil
+        case .burstInterval:
+            //TODO: Add function
+            return nil
+        case .timelapseNumber:
+            //TODO: Add function
+            return nil
+        case .timelapseInterval:
+            //TODO: Add function
+            return nil
+        case .focusMeteringMode:
+            //TODO: Add function
+            return nil
+        case .uploadURL:
+            return nil
+        case .artist:
+            return nil
+        case .copyrightInfo:
+            return nil
+        case .DPCCompensation:
+            //TODO: Add function
+            return nil
+        case .dRangeOptimize:
+            //TODO: Add function
+            return nil
+        case .imageSizeSony:
+            return .getStillSize
+        case .shutterSpeed:
+            return .getShutterSpeed
+        case .unknown_0xd20e:
+            return nil
+        case .colorTemp:
+            return nil
+        case .cCFilter:
+            //TODO: Add function
+            return nil
+        case .aspectRatio:
+            //TODO: Add function
+            return nil
+        case .focusFound:
+            return nil
+        case .objectInMemory:
+            return nil
+        case .exposeIndex:
+            //TODO: Add function?
+            return nil
+        case .batteryLevelSony:
+            return nil
+        case .pictureEffect:
+            return nil
+        case .ABFilter:
+            return nil
+        case .ISO:
+            return .getISO
+        case .movie:
+            return nil
+        case .stillImage:
+            return nil
+        }
+    }
+}
+
 extension _CameraFunction {
     
     /// Returns the matching ptp device property codes that are required for the function to be supported.

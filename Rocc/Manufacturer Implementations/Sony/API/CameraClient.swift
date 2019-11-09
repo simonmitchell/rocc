@@ -168,9 +168,9 @@ fileprivate extension FocusStatus {
     }
 }
 
-fileprivate func exposureCompensationsFor(lowerIndex: Int, upperIndex: Int, stepSize: Int) -> [Double] {
+fileprivate func exposureCompensationsFor(lowerIndex: Int, upperIndex: Int, stepSize: Int) -> [Exposure.Compensation.Value] {
     
-    var compensations: [Double] = []
+    var compensations: [Exposure.Compensation.Value] = []
     let step: Double
     
     switch stepSize {
@@ -183,8 +183,8 @@ fileprivate func exposureCompensationsFor(lowerIndex: Int, upperIndex: Int, step
         break
     }
     
-    for i in lowerIndex...upperIndex {
-        compensations.append(Double(i) * step)
+    for i in stride(from: Double(lowerIndex), to: Double(upperIndex), by: step) {
+        compensations.append(Exposure.Compensation.Value(value: i))
     }
     
     return compensations
@@ -341,7 +341,7 @@ fileprivate extension CameraEvent {
         var _postViewImageSize: (current: String, available: [String])?
         var _selfTimer: (current: TimeInterval, available: [TimeInterval])?
         var _shootMode: (current: ShootingMode, available: [ShootingMode]?)?
-        var _exposureCompensation: (current: Double, available: [Double])?
+        var _exposureCompensation: (current: Exposure.Compensation.Value, available: [Exposure.Compensation.Value])?
         var _flashMode: (current: String, available: [String])?
         var _aperture: (current: Aperture.Value, available: [Aperture.Value])?
         var _focusMode: (current: String, available: [String])?
@@ -2416,7 +2416,7 @@ internal class CameraClient: ServiceClient {
     
     //MARK: Compensation
     
-    typealias ExposureCompensationsCompletion = (_ result: Result<[Double]>) -> Void
+    typealias ExposureCompensationsCompletion = (_ result: Result<[Exposure.Compensation.Value]>) -> Void
     
     typealias ExposureCompensationCompletion = (_ result: Result<Int>) -> Void
     

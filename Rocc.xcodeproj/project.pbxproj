@@ -153,6 +153,8 @@
 		B1AEE50E2375D19A00224152 /* ApertureValue+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AEE50C2375D19A00224152 /* ApertureValue+SonyPTPPropValueConvertable.swift */; };
 		B1AEE51C237612DE00224152 /* WhiteBalanceValue+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AEE514237612DE00224152 /* WhiteBalanceValue+SonyPTPPropValueConvertable.swift */; };
 		B1AEE51D237612DE00224152 /* WhiteBalanceValue+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AEE514237612DE00224152 /* WhiteBalanceValue+SonyPTPPropValueConvertable.swift */; };
+		B1AEE51F2376C3DE00224152 /* ExposureCompensation+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AEE51E2376C3DE00224152 /* ExposureCompensation+SonyPTPPropValueConvertable.swift */; };
+		B1AEE5202376C3DE00224152 /* ExposureCompensation+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AEE51E2376C3DE00224152 /* ExposureCompensation+SonyPTPPropValueConvertable.swift */; };
 		B1AF502A208A51D00029336B /* NetworkInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AF5029208A51D00029336B /* NetworkInterface.swift */; };
 		B1AF504B208D345A0029336B /* ThunderRequest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1AF5041208D34510029336B /* ThunderRequest.framework */; };
 		B1AF5091208DC3A80029336B /* RoccMac.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1AF5088208DC3A80029336B /* RoccMac.framework */; };
@@ -367,6 +369,7 @@
 		B1AEE5092375CB7F00224152 /* ShutterSpeed+SonyPTPPropValueConvertable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ShutterSpeed+SonyPTPPropValueConvertable.swift"; sourceTree = "<group>"; };
 		B1AEE50C2375D19A00224152 /* ApertureValue+SonyPTPPropValueConvertable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ApertureValue+SonyPTPPropValueConvertable.swift"; sourceTree = "<group>"; };
 		B1AEE514237612DE00224152 /* WhiteBalanceValue+SonyPTPPropValueConvertable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "WhiteBalanceValue+SonyPTPPropValueConvertable.swift"; sourceTree = "<group>"; };
+		B1AEE51E2376C3DE00224152 /* ExposureCompensation+SonyPTPPropValueConvertable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ExposureCompensation+SonyPTPPropValueConvertable.swift"; sourceTree = "<group>"; };
 		B1AF5029208A51D00029336B /* NetworkInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkInterface.swift; sourceTree = "<group>"; };
 		B1AF5038208D34510029336B /* ThunderRequest.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ThunderRequest.xcodeproj; path = ThunderRequest/ThunderRequest.xcodeproj; sourceTree = "<group>"; };
 		B1AF5088208DC3A80029336B /* RoccMac.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = RoccMac.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -554,6 +557,7 @@
 		B1AEE5052375CB3000224152 /* PropValueConversion */ = {
 			isa = PBXGroup;
 			children = (
+				B1AEE51E2376C3DE00224152 /* ExposureCompensation+SonyPTPPropValueConvertable.swift */,
 				B1AEE50C2375D19A00224152 /* ApertureValue+SonyPTPPropValueConvertable.swift */,
 				B1AEE5062375CB5000224152 /* ISOValue+SonyPTPPropValueConvertable.swift */,
 				B1AEE5092375CB7F00224152 /* ShutterSpeed+SonyPTPPropValueConvertable.swift */,
@@ -1067,6 +1071,7 @@
 				B1FB47FC209088FD00C33C86 /* SonyCameraAPIClient.swift in Sources */,
 				B1FB4802209089D800C33C86 /* AVContentClient.swift in Sources */,
 				B16BFBC820A49F92006BD081 /* Storage.swift in Sources */,
+				B1AEE51F2376C3DE00224152 /* ExposureCompensation+SonyPTPPropValueConvertable.swift in Sources */,
 				B100E19C209E47F8004F7AB8 /* TrackingFocus.swift in Sources */,
 				B1EF4C8820A24B6300EEDE3E /* InfraredRemoteControl.swift in Sources */,
 				B1F7CEB8236CD326007E3921 /* Packet.swift in Sources */,
@@ -1190,6 +1195,7 @@
 				B1A1AA2B20A4E02200FD0A4A /* ISO.swift in Sources */,
 				B1A1AA2520A4E02200FD0A4A /* Exposure.swift in Sources */,
 				B1A1AA1E20A4E02200FD0A4A /* Aperture.swift in Sources */,
+				B1AEE5202376C3DE00224152 /* ExposureCompensation+SonyPTPPropValueConvertable.swift in Sources */,
 				B1A1AA2420A4E02200FD0A4A /* Event.swift in Sources */,
 				B1A1AA2820A4E02200FD0A4A /* Focus.swift in Sources */,
 				B1F7CEB9236CD326007E3921 /* Packet.swift in Sources */,

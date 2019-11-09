@@ -28,7 +28,7 @@ extension CameraEvent {
         postViewImageSize = nil
         selfTimer = nil
         shootMode = nil
-        exposureCompensation = nil
+        var exposureCompensation: (current: Exposure.Compensation.Value, available: [Exposure.Compensation.Value])?
         flashMode = nil
         var aperture: (current: Aperture.Value, available: [Aperture.Value])?
         focusMode = nil
@@ -68,18 +68,35 @@ extension CameraEvent {
         
         sonyDeviceProperties.forEach { (deviceProperty) in
             
-            switch deviceProperty.code {
-            case .ISO:
-                
-                switch deviceProperty.getSet {
-                case .get:
-                    functions.append(.getISO)
-                case .getSet:
-                    functions.append(.getISO)
-                    functions.append(.setISO)
-                default:
-                    break
+            switch deviceProperty.getSet {
+            case .get:
+                if let getFunction = deviceProperty.code.getFunction {
+                    functions.append(getFunction)
                 }
+            case .getSet:
+                if let getFunction = deviceProperty.code.getFunction {
+                    functions.append(getFunction)
+                }
+                if let setFunctions = deviceProperty.code.setFunctions {
+                    functions.append(contentsOf: setFunctions)
+                }
+            default:
+                break
+            }
+            
+            switch deviceProperty.code {
+            case .exposureBiasCompensation:
+                
+                guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
+                    return
+                }
+                guard let compensation = Exposure.Compensation.Value(sonyValue: enumProperty.currentValue) else {
+                    return
+                }
+                let available = enumProperty.available.compactMap({ Exposure.Compensation.Value(sonyValue: $0) })
+                exposureCompensation = (compensation, available)
+                
+            case .ISO:
                 
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
@@ -91,16 +108,6 @@ extension CameraEvent {
                 _iso = (iso, available)
                 
             case .shutterSpeed:
-                
-                switch deviceProperty.getSet {
-                case .get:
-                    functions.append(.getShutterSpeed)
-                case .getSet:
-                    functions.append(.getShutterSpeed)
-                    functions.append(.setShutterSpeed)
-                default:
-                    break
-                }
                 
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
@@ -114,16 +121,6 @@ extension CameraEvent {
                 
             case .fNumber:
                 
-                switch deviceProperty.getSet {
-                case .get:
-                    functions.append(.getAperture)
-                case .getSet:
-                    functions.append(.getAperture)
-                    functions.append(.setAperture)
-                default:
-                    break
-                }
-                
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
                 }
@@ -135,16 +132,6 @@ extension CameraEvent {
                 break
                 
             case .whiteBalance:
-                
-                switch deviceProperty.getSet {
-                case .get:
-                    functions.append(.getWhiteBalance)
-                case .getSet:
-                    functions.append(.getWhiteBalance)
-                    functions.append(.setWhiteBalance)
-                default:
-                    break
-                }
                 
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
@@ -197,5 +184,6 @@ extension CameraEvent {
         self.availableFunctions = functions
         self.aperture = aperture
         self.whiteBalance = whiteBalance
+        self.exposureCompensation = exposureCompensation
     }
 }
