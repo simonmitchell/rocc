@@ -36,17 +36,17 @@ extension WhiteBalance.Mode: SonyPTPPropValueConvertable {
         case 0x0006:
             self = .incandescent
         case 0x8001:
-            self = .fluorescent_warm_white
+            self = .fluorescentWarmWhite
         case 0x8002:
-            self = .fluorescent_cool_white
+            self = .fluorescentCoolWhite
         case 0x8003:
-            self = .fluorescent_day_white
+            self = .fluorescentDayWhite
         case 0x8004:
-            self = .fluorescent_daylight
+            self = .fluorescentDaylight
         case 0x0007:
             self = .flash
         case 0x8030:
-            self = .underwater_auto
+            self = .underwaterAuto
         case 0x8012:
             self = .colorTemp
         case 0x8020:
@@ -72,17 +72,17 @@ extension WhiteBalance.Mode: SonyPTPPropValueConvertable {
             return Word(0x8010)
         case .incandescent:
             return Word(0x0006)
-        case .fluorescent_warm_white:
+        case .fluorescentWarmWhite:
             return Word(0x8001)
-        case .fluorescent_cool_white:
+        case .fluorescentCoolWhite:
             return Word(0x8002)
-        case .fluorescent_day_white:
+        case .fluorescentDayWhite:
             return Word(0x8003)
-        case .fluorescent_daylight:
+        case .fluorescentDaylight:
             return Word(0x8004)
         case .flash:
             return Word(0x0007)
-        case .underwater_auto:
+        case .underwaterAuto:
             return Word(0x8030)
         case .colorTemp:
             return Word(0x8012)

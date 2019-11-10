@@ -273,7 +273,7 @@ extension SonyPTPIPDevice: Camera {
                 callback(nil, event as? T.ReturnType)
             })
             ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
-        case .setISO, .setShutterSpeed, .setAperture, .setExposureCompensation:
+        case .setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setFocusMode:
             guard let value = payload as? SonyPTPPropValueConvertable else {
                 callback(FunctionError.invalidPayload, nil)
                 return
@@ -291,12 +291,12 @@ extension SonyPTPIPDevice: Camera {
             case 0.0:
                 value = .single
             case 2.0:
-                value = .timer_2
+                value = .timer2
             case 5.0:
-                value = .timer_5
+                value = .timer5
             case 10.0:
                 //TODO: Pick out the one which is available! How!?
-                value = .timer_10_a
+                value = .timer10_a
             default:
                 value = .single
             }

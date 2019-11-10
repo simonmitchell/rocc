@@ -14,6 +14,41 @@ import ThunderRequestMac
 import ThunderRequest
 #endif
 
+fileprivate extension Focus.Mode.Value {
+    
+    init?(sonyString: String) {
+        switch sonyString.lowercased() {
+        case "mf":
+            self = .manual
+        case "af-a":
+            self = .auto
+        case "af-s":
+            self = .autoSingle
+        case "af-c":
+            self = .autoContinuous
+        case "dmf":
+            self = .directManual
+        default:
+            return nil
+        }
+    }
+    
+    var sonyString: String {
+        switch self {
+        case .manual:
+            return "MF"
+        case .auto:
+            return "AF-A"
+        case .autoSingle:
+            return "AF-S"
+        case .autoContinuous:
+            return "AF-C"
+        case .directManual:
+            return "DMF"
+        }
+    }
+}
+
 fileprivate extension ISO.Value {
     
     init?(sonyString: String) {
@@ -127,17 +162,17 @@ fileprivate extension WhiteBalance.Mode {
         case "incandescent":
             self = .incandescent
         case "fluorescent: warm white (-1)", "fluorescent warm white", "fluorescent: warm white":
-            self = .fluorescent_warm_white
+            self = .fluorescentWarmWhite
         case "fluorescent: cool white (0)", "fluorescent cool white", "fluorescent: cool white":
-            self = .fluorescent_cool_white
+            self = .fluorescentCoolWhite
         case "fluorescent: day white (+1)", "fluorescent day white", "fluorescent: day white":
-            self = .fluorescent_day_white
+            self = .fluorescentDayWhite
         case "fluorescent: daylight (+2)", "fluorescent daylight", "fluorescent: daylight":
-            self = .fluorescent_daylight
+            self = .fluorescentDaylight
         case "flash":
             self = .flash
         case "underwater auto":
-            self = .underwater_auto
+            self = .underwaterAuto
         case "custom 1":
             self = .c1
         case "custom 2":
@@ -344,7 +379,7 @@ fileprivate extension CameraEvent {
         var _exposureCompensation: (current: Exposure.Compensation.Value, available: [Exposure.Compensation.Value])?
         var _flashMode: (current: String, available: [String])?
         var _aperture: (current: Aperture.Value, available: [Aperture.Value])?
-        var _focusMode: (current: String, available: [String])?
+        var _focusMode: (current: Focus.Mode.Value, available: [Focus.Mode.Value])?
         var _ISO: (current: ISO.Value, available: [ISO.Value])?
         var _isProgramShifted: Bool?
         var _shutterSpeed: (current: ShutterSpeed, available: [ShutterSpeed])?
@@ -469,8 +504,8 @@ fileprivate extension CameraEvent {
                     guard let current = dictionaryElement["currentFNumber"] as? String, let aperture = Aperture.Value(sonyString: current), let candidates = dictionaryElement["fNumberCandidates"] as? [String] else { return }
                     _aperture = (aperture, candidates.compactMap({ Aperture.Value(sonyString: $0) }))
                 case "focusMode":
-                    guard let current = dictionaryElement["currentFocusMode"] as? String, let candidates = dictionaryElement["focusModeCandidates"] as? [String] else { return }
-                    _focusMode = (current, candidates)
+                    guard let current = dictionaryElement["currentFocusMode"] as? String, let currentEnum = Focus.Mode.Value(sonyString: current), let candidates = dictionaryElement["focusModeCandidates"] as? [String] else { return }
+                    _focusMode = (currentEnum, candidates.compactMap({ Focus.Mode.Value(sonyString: $0) }))
                 case "isoSpeedRate":
                     guard let current = dictionaryElement["currentIsoSpeedRate"] as? String, let currentEnum = ISO.Value(sonyString: current), let candidates = dictionaryElement["isoSpeedRateCandidates"] as? [String] else { return }
                     let candidateEnums = candidates.compactMap({ ISO.Value(sonyString: $0) })
@@ -2349,7 +2384,7 @@ internal class CameraClient: ServiceClient {
     
     func getSupportedExposureModes(_ completion: @escaping ExposureModesCompletion) {
         
-        let body = SonyRequestBody(method: "getSupportedFocusMode")
+        let body = SonyRequestBody(method: "getSupportedExposureMode")
         
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
@@ -2359,7 +2394,7 @@ internal class CameraClient: ServiceClient {
             }
             
             guard let result = response?.dictionary?["result"] as? [[String]], let supported = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedFocusMode")))
+                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedExposureMode")))
                 return
             }
             
@@ -2369,17 +2404,17 @@ internal class CameraClient: ServiceClient {
     
     func getAvailableExposureModes(_ completion: @escaping ExposureModesCompletion) {
         
-        let body = SonyRequestBody(method: "getAvailableFocusMode")
+        let body = SonyRequestBody(method: "getAvailableExposureMode")
         
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
-            if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableFocusMode") {
+            if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableExposureMode") {
                 completion(Result(value: nil, error: error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Any], let available = result.compactMap({ $0 as? [String] }).first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableFocusMode")))
+                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableExposureMode")))
                 return
             }
             
@@ -2500,9 +2535,9 @@ internal class CameraClient: ServiceClient {
     
     //MARK: Mode
     
-    typealias FocusModesCompletion = (_ result: Result<[String]>) -> Void
+    typealias FocusModesCompletion = (_ result: Result<[Focus.Mode.Value]>) -> Void
     
-    typealias FocusModeCompletion = (_ result: Result<String>) -> Void
+    typealias FocusModeCompletion = (_ result: Result<Focus.Mode.Value >) -> Void
     
     func getSupportedFocusModes(_ completion: @escaping FocusModesCompletion) {
         
@@ -2520,7 +2555,7 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            completion(Result(value: supported, error: nil))
+            completion(Result(value: supported.compactMap({ Focus.Mode.Value(sonyString: $0) }), error: nil))
         }
     }
     
@@ -2540,13 +2575,13 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            completion(Result(value: available, error: nil))
+            completion(Result(value: available.compactMap({ Focus.Mode.Value(sonyString: $0) }), error: nil))
         }
     }
     
-    func setFocusMode(_ mode: String, _ completion: @escaping GenericCompletion) {
+    func setFocusMode(_ mode: Focus.Mode.Value, _ completion: @escaping GenericCompletion) {
         
-        let body = SonyRequestBody(method: "setFocusMode", params: [mode], id: 1, version: "1.0")
+        let body = SonyRequestBody(method: "setFocusMode", params: [mode.sonyString], id: 1, version: "1.0")
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             completion(error ?? CameraError(responseDictionary: response?.dictionary, methodName: "setFocusMode"))
         }
@@ -2562,12 +2597,12 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            guard let result = response?.dictionary?["result"] as? [String], let mode = result.first else {
+            guard let result = response?.dictionary?["result"] as? [String], let mode = result.first, let modeEnum = Focus.Mode.Value(sonyString: mode) else {
                 completion(Result(value: nil, error: CameraError.invalidResponse("getFocusMode")))
                 return
             }
             
-            completion(Result(value: mode, error: nil))
+            completion(Result(value: modeEnum, error: nil))
         }
     }
     

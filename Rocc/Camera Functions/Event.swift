@@ -186,7 +186,7 @@ public struct CameraEvent {
     public let aperture: (current: Aperture.Value, available: [Aperture.Value])?
     
     /// Current and available focus modes.
-    public let focusMode: (current: String, available: [String])?
+    public let focusMode: (current: Focus.Mode.Value, available: [Focus.Mode.Value])?
     
     /// Current and available ISO.
     public let iso: (current: ISO.Value, available: [ISO.Value])?

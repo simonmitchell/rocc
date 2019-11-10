@@ -155,7 +155,7 @@ public final class DummyCamera: Camera {
     
     private var currentShootMode: ShootingMode = .photo
     
-    var currentFocusMode: String = "AF-S"
+    var currentFocusMode: Focus.Mode.Value = .auto
     
     private var currentExposureComp: Exposure.Compensation.Value = Exposure.Compensation.Value(value: 0.0)
     
@@ -264,7 +264,7 @@ public final class DummyCamera: Camera {
             exposureCompensation: (current: currentExposureComp, available: [-3.0, -2.66, -2.33, -2.0, -1.66, -1.33, -1.0, -0.66, -0.33, 0, 0.33, 0.66, 1.0, 1.33, 1.66, 2.0, 2.33, 2.66, 3.0].map({ Exposure.Compensation.Value(value: $0) })),
             flashMode: nil,
             aperture: (current: currentAperture, available: [Aperture.Value(value: 1.8), Aperture.Value(value: 2.0), Aperture.Value(value: 2.2), Aperture.Value(value: 2.8), Aperture.Value(value: 3.2), Aperture.Value(value: 4.0), Aperture.Value(value: 4.8), Aperture.Value(value: 5.6), Aperture.Value(value: 8.0), Aperture.Value(value: 11.0), Aperture.Value(value: 18.0), Aperture.Value(value: 22.0)]),
-            focusMode: (current: currentFocusMode, available: ["AF-S", "MF"]),
+            focusMode: (current: currentFocusMode, available: [.auto, .manual]),
             iso: (current: currentISO, available: [.auto, .native(100), .native(200), .native(400), .native(1600), .native(3200), .native(6400)]),
             isProgramShifted: false,
             shutterSpeed: (current: currentShutterSpeed, available: [
@@ -407,7 +407,7 @@ public final class DummyCamera: Camera {
             
         case .setFocusMode:
             
-            guard let value = payload as? String else {
+            guard let value = payload as? Focus.Mode.Value else {
                 return
             }
             currentFocusMode = value

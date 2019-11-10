@@ -11,65 +11,65 @@ import Foundation
 enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
     
     case single = 0x00000001
-    case continuous_hi_plus = 0x00018010
-    case continuous_lo = 0x00018012
+    case continuousHighPlus = 0x00018010
+    case continuousLow = 0x00018012
     case continuous = 0x00018013
-    case continuous_s = 0x00018014
-    case continuous_hi = 0x00018015
-    case timer_10_a = 0x00010002
-    case timer_10_b = 0x00038004
-    case timer_5 = 0x00038003
-    case timer_2 = 0x00038005
-    case timer_10_3 = 0x00088008
-    case timer_10_5 = 0x00088009
-    case timer_5_3 = 0x0008800c
-    case timer_5_5 = 0x0008800d
-    case timer_2_3 = 0x0008800e
-    case timer_2_5 = 0x0008800f
-    case brk_c_0_3_3 = 0x00048337
-    case brk_c_0_3_5 = 0x00048537
-    case brk_c_0_3_9 = 0x00048937
-    case brk_c_0_5_3 = 0x00048357
-    case brk_c_0_5_5 = 0x00048557
-    case brk_c_0_5_9 = 0x00048957
-    case brk_c_0_7_3 = 0x00048377
-    case brk_c_0_7_5 = 0x00048577
-    case brk_c_0_7_9 = 0x00048977
-    case brk_c_1_3 = 0x00048311
-    case brk_c_1_5 = 0x00048511
-    case brk_c_1_9 = 0x00048911
-    case brk_c_2_3 = 0x00048321
-    case brk_c_2_5 = 0x00048521
-    case brk_c_3_3 = 0x00048331
-    case brk_c_3_5 = 0x00048531
-    case brk_s_0_3_3 = 0x00058336
-    case brk_s_0_3_5 = 0x00058536
-    case brk_s_0_3_9 = 0x00058936
-    case brk_s_0_5_3 = 0x00058356
-    case brk_s_0_5_5 = 0x00058556
-    case brk_s_0_5_9 = 0x00058956
-    case brk_s_0_7_3 = 0x00058376
-    case brk_s_0_7_5 = 0x00058576
-    case brk_s_0_7_9 = 0x00058976
-    case brk_s_1_3 = 0x00058310
-    case brk_s_1_5 = 0x00058510
-    case brk_s_1_9 = 0x00058910
-    case brk_s_2_3 = 0x00058320
-    case brk_s_2_5 = 0x00058520
-    case brk_s_3_3 = 0x00058330
-    case brk_s_3_5 = 0x00058530
-    case brk_wb_hi = 0x00068028
-    case brk_wb_lo = 0x00068018
-    case brk_dro_hi = 0x00078029
-    case brk_dro_lo = 0x00078019
+    case continuousS = 0x00018014
+    case continuousHigh = 0x00018015
+    case timer10_a = 0x00010002
+    case timer10_b = 0x00038004
+    case timer5 = 0x00038003
+    case timer2 = 0x00038005
+    case timer10_3 = 0x00088008
+    case timer10_5 = 0x00088009
+    case timer5_3 = 0x0008800c
+    case timer5_5 = 0x0008800d
+    case timer2_3 = 0x0008800e
+    case timer2_5 = 0x0008800f
+    case continuousBracket0_3_3 = 0x00048337
+    case continuousBracket0_3_5 = 0x00048537
+    case continuousBracket0_3_9 = 0x00048937
+    case continuousBracket0_5_3 = 0x00048357
+    case continuousBracket0_5_5 = 0x00048557
+    case continuousBracket0_5_9 = 0x00048957
+    case continuousBracket0_7_3 = 0x00048377
+    case continuousBracket0_7_5 = 0x00048577
+    case continuousBracket0_7_9 = 0x00048977
+    case continuousBracket1_3 = 0x00048311
+    case continuousBracket1_5 = 0x00048511
+    case continuousBracket1_9 = 0x00048911
+    case continuousBracket2_3 = 0x00048321
+    case continuousBracket2_5 = 0x00048521
+    case continuousBracket3_3 = 0x00048331
+    case continuousBracket3_5 = 0x00048531
+    case singleBracket0_3_3 = 0x00058336
+    case singleBracket0_3_5 = 0x00058536
+    case singleBracket0_3_9 = 0x00058936
+    case singleBracket0_5_3 = 0x00058356
+    case singleBracket0_5_5 = 0x00058556
+    case singleBracket0_5_9 = 0x00058956
+    case singleBracket0_7_3 = 0x00058376
+    case singleBracket0_7_5 = 0x00058576
+    case singleBracket0_7_9 = 0x00058976
+    case singleBracket1_3 = 0x00058310
+    case singleBracket1_5 = 0x00058510
+    case singleBracket1_9 = 0x00058910
+    case singleBracket2_3 = 0x00058320
+    case singleBracket2_5 = 0x00058520
+    case singleBracket3_3 = 0x00058330
+    case singleBracket3_5 = 0x00058530
+    case whiteBalanceBracketHigh = 0x00068028
+    case whiteBalanceBracketLow = 0x00068018
+    case droBracketHigh = 0x00078029
+    case droBracketLow = 0x00078019
     
     var timerDuration: TimeInterval {
         switch self {
-        case .timer_2, .timer_2_3, .timer_2_5:
+        case .timer2, .timer2_3, .timer2_5:
             return 2.0
-        case .timer_5, .timer_5_3, .timer_5_5:
+        case .timer5, .timer5_3, .timer5_5:
             return 5.0
-        case .timer_10_a, .timer_10_b, .timer_10_3, .timer_10_5:
+        case .timer10_a, .timer10_b, .timer10_3, .timer10_5:
             return 10.0
         default:
             return 0.0
@@ -78,7 +78,7 @@ enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
     
     var isSingleTimerMode: Bool {
         switch self {
-        case .timer_2, .timer_5, .timer_10_a, .timer_10_b:
+        case .timer2, .timer5, .timer10_a, .timer10_b:
             return true
         default:
             return false
@@ -87,25 +87,25 @@ enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
     
     var shootMode: ShootingMode? {
         switch self {
-        case .single, .timer_2, .timer_5, .timer_10_a, .timer_10_b:
+        case .single, .timer2, .timer5, .timer10_a, .timer10_b:
             return .photo
-        case .brk_c_0_3_3, .brk_c_0_3_5, .brk_c_0_3_9,
-             .brk_c_0_5_3, .brk_c_0_5_5, .brk_c_0_5_9,
-             .brk_c_0_7_3, .brk_c_0_7_5, .brk_c_0_7_9,
-             .brk_c_1_3, .brk_c_1_5, .brk_c_1_9,
-             .brk_c_2_3, .brk_c_2_5, .brk_c_3_3, .brk_c_3_5,
-             .brk_s_0_3_3, .brk_s_0_3_5, .brk_s_0_3_9,
-             .brk_s_0_5_3, .brk_s_0_5_5, .brk_s_0_5_9,
-             .brk_s_0_7_3, .brk_s_0_7_5, .brk_s_0_7_9,
-             .brk_s_1_3, .brk_s_1_5, .brk_s_1_9,
-             .brk_s_2_3, .brk_s_2_5, .brk_s_3_3, .brk_s_3_5,
-             .brk_wb_hi, .brk_wb_lo, .brk_dro_hi, .brk_dro_lo:
+        case .continuousBracket0_3_3, .continuousBracket0_3_5, .continuousBracket0_3_9,
+             .continuousBracket0_5_3, .continuousBracket0_5_5, .continuousBracket0_5_9,
+             .continuousBracket0_7_3, .continuousBracket0_7_5, .continuousBracket0_7_9,
+             .continuousBracket1_3, .continuousBracket1_5, .continuousBracket1_9,
+             .continuousBracket2_3, .continuousBracket2_5, .continuousBracket3_3, .continuousBracket3_5,
+             .singleBracket0_3_3, .singleBracket0_3_5, .singleBracket0_3_9,
+             .singleBracket0_5_3, .singleBracket0_5_5, .singleBracket0_5_9,
+             .singleBracket0_7_3, .singleBracket0_7_5, .singleBracket0_7_9,
+             .singleBracket1_3, .singleBracket1_5, .singleBracket1_9,
+             .singleBracket2_3, .singleBracket2_5, .singleBracket3_3, .singleBracket3_5,
+             .whiteBalanceBracketHigh, .whiteBalanceBracketLow, .droBracketHigh, .droBracketLow:
             //TODO: Add bracketed `ShootingMode`
             return nil
-        case .continuous, .continuous_s, .continuous_hi, .continuous_lo,
-             .continuous_hi_plus:
+        case .continuous, .continuousS, .continuousHigh, .continuousLow,
+             .continuousHighPlus:
             return .continuous
-        case .timer_2_3, .timer_2_5, .timer_5_3, .timer_5_5, .timer_10_3, .timer_10_5:
+        case .timer2_3, .timer2_5, .timer5_3, .timer5_5, .timer10_3, .timer10_5:
             //TODO: Add "multi-timer" timer mode
             return nil
         }
@@ -153,7 +153,7 @@ extension CameraEvent {
         var exposureCompensation: (current: Exposure.Compensation.Value, available: [Exposure.Compensation.Value])?
         flashMode = nil
         var aperture: (current: Aperture.Value, available: [Aperture.Value])?
-        focusMode = nil
+        var focusMode: (current: Focus.Mode.Value, available: [Focus.Mode.Value])?
         var _iso: (current: ISO.Value, available: [ISO.Value])?
         isProgramShifted = false
         var shutterSpeed: (current: ShutterSpeed, available: [ShutterSpeed])?
@@ -272,6 +272,17 @@ extension CameraEvent {
                 }
                 exposureCompensation = (compensation, available)
                 
+            case .focusMode:
+                
+                guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
+                    return
+                }
+                guard let currentFocusMode = Focus.Mode.Value(sonyValue: enumProperty.currentValue) else {
+                    return
+                }
+                let available = enumProperty.available.compactMap({ Focus.Mode.Value(sonyValue: $0) })
+                focusMode = (currentFocusMode, available)
+                
             case .ISO:
                 
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
@@ -363,5 +374,6 @@ extension CameraEvent {
         self.exposureCompensation = exposureCompensation
         self.selfTimer = selfTimer
         self.shootMode = shootMode
+        self.focusMode = focusMode
     }
 }

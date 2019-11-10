@@ -98,7 +98,7 @@ internal final class SonyAPICameraDevice: SonyCamera {
         }
     }
     
-    var focusMode: String?
+    var focusMode: Focus.Mode.Value?
         
     var type: String?
     
@@ -1752,7 +1752,7 @@ extension SonyAPICameraDevice: Camera {
                     return
                 }
                 
-                guard focusMode == nil || focusMode!.lowercased().contains("af") else {
+                guard focusMode == nil || focusMode!.isAutoFocus else {
                     Logger.shared.log("Camera not in AF mode, skipping half-press shutter", category: "SonyCamera", level: .debug)
                     takePicture(false, nil)
                     return
@@ -2211,7 +2211,7 @@ extension SonyAPICameraDevice: Camera {
                 
             case .setFocusMode:
                 
-                guard let mode = payload as? String else {
+                guard let mode = payload as? Focus.Mode.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }

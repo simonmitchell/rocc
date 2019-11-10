@@ -18,12 +18,12 @@ public struct WhiteBalance: CameraFunction {
         case shade
         case cloudy
         case incandescent
-        case fluorescent_warm_white
-        case fluorescent_cool_white
-        case fluorescent_day_white
-        case fluorescent_daylight
+        case fluorescentWarmWhite
+        case fluorescentCoolWhite
+        case fluorescentDayWhite
+        case fluorescentDaylight
         case flash
-        case underwater_auto
+        case underwaterAuto
         case colorTemp
         case c1
         case c2

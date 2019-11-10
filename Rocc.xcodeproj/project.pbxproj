@@ -184,6 +184,8 @@
 		B1D3591220AADC810069C698 /* Data+Conversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D3591020AADC810069C698 /* Data+Conversion.swift */; };
 		B1D606542181225E001719EC /* UDPDeviceDiscoverer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D606532181225E001719EC /* UDPDeviceDiscoverer.swift */; };
 		B1D606552181225E001719EC /* UDPDeviceDiscoverer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D606532181225E001719EC /* UDPDeviceDiscoverer.swift */; };
+		B1EADA2F23781AE9000B7B36 /* FocusMode+SonyPTPPropValueConvertable.swift.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EADA2E23781AE9000B7B36 /* FocusMode+SonyPTPPropValueConvertable.swift.swift */; };
+		B1EADA3023781AE9000B7B36 /* FocusMode+SonyPTPPropValueConvertable.swift.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EADA2E23781AE9000B7B36 /* FocusMode+SonyPTPPropValueConvertable.swift.swift */; };
 		B1EF4C8820A24B6300EEDE3E /* InfraredRemoteControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EF4C8220A24B6300EEDE3E /* InfraredRemoteControl.swift */; };
 		B1EF4C8B20A24DA100EEDE3E /* AutoPowerOff.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EF4C8A20A24DA100EEDE3E /* AutoPowerOff.swift */; };
 		B1EF4CAD20A3140A00EEDE3E /* BeepMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EF4CAC20A3140A00EEDE3E /* BeepMode.swift */; };
@@ -390,6 +392,7 @@
 		B1D358F820AA34CF0069C698 /* LiveViewStreaming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveViewStreaming.swift; sourceTree = "<group>"; };
 		B1D3591020AADC810069C698 /* Data+Conversion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data+Conversion.swift"; sourceTree = "<group>"; };
 		B1D606532181225E001719EC /* UDPDeviceDiscoverer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UDPDeviceDiscoverer.swift; sourceTree = "<group>"; };
+		B1EADA2E23781AE9000B7B36 /* FocusMode+SonyPTPPropValueConvertable.swift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FocusMode+SonyPTPPropValueConvertable.swift.swift"; sourceTree = "<group>"; };
 		B1EF4C8220A24B6300EEDE3E /* InfraredRemoteControl.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InfraredRemoteControl.swift; sourceTree = "<group>"; };
 		B1EF4C8A20A24DA100EEDE3E /* AutoPowerOff.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AutoPowerOff.swift; sourceTree = "<group>"; };
 		B1EF4CAC20A3140A00EEDE3E /* BeepMode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BeepMode.swift; sourceTree = "<group>"; };
@@ -562,6 +565,7 @@
 				B1AEE5062375CB5000224152 /* ISOValue+SonyPTPPropValueConvertable.swift */,
 				B1AEE5092375CB7F00224152 /* ShutterSpeed+SonyPTPPropValueConvertable.swift */,
 				B1AEE514237612DE00224152 /* WhiteBalanceValue+SonyPTPPropValueConvertable.swift */,
+				B1EADA2E23781AE9000B7B36 /* FocusMode+SonyPTPPropValueConvertable.swift.swift */,
 			);
 			path = PropValueConversion;
 			sourceTree = "<group>";
@@ -1092,6 +1096,7 @@
 				B164F02621811BD400590A05 /* SonyCameraDiscoverer.swift in Sources */,
 				B16BFD1121F5F0E600AF3F24 /* SimplePing.m in Sources */,
 				B1A25F3221AE950E00D9EE81 /* Errors.swift in Sources */,
+				B1EADA2F23781AE9000B7B36 /* FocusMode+SonyPTPPropValueConvertable.swift.swift in Sources */,
 				B163AEBF20A8D6050061D1C4 /* CameraEventNotifier.swift in Sources */,
 				B1AEE51C237612DE00224152 /* WhiteBalanceValue+SonyPTPPropValueConvertable.swift in Sources */,
 				B1FF7A382371EC180010D5F0 /* SDIOExtDeviceInfo.swift in Sources */,
@@ -1216,6 +1221,7 @@
 				B1D358FA20AA34CF0069C698 /* LiveViewStreaming.swift in Sources */,
 				B16BFD1221F5F0E600AF3F24 /* SimplePing.m in Sources */,
 				B11D8E7421B9300F00719019 /* SimulatedCamera.swift in Sources */,
+				B1EADA3023781AE9000B7B36 /* FocusMode+SonyPTPPropValueConvertable.swift.swift in Sources */,
 				B164F02721811BD400590A05 /* SonyCameraDiscoverer.swift in Sources */,
 				B1AEE51D237612DE00224152 /* WhiteBalanceValue+SonyPTPPropValueConvertable.swift in Sources */,
 				B1FF7A392371EC180010D5F0 /* SDIOExtDeviceInfo.swift in Sources */,

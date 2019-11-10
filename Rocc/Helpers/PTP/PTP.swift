@@ -30,7 +30,7 @@ struct PTP {
         case qt = 0x300D
         /* image formats */
         case jpeg = 0x3801
-        case tiff_ep = 0x3802
+        case tiffEp = 0x3802
         case flashPix = 0x3803
         case bmp = 0x3804
         case ciff = 0x3805
@@ -42,20 +42,20 @@ struct PTP {
         case png = 0x380B
         case undefined_0x380C = 0x380C
         case tiff = 0x380D
-        case tiff_it = 0x380E
+        case tiffIt = 0x380E
         case jp2 = 0x380F
         case jpx = 0x3810
         /* ptp v1.1 has only DNG new */
         case dng = 0x3811
         /* Eastman Kodak extension ancillary format */
-        case ek_m3u = 0xb002
+        case ekM3u = 0xb002
         /* Canon extension */
-        case canon_crw3 = 0xb103
-        case canon_mov = 0xb104
-        case canon_mov2 = 0xb105
-        case canon_cr3 = 0xb108
+        case canonCrw3 = 0xb103
+        case canonMov = 0xb104
+        case canonMov2 = 0xb105
+        case canonCr3 = 0xb108
         /* CHDK specific raw mode */
-        case canon_chdk_crw = 0xb1ff
+        case canonChdkCrw = 0xb1ff
         /* Sony */
         case raw = 0xb101
         case undefined_0xb301 = 0xb301
