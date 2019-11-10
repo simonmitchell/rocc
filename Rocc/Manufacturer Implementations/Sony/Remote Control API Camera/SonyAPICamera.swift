@@ -2810,7 +2810,7 @@ extension SonyAPICameraDevice: Camera {
                         // Check if shutterSpeed has changed away from Bulb! Sony doesn't have a "Bulb" shooting mode, so
                         // we need to do this automatically!
                         if let shutterSpeed = informations.shutterSpeed, let lastShootMode = self.lastShootMode, !shutterSpeed.current.isBulb && self.lastShutterSpeed?.isBulb == true {
-                            event.shootMode = (current: lastShootMode, available: informations.shootMode?.available)
+                            event.shootMode = (current: lastShootMode, available: informations.shootMode?.available ?? [], supported: informations.shootMode?.supported ?? [])
                         }
                         
                         // Only track this if we're not bulb shooting

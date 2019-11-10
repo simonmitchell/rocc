@@ -365,48 +365,48 @@ fileprivate extension CameraEvent {
         var _liveViewOrientation: String?
         var _takenPictureURLS: [[URL]] = []
         var _storageInfo: [StorageInformation] = []
-        var _beepMode: (current: String, available: [String])?
-        var _function: (current: String, available: [String])?
+        var _beepMode: (current: String, available: [String], supported: [String])?
+        var _function: (current: String, available: [String], supported: [String])?
         var _functionResult: Bool = false
-        var _videoQuality: (current: String, available: [String])?
+        var _videoQuality: (current: String, available: [String], supported: [String])?
         var _stillSizeInfo: StillSizeInformation?
-        var _steadyMode: (current: String, available: [String])?
-        var _viewAngle: (current: Double, available: [Double])?
-        var _exposureMode: (current: String, available: [String])?
-        var _postViewImageSize: (current: String, available: [String])?
-        var _selfTimer: (current: TimeInterval, available: [TimeInterval])?
-        var _shootMode: (current: ShootingMode, available: [ShootingMode]?)?
-        var _exposureCompensation: (current: Exposure.Compensation.Value, available: [Exposure.Compensation.Value])?
-        var _flashMode: (current: String, available: [String])?
-        var _aperture: (current: Aperture.Value, available: [Aperture.Value])?
-        var _focusMode: (current: Focus.Mode.Value, available: [Focus.Mode.Value])?
-        var _ISO: (current: ISO.Value, available: [ISO.Value])?
+        var _steadyMode: (current: String, available: [String], supported: [String])?
+        var _viewAngle: (current: Double, available: [Double], supported: [Double])?
+        var _exposureMode: (current: String, available: [String], supported: [String])?
+        var _postViewImageSize: (current: String, available: [String], supported: [String])?
+        var _selfTimer: (current: TimeInterval, available: [TimeInterval], supported: [TimeInterval])?
+        var _shootMode: (current: ShootingMode, available: [ShootingMode]?, supported: [ShootingMode])?
+        var _exposureCompensation: (current: Exposure.Compensation.Value, available: [Exposure.Compensation.Value], supported: [Exposure.Compensation.Value])?
+        var _flashMode: (current: String, available: [String], supported: [String])?
+        var _aperture: (current: Aperture.Value, available: [Aperture.Value], supported: [Aperture.Value])?
+        var _focusMode: (current: Focus.Mode.Value, available: [Focus.Mode.Value], supported: [Focus.Mode.Value])?
+        var _ISO: (current: ISO.Value, available: [ISO.Value], supported: [ISO.Value])?
         var _isProgramShifted: Bool?
-        var _shutterSpeed: (current: ShutterSpeed, available: [ShutterSpeed])?
+        var _shutterSpeed: (current: ShutterSpeed, available: [ShutterSpeed], supported: [ShutterSpeed]?)?
         var _whiteBalance: WhiteBalanceInformation?
         var _touchAF: TouchAF.Information?
         var _focusStatus: FocusStatus?
-        var _zoomSetting: (current: String, available: [String])?
-        var _stillQuality: (current: String, available: [String])?
-        var _continuousShootingMode: (current: ContinuousShootingMode, available: [ContinuousShootingMode])?
-        var _continuousShootingSpeed: (current: ContinuousShootingSpeed, available: [ContinuousShootingSpeed])?
+        var _zoomSetting: (current: String, available: [String], supported: [String])?
+        var _stillQuality: (current: String, available: [String], supported: [String])?
+        var _continuousShootingMode: (current: ContinuousShootingMode, available: [ContinuousShootingMode], supported: [ContinuousShootingMode])?
+        var _continuousShootingSpeed: (current: ContinuousShootingSpeed, available: [ContinuousShootingSpeed], supported: [ContinuousShootingSpeed])?
         var _continuousShootingURLS: [(postView: URL, thumbnail: URL)]?
-        var _flipSetting: (current: String, available: [String])?
-        var _scene: (current: String, available: [String])?
-        var _intervalTime: (current: TimeInterval, available: [TimeInterval])?
-        var _colorSetting: (current: String, available: [String])?
-        var _videoFileFormat: (current: String, available: [String])?
+        var _flipSetting: (current: String, available: [String], supported: [String])?
+        var _scene: (current: String, available: [String], supported: [String])?
+        var _intervalTime: (current: TimeInterval, available: [TimeInterval], supported: [TimeInterval])?
+        var _colorSetting: (current: String, available: [String], supported: [String])?
+        var _videoFileFormat: (current: String, available: [String], supported: [String])?
         var _videoRecordingTime: TimeInterval?
-        var _infraredRemoteControl: (current: String, available: [String])?
-        var _tvColorSystem: (current: String, available: [String])?
+        var _infraredRemoteControl: (current: String, available: [String], supported: [String])?
+        var _tvColorSystem: (current: String, available: [String], supported: [String])?
         var _trackingFocusStatus: String?
-        var _trackingFocus: (current: String, available: [String])?
+        var _trackingFocus: (current: String, available: [String], supported: [String])?
         var _batteryInfo: [BatteryInformation]?
         var _numberOfShots: Int?
-        var _autoPowerOff: (current: TimeInterval, available: [TimeInterval])?
-        var _loopRecordTime: (current: TimeInterval, available: [TimeInterval])?
-        var _audioRecording: (current: String, available: [String])?
-        var _windNoiseReduction: (current: String, available: [String])?
+        var _autoPowerOff: (current: TimeInterval, available: [TimeInterval], supported: [TimeInterval])?
+        var _loopRecordTime: (current: TimeInterval, available: [TimeInterval], supported: [TimeInterval])?
+        var _audioRecording: (current: String, available: [String], supported: [String])?
+        var _windNoiseReduction: (current: String, available: [String], supported: [String])?
         var _bulbCapturingTime: TimeInterval?
         var _bulbShootingURL: URL?
         
@@ -451,13 +451,13 @@ fileprivate extension CameraEvent {
                     _liveViewOrientation = dictionaryElement["liveviewOrientation"] as? String
                 case "beepMode":
                     guard let current = dictionaryElement["currentBeepMode"] as? String, let candidates = dictionaryElement["beepModeCandidates"] as? [String] else { return }
-                    _beepMode = (current, candidates)
+                    _beepMode = (current, candidates, candidates)
                 case "cameraFunction":
                     guard let current = dictionaryElement["currentCameraFunction"] as? String, let candidates = dictionaryElement["cameraFunctionCandidates"] as? [String] else { return }
-                    _function = (current, candidates)
+                    _function = (current, candidates, candidates)
                 case "movieQuality":
                     guard let current = dictionaryElement["currentMovieQuality"] as? String, let candidates = dictionaryElement["movieQualityCandidates"] as? [String] else { return }
-                    _videoQuality = (current, candidates)
+                    _videoQuality = (current, candidates, candidates)
                 case "stillSize":
                     guard let check = dictionaryElement["checkAvailability"] as? Bool, let currentAspect = dictionaryElement["currentAspect"] as? String, let currentSize = dictionaryElement["currentSize"] as? String else { return }
                     _stillSizeInfo = StillSizeInformation(shouldCheck: check, stillSize: StillSize(aspectRatio: currentAspect, size: currentSize))
@@ -466,19 +466,19 @@ fileprivate extension CameraEvent {
                     _functionResult = current == "Success"
                 case "steadyMode":
                     guard let current = dictionaryElement["currentSteadyMode"] as? String, let candidates = dictionaryElement["steadyModeCandidates"] as? [String] else { return }
-                    _steadyMode = (current, candidates)
+                    _steadyMode = (current, candidates, candidates)
                 case "viewAngle":
                     guard let current = dictionaryElement["currentViewAngle"] as? Int, let candidates = dictionaryElement["viewAngleCandidates"] as? [Int] else { return }
-                    _viewAngle = (Double(current), candidates.map({ Double($0) }))
+                    _viewAngle = (Double(current), candidates.map({ Double($0) }), candidates.map({ Double($0) }))
                 case "exposureMode":
                     guard let current = dictionaryElement["currentExposureMode"] as? String, let candidates = dictionaryElement["exposureModeCandidates"] as? [String] else { return }
-                    _exposureMode = (current, candidates)
+                    _exposureMode = (current, candidates, candidates)
                 case "postviewImageSize":
                     guard let current = dictionaryElement["currentPostviewImageSize"] as? String, let candidates = dictionaryElement["postviewImageSizeCandidates"] as? [String] else { return }
-                    _postViewImageSize = (current, candidates)
+                    _postViewImageSize = (current, candidates, candidates)
                 case "selfTimer":
                     guard let current = dictionaryElement["currentSelfTimer"] as? Int, let candidates = dictionaryElement["selfTimerCandidates"] as? [Int] else { return }
-                    _selfTimer = (TimeInterval(current), candidates.map({ TimeInterval($0) }))
+                    _selfTimer = (TimeInterval(current), candidates.map({ TimeInterval($0) }), candidates.map({ TimeInterval($0) }))
                 case "shootMode":
                     guard let current = dictionaryElement["currentShootMode"] as? String, let candidates = dictionaryElement["shootModeCandidates"] as? [String] else { return }
                     guard let currentEnum = ShootingMode(sonyString: current) else { return }
@@ -486,7 +486,7 @@ fileprivate extension CameraEvent {
                     if enumCandidates.contains(.photo) {
                         enumCandidates.append(contentsOf: [.timelapse, .continuous, .bulb])
                     }
-                    _shootMode = (currentEnum, enumCandidates)
+                    _shootMode = (currentEnum, enumCandidates, enumCandidates)
                 case "exposureCompensation":
                     
                     guard let currentStep = dictionaryElement["currentExposureCompensation"] as? Int, let minIndex = dictionaryElement["minExposureCompensation"] as? Int, let maxIndex = dictionaryElement["maxExposureCompensation"] as? Int, let stepIndex = dictionaryElement["stepIndexOfExposureCompensation"] as? Int else { return }
@@ -495,31 +495,31 @@ fileprivate extension CameraEvent {
                     
                     let centeredIndex = compensations.count/2 + currentStep
                     guard centeredIndex < compensations.count, centeredIndex >= 0 else { return }
-                    _exposureCompensation = (compensations[centeredIndex], compensations)
+                    _exposureCompensation = (compensations[centeredIndex], compensations, compensations)
                     
                 case "flashMode":
                     guard let current = dictionaryElement["currentFlashMode"] as? String, let candidates = dictionaryElement["flashModeCandidates"] as? [String] else { return }
-                    _flashMode = (current, candidates)
+                    _flashMode = (current, candidates, candidates)
                 case "fNumber":
                     guard let current = dictionaryElement["currentFNumber"] as? String, let aperture = Aperture.Value(sonyString: current), let candidates = dictionaryElement["fNumberCandidates"] as? [String] else { return }
-                    _aperture = (aperture, candidates.compactMap({ Aperture.Value(sonyString: $0) }))
+                    _aperture = (aperture, candidates.compactMap({ Aperture.Value(sonyString: $0) }), candidates.compactMap({ Aperture.Value(sonyString: $0) }))
                 case "focusMode":
                     guard let current = dictionaryElement["currentFocusMode"] as? String, let currentEnum = Focus.Mode.Value(sonyString: current), let candidates = dictionaryElement["focusModeCandidates"] as? [String] else { return }
-                    _focusMode = (currentEnum, candidates.compactMap({ Focus.Mode.Value(sonyString: $0) }))
+                    _focusMode = (currentEnum, candidates.compactMap({ Focus.Mode.Value(sonyString: $0) }), candidates.compactMap({ Focus.Mode.Value(sonyString: $0) }))
                 case "isoSpeedRate":
                     guard let current = dictionaryElement["currentIsoSpeedRate"] as? String, let currentEnum = ISO.Value(sonyString: current), let candidates = dictionaryElement["isoSpeedRateCandidates"] as? [String] else { return }
                     let candidateEnums = candidates.compactMap({ ISO.Value(sonyString: $0) })
-                    _ISO = (currentEnum, candidateEnums)
+                    _ISO = (currentEnum, candidateEnums, candidateEnums)
                 case "programShift":
                     _isProgramShifted = dictionaryElement["isShifted"] as? Bool
                 case "shutterSpeed":
                     let shutterSpeedFormatter = ShutterSpeedFormatter()
                     guard let currentString = dictionaryElement["currentShutterSpeed"] as? String, let current = shutterSpeedFormatter.shutterSpeed(from: currentString), let candidateStrings = dictionaryElement["shutterSpeedCandidates"] as? [String] else { return }
-                    _shutterSpeed = (current, candidateStrings.compactMap({ shutterSpeedFormatter.shutterSpeed(from: $0) }))
+                    _shutterSpeed = (current, candidateStrings.compactMap({ shutterSpeedFormatter.shutterSpeed(from: $0) }), candidateStrings.compactMap({ shutterSpeedFormatter.shutterSpeed(from: $0) }))
                 case "whiteBalance":
                     guard let check = dictionaryElement["checkAvailability"] as? Bool, let currentMode = dictionaryElement["currentWhiteBalanceMode"] as? String, let modeEnum = WhiteBalance.Mode(sonyString: currentMode) else { return }
                     let currentTemp = dictionaryElement["currentColorTemperature"] as? Int
-                    _whiteBalance = WhiteBalanceInformation(shouldCheck: check, whitebalanceValue: WhiteBalance.Value(mode: modeEnum, temperature: currentTemp != -1 ? currentTemp : nil, rawInternal: currentMode), available: nil)
+                    _whiteBalance = WhiteBalanceInformation(shouldCheck: check, whitebalanceValue: WhiteBalance.Value(mode: modeEnum, temperature: currentTemp != -1 ? currentTemp : nil, rawInternal: currentMode), available: nil, supported: nil)
                 case "touchAFPosition":
                     _touchAF = TouchAF.Information(dictionary: dictionaryElement)
                 case "focusStatus":
@@ -527,20 +527,20 @@ fileprivate extension CameraEvent {
                     _focusStatus = FocusStatus(sonyString: status)
                 case "zoomSetting":
                     guard let current = dictionaryElement["zoom"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
-                    _zoomSetting = (current, candidates)
+                    _zoomSetting = (current, candidates, candidates)
                 case "stillQuality":
                     guard let current = dictionaryElement["stillQuality"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
-                    _stillQuality = (current, candidates)
+                    _stillQuality = (current, candidates, candidates)
                 case "contShootingMode":
                     guard let current = dictionaryElement["contShootingMode"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
                     guard let currentEnum = ContinuousShootingMode(rawValue: current.lowercased()) else { return }
-                    _continuousShootingMode = (currentEnum, candidates.compactMap({ ContinuousShootingMode(rawValue: $0.lowercased()) }))
+                    _continuousShootingMode = (currentEnum, candidates.compactMap({ ContinuousShootingMode(rawValue: $0.lowercased()) }), candidates.compactMap({ ContinuousShootingMode(rawValue: $0.lowercased()) }))
                 case "contShootingSpeed":
                     guard let current = dictionaryElement["contShootingSpeed"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
                     guard let currentEnum = ContinuousShootingSpeed(sonyString: current) else {
                         return
                     }
-                    _continuousShootingSpeed = (currentEnum, candidates.compactMap({ ContinuousShootingSpeed(sonyString: $0) }))
+                    _continuousShootingSpeed = (currentEnum, candidates.compactMap({ ContinuousShootingSpeed(sonyString: $0) }), candidates.compactMap({ ContinuousShootingSpeed(sonyString: $0) }))
                 case "contShooting":
                     guard let urlDicts = dictionaryElement["contShootingUrl"] as? [[AnyHashable : Any]] else { return }
                     let urls: [(postView: URL, thumbnail: URL)] = urlDicts.compactMap({
@@ -555,34 +555,34 @@ fileprivate extension CameraEvent {
                     _continuousShootingURLS = urls.isEmpty ? nil : urls
                 case "flipSetting":
                     guard let current = dictionaryElement["flip"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
-                    _flipSetting = (current, candidates)
+                    _flipSetting = (current, candidates, candidates)
                 case "sceneSelection":
                     guard let current = dictionaryElement["scene"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
-                    _scene = (current, candidates)
+                    _scene = (current, candidates, candidates)
                 case "intervalTime":
                     guard let current = dictionaryElement["intervalTimeSec"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
                     guard let currentDouble = TimeInterval(current) else { return }
                     let available = candidates.compactMap({ (candidate) -> TimeInterval? in
                         return TimeInterval(candidate)
                     })
-                    _intervalTime = (currentDouble, available)
+                    _intervalTime = (currentDouble, available, available)
                 case "colorSetting":
                     guard let current = dictionaryElement["colorSetting"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
-                    _colorSetting = (current, candidates)
+                    _colorSetting = (current, candidates, candidates)
                 case "movieFileFormat":
                     guard let current = dictionaryElement["movieFileFormat"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
-                    _videoFileFormat = (current, candidates)
+                    _videoFileFormat = (current, candidates, candidates)
                 case "infraredRemoteControl":
                     guard let current = dictionaryElement["infraredRemoteControl"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
-                    _infraredRemoteControl = (current, candidates)
+                    _infraredRemoteControl = (current, candidates, candidates)
                 case "tvColorSystem":
                     guard let current = dictionaryElement["tvColorSystem"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
-                    _tvColorSystem = (current, candidates)
+                    _tvColorSystem = (current, candidates, candidates)
                 case "trackingFocusStatus":
                     _trackingFocusStatus = dictionaryElement["trackingFocusStatus"] as? String
                 case "trackingFocus":
                     guard let current = dictionaryElement["trackingFocus"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
-                    _trackingFocus = (current, candidates)
+                    _trackingFocus = (current, candidates, candidates)
                 case "batteryInfo":
                     guard let batteryInfo = dictionaryElement["batteryInfo"] as? [[AnyHashable : Any]] else { return }
                     let batteries = batteryInfo.compactMap({ BatteryInformation(dictionary: $0) })
@@ -594,7 +594,7 @@ fileprivate extension CameraEvent {
                     _numberOfShots = dictionaryElement["numberOfShots"] as? Int
                 case "autoPowerOff":
                     guard let current = dictionaryElement["autoPowerOff"] as? Int, let candidates = dictionaryElement["candidate"] as? [Int] else { return }
-                    _autoPowerOff = (TimeInterval(current), candidates.map({ TimeInterval($0) }))
+                    _autoPowerOff = (TimeInterval(current), candidates.map({ TimeInterval($0) }), candidates.map({ TimeInterval($0) }))
                 case "loopRecTime":
                     
                     guard let current = dictionaryElement["loopRecTime"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
@@ -608,14 +608,14 @@ fileprivate extension CameraEvent {
                         return TimeInterval($0)
                     })
                     
-                    _loopRecordTime = (duration, available)
+                    _loopRecordTime = (duration, available, available)
                     
                 case "audioRecording":
                     guard let current = dictionaryElement["audioRecording"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
-                    _audioRecording = (current, candidates)
+                    _audioRecording = (current, candidates, candidates)
                 case "windNoiseReduction":
                     guard let current = dictionaryElement["windNoiseReduction"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
-                    _windNoiseReduction = (current, candidates)
+                    _windNoiseReduction = (current, candidates, candidates)
                 case "bulbCapturingTime":
                     switch dictionaryElement["bulbCapturingTime"] {
                     case let int as Int:
@@ -681,7 +681,7 @@ fileprivate extension CameraEvent {
         if _shutterSpeed?.current.isBulb == true {
             // If the shutter speed is bulb, then we're in BULB shoot mode.
             // we need to manually report this because Sony don't do it for us!
-            _shootMode = (.bulb, _shootMode?.available)
+            _shootMode = (.bulb, _shootMode?.available ?? [], _shootMode?.supported ?? [])
         }
         
         status = _cameraStatus

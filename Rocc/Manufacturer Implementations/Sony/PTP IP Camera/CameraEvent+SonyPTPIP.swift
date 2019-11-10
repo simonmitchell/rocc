@@ -148,15 +148,15 @@ extension CameraEvent {
         viewAngle = nil
         exposureMode = nil
         postViewImageSize = nil
-        var selfTimer: (current: TimeInterval, available: [TimeInterval])?
-        var shootMode: (current: ShootingMode, available: [ShootingMode]) = (.photo, [])
-        var exposureCompensation: (current: Exposure.Compensation.Value, available: [Exposure.Compensation.Value])?
+        var selfTimer: (current: TimeInterval, available: [TimeInterval], supported: [TimeInterval])?
+        var shootMode: (current: ShootingMode, available: [ShootingMode], supported: [ShootingMode]) = (.photo, [], [])
+        var exposureCompensation: (current: Exposure.Compensation.Value, available: [Exposure.Compensation.Value], supported: [Exposure.Compensation.Value])?
         flashMode = nil
-        var aperture: (current: Aperture.Value, available: [Aperture.Value])?
-        var focusMode: (current: Focus.Mode.Value, available: [Focus.Mode.Value])?
-        var _iso: (current: ISO.Value, available: [ISO.Value])?
+        var aperture: (current: Aperture.Value, available: [Aperture.Value], supported: [Aperture.Value])?
+        var focusMode: (current: Focus.Mode.Value, available: [Focus.Mode.Value], supported: [Focus.Mode.Value])?
+        var _iso: (current: ISO.Value, available: [ISO.Value], supported: [ISO.Value])?
         isProgramShifted = false
-        var shutterSpeed: (current: ShutterSpeed, available: [ShutterSpeed])?
+        var shutterSpeed: (current: ShutterSpeed, available: [ShutterSpeed], supported: [ShutterSpeed]?)?
         var whiteBalance: WhiteBalanceInformation?
         whiteBalance = nil
         touchAF = nil
@@ -217,6 +217,7 @@ extension CameraEvent {
                     return
                 }
                 let available = enumProperty.available.compactMap({ SonyStillCaptureMode(sonyValue: $0) })
+                let supported = enumProperty.supported.compactMap({ SonyStillCaptureMode(sonyValue: $0) })
                 
                 // Adjust `ShootingMode`s that are available
                 available.forEach {
@@ -225,6 +226,16 @@ extension CameraEvent {
                         shootMode.available.append(mode)
                     }
                 }
+                
+                // Adjust `ShootingMode`s that are supported
+                var supportedShootModes = shootMode.supported ?? []
+                supported.forEach {
+                    guard let mode = $0.shootMode else { return }
+                    if !supportedShootModes.contains(mode) {
+                        supportedShootModes.append(mode)
+                    }
+                }
+                shootMode.supported = supportedShootModes
                 
                 //TODO: Maybe we shouldn't be doing this?
                 switch current.shootMode {
@@ -243,17 +254,24 @@ extension CameraEvent {
                     shootMode.current = currentShootMode
                 }
                 
-                let selfTimerSingleModes = available.filter({ $0.isSingleTimerMode })
-                if !selfTimerSingleModes.isEmpty {
+                let availableSelfTimerSingleModes = available.filter({ $0.isSingleTimerMode })
+                let supportedSelfTimerSingleModes = supported.filter({ $0.isSingleTimerMode })
+
+                if !availableSelfTimerSingleModes.isEmpty || !supportedSelfTimerSingleModes.isEmpty {
                     //TODO: What if current is a multiple timer mode?
-                    var durations = selfTimerSingleModes.map({ $0.timerDuration })
-                    durations.append(0.0)
-                    selfTimer = (current.timerDuration, durations.sorted())
+                    var availableDurations = availableSelfTimerSingleModes.map({ $0.timerDuration })
+                    var supportedDurations = supportedSelfTimerSingleModes.map({ $0.timerDuration })
+                    availableDurations.append(0.0)
+                    supportedDurations.append(0.0)
+                    selfTimer = (current.timerDuration, availableDurations.sorted(), supportedDurations.sorted())
                     functions.append(.setSelfTimerDuration)
                 }
                 
                 if shootMode.available.contains(.photo) {
                     shootMode.available.append(.timelapse)
+                }
+                if supportedShootModes.contains(.photo) {
+                    shootMode.supported.append(.timelapse)
                 }
                                 
                 //TODO: Munge to camera protocol format!
@@ -270,7 +288,10 @@ extension CameraEvent {
                 let available = enumProperty.available.compactMap({ Exposure.Compensation.Value(sonyValue: $0) }).sorted { (value1, value2) -> Bool in
                     return value1.value < value2.value
                 }
-                exposureCompensation = (compensation, available)
+                let supported = enumProperty.supported.compactMap({ Exposure.Compensation.Value(sonyValue: $0) }).sorted { (value1, value2) -> Bool in
+                    return value1.value < value2.value
+                }
+                exposureCompensation = (compensation, available, supported)
                 
             case .focusMode:
                 
@@ -281,7 +302,8 @@ extension CameraEvent {
                     return
                 }
                 let available = enumProperty.available.compactMap({ Focus.Mode.Value(sonyValue: $0) })
-                focusMode = (currentFocusMode, available)
+                let supported = enumProperty.available.compactMap({ Focus.Mode.Value(sonyValue: $0) })
+                focusMode = (currentFocusMode, available, supported)
                 
             case .ISO:
                 
@@ -292,7 +314,8 @@ extension CameraEvent {
                     return
                 }
                 let available = enumProperty.available.compactMap({ ISO.Value(sonyValue: $0) })
-                _iso = (iso, available)
+                let supported = enumProperty.supported.compactMap({ ISO.Value(sonyValue: $0) })
+                _iso = (iso, available, supported)
                 
             case .shutterSpeed:
                 
@@ -303,7 +326,8 @@ extension CameraEvent {
                     return
                 }
                 let available = enumProperty.available.compactMap({ ShutterSpeed(sonyValue: $0) })
-                shutterSpeed = (value, available)
+                let supported = enumProperty.supported.compactMap({ ShutterSpeed(sonyValue: $0) })
+                shutterSpeed = (value, available, supported)
                 break
                 
             case .fNumber:
@@ -315,7 +339,8 @@ extension CameraEvent {
                     return
                 }
                 let available = enumProperty.available.compactMap({ Aperture.Value(sonyValue: $0) })
-                aperture = (value, available)
+                let supported = enumProperty.supported.compactMap({ Aperture.Value(sonyValue: $0) })
+                aperture = (value, available, supported)
                 break
                 
             case .whiteBalance:
@@ -327,27 +352,61 @@ extension CameraEvent {
                     return
                 }
                 let availableModes = enumProperty.available.compactMap({ WhiteBalance.Mode(sonyValue: $0) })
+                let supportedModes = enumProperty.supported.compactMap({ WhiteBalance.Mode(sonyValue: $0) })
                 var availableValues: [WhiteBalance.Value] = []
-                let currentTemp: UInt16?
+                var supportedValues: [WhiteBalance.Value]
+                var currentTemp: UInt16?
                 
                 // If we were sent the colour temp properties back from camera do some voodoo!
-                if let colorTempProperty = sonyDeviceProperties.first(where: { $0.code == .colorTemp }) as? PTP.DeviceProperty.Range, availableModes.firstIndex(where: { $0 == .colorTemp }) != nil {
+                if let colorTempProperty = sonyDeviceProperties.first(where: { $0.code == .colorTemp }) as? PTP.DeviceProperty.Range {
                     
                     currentTemp = colorTempProperty.currentValue as? UInt16
-                    // Remove all modes which are `colorTemp` as we'll add these back in manually using `colorTempProperty` properties
-                    let availableModesWithoutColorTemp = availableModes.filter({ $0.code != .colorTemp })
-                    availableValues = availableModesWithoutColorTemp.map({ WhiteBalance.Value(mode: $0, temperature: nil, rawInternal: "") })
                     
-                    if let min = colorTempProperty.min.toInt, let max = colorTempProperty.max.toInt, let step = colorTempProperty.step.toInt {
-                        // Add back in a `colorTemp` mode for every value available in color temperatures
-                        for temp in stride(from: min, to: max, by: step) {
-                            availableValues.append(WhiteBalance.Value(mode: .colorTemp, temperature: temp, rawInternal: ""))
+                    if availableModes.firstIndex(where: { $0 == .colorTemp }) != nil {
+                        
+                        // Remove all modes which are `colorTemp` as we'll add these back in manually using `colorTempProperty` properties
+                        let availableModesWithoutColorTemp = availableModes.filter({ $0.code != .colorTemp })
+                        availableValues = availableModesWithoutColorTemp.map({ WhiteBalance.Value(mode: $0, temperature: nil, rawInternal: "") })
+                        
+                        if let min = colorTempProperty.min.toInt, let max = colorTempProperty.max.toInt, let step = colorTempProperty.step.toInt {
+                            // Add back in a `colorTemp` mode for every value available in color temperatures
+                            for temp in stride(from: min, to: max, by: step) {
+                                availableValues.append(WhiteBalance.Value(mode: .colorTemp, temperature: temp, rawInternal: ""))
+                            }
+                        } else {
+                            availableValues.append(WhiteBalance.Value(mode: .colorTemp, temperature: nil, rawInternal: ""))
                         }
+                        
                     } else {
-                        availableValues.append(WhiteBalance.Value(mode: .colorTemp, temperature: nil, rawInternal: ""))
+                        
+                        availableValues = availableModes.map({ WhiteBalance.Value(mode: $0, temperature: nil, rawInternal: "") })
+                        currentTemp = nil
+                    }
+                    
+                    if supportedModes.firstIndex(where: { $0 == .colorTemp }) != nil {
+                        
+                        // Remove all modes which are `colorTemp` as we'll add these back in manually using `colorTempProperty` properties
+                        let supportedModesWithoutColorTemp = supportedModes.filter({ $0.code != .colorTemp })
+                        supportedValues = supportedModesWithoutColorTemp.map({ WhiteBalance.Value(mode: $0, temperature: nil, rawInternal: "") })
+                        
+                        if let min = colorTempProperty.min.toInt, let max = colorTempProperty.max.toInt, let step = colorTempProperty.step.toInt {
+                            // Add back in a `colorTemp` mode for every value available in color temperatures
+                            for temp in stride(from: min, to: max, by: step) {
+                                supportedValues.append(WhiteBalance.Value(mode: .colorTemp, temperature: temp, rawInternal: ""))
+                            }
+                        } else {
+                            supportedValues.append(WhiteBalance.Value(mode: .colorTemp, temperature: nil, rawInternal: ""))
+                        }
+                        
+                    } else {
+                        
+                        supportedValues = supportedModes.map({ WhiteBalance.Value(mode: $0, temperature: nil, rawInternal: "") })
+                        currentTemp = nil
                     }
                     
                 } else {
+                    
+                    supportedValues = supportedModes.map({ WhiteBalance.Value(mode: $0, temperature: nil, rawInternal: "") })
                     availableValues = availableModes.map({ WhiteBalance.Value(mode: $0, temperature: nil, rawInternal: "") })
                     currentTemp = nil
                 }
@@ -358,7 +417,8 @@ extension CameraEvent {
                 whiteBalance = WhiteBalanceInformation(
                     shouldCheck: false,
                     whitebalanceValue: WhiteBalance.Value(mode: currentMode, temperature: intCurrentTemp, rawInternal: ""),
-                    available: availableValues
+                    available: availableValues,
+                    supported: supportedValues
                 )
                 
             default:
