@@ -159,7 +159,7 @@ extension CameraEvent {
         var shutterSpeed: (current: ShutterSpeed, available: [ShutterSpeed], supported: [ShutterSpeed]?)?
         var whiteBalance: WhiteBalanceInformation?
         touchAF = nil
-        focusStatus = nil
+        var focusStatus: FocusStatus?
         zoomSetting = nil
         stillQuality = nil
         continuousShootingMode = nil
@@ -219,6 +219,15 @@ extension CameraEvent {
                 let supported = enumProperty.supported.compactMap({ Exposure.Mode.Value(sonyValue: $0) })
                 
                 exposureMode = (compensation, available, supported)
+                
+            case .focusFound:
+                
+                guard let enumProperty = deviceProperty
+                    as? PTP.DeviceProperty.Enum else {
+                    return
+                }
+                
+                focusStatus = FocusStatus(sonyValue: enumProperty.currentValue)
                 
             case .flashMode:
                 
@@ -459,5 +468,6 @@ extension CameraEvent {
         self.shootMode = shootMode
         self.focusMode = focusMode
         self.flashMode = flashMode
+        self.focusStatus = focusStatus
     }
 }
