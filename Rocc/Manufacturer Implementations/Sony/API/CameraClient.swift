@@ -14,6 +14,47 @@ import ThunderRequestMac
 import ThunderRequest
 #endif
 
+fileprivate extension Flash.Mode.Value {
+    
+    init?(sonyString: String) {
+        switch sonyString.lowercased() {
+        case "off":
+            self = .off
+        case "auto":
+            self = .auto
+        case "on":
+            self = .forcedOn
+        case "slowsync":
+            self = .slowSynchro
+        case "rearsync":
+            self = .rearSync
+        case "wireless":
+            self = .wireless
+        default:
+            return nil
+        }
+    }
+    
+    var sonyString: String {
+        switch self {
+        case .fill:
+            return "fill"
+        case .slowSynchro:
+            return "slowSync"
+        case .rearSync:
+            return "rearSync"
+        case .auto:
+            return "auto"
+        case .off:
+            return "off"
+        case .forcedOn:
+            return "on"
+        case .wireless:
+            return "wireless"
+        }
+    }
+}
+
 fileprivate extension Exposure.Mode.Value {
     
     init?(sonyString: String) {
@@ -217,11 +258,11 @@ fileprivate extension WhiteBalance.Mode {
         case "underwater auto":
             self = .underwaterAuto
         case "custom 1":
-            self = .c1
+            self = .custom1
         case "custom 2":
-            self = .c2
+            self = .custom2
         case "custom 3":
-            self = .c3
+            self = .custom3
         default:
             return nil
         }
@@ -420,7 +461,7 @@ fileprivate extension CameraEvent {
         var _selfTimer: (current: TimeInterval, available: [TimeInterval], supported: [TimeInterval])?
         var _shootMode: (current: ShootingMode, available: [ShootingMode]?, supported: [ShootingMode])?
         var _exposureCompensation: (current: Exposure.Compensation.Value, available: [Exposure.Compensation.Value], supported: [Exposure.Compensation.Value])?
-        var _flashMode: (current: String, available: [String], supported: [String])?
+        var _flashMode: (current: Flash.Mode.Value, available: [Flash.Mode.Value], supported: [Flash.Mode.Value])?
         var _aperture: (current: Aperture.Value, available: [Aperture.Value], supported: [Aperture.Value])?
         var _focusMode: (current: Focus.Mode.Value, available: [Focus.Mode.Value], supported: [Focus.Mode.Value])?
         var _ISO: (current: ISO.Value, available: [ISO.Value], supported: [ISO.Value])?
@@ -541,8 +582,8 @@ fileprivate extension CameraEvent {
                     _exposureCompensation = (compensations[centeredIndex], compensations, compensations)
                     
                 case "flashMode":
-                    guard let current = dictionaryElement["currentFlashMode"] as? String, let candidates = dictionaryElement["flashModeCandidates"] as? [String] else { return }
-                    _flashMode = (current, candidates, candidates)
+                    guard let current = dictionaryElement["currentFlashMode"] as? String, let currentEnum = Flash.Mode.Value(sonyString: current), let candidates = dictionaryElement["flashModeCandidates"] as? [String] else { return }
+                    _flashMode = (currentEnum, candidates.compactMap({ Flash.Mode.Value(sonyString: $0) }), candidates.compactMap({ Flash.Mode.Value(sonyString: $0) }))
                 case "fNumber":
                     guard let current = dictionaryElement["currentFNumber"] as? String, let aperture = Aperture.Value(sonyString: current), let candidates = dictionaryElement["fNumberCandidates"] as? [String] else { return }
                     _aperture = (aperture, candidates.compactMap({ Aperture.Value(sonyString: $0) }), candidates.compactMap({ Aperture.Value(sonyString: $0) }))

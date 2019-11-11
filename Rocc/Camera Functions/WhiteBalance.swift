@@ -25,9 +25,10 @@ public struct WhiteBalance: CameraFunction {
         case flash
         case underwaterAuto
         case colorTemp
-        case c1
-        case c2
-        case c3
+        case custom
+        case custom1
+        case custom2
+        case custom3
     }
     
     /// A structural representation of white balance information

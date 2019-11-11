@@ -151,7 +151,7 @@ extension CameraEvent {
         var selfTimer: (current: TimeInterval, available: [TimeInterval], supported: [TimeInterval])?
         var shootMode: (current: ShootingMode, available: [ShootingMode], supported: [ShootingMode]) = (.photo, [], [])
         var exposureCompensation: (current: Exposure.Compensation.Value, available: [Exposure.Compensation.Value], supported: [Exposure.Compensation.Value])?
-        flashMode = nil
+        var flashMode: (current: Flash.Mode.Value, available: [Flash.Mode.Value], supported: [Flash.Mode.Value])?
         var aperture: (current: Aperture.Value, available: [Aperture.Value], supported: [Aperture.Value])?
         var focusMode: (current: Focus.Mode.Value, available: [Focus.Mode.Value], supported: [Focus.Mode.Value])?
         var _iso: (current: ISO.Value, available: [ISO.Value], supported: [ISO.Value])?
@@ -219,6 +219,19 @@ extension CameraEvent {
                 let supported = enumProperty.supported.compactMap({ Exposure.Mode.Value(sonyValue: $0) })
                 
                 exposureMode = (compensation, available, supported)
+                
+            case .flashMode:
+                
+                guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
+                    return
+                }
+                guard let mode = Flash.Mode.Value(sonyValue: enumProperty.currentValue) else {
+                    return
+                }
+                let available = enumProperty.available.compactMap({ Flash.Mode.Value(sonyValue: $0) })
+                let supported = enumProperty.supported.compactMap({ Flash.Mode.Value(sonyValue: $0) })
+                
+                flashMode = (mode, available, supported)
             
             case .stillCaptureMode:
                 
@@ -285,7 +298,6 @@ extension CameraEvent {
                 }
                                 
                 //TODO: Munge to camera protocol format!
-                print("Still capture modes", current, available)
             
             case .exposureBiasCompensation:
                 
@@ -446,5 +458,6 @@ extension CameraEvent {
         self.selfTimer = selfTimer
         self.shootMode = shootMode
         self.focusMode = focusMode
+        self.flashMode = flashMode
     }
 }

@@ -50,11 +50,11 @@ extension WhiteBalance.Mode: SonyPTPPropValueConvertable {
         case 0x8012:
             self = .colorTemp
         case 0x8020:
-            self = .c1
+            self = .custom1
         case 0x8021:
-            self = .c2
+            self = .custom2
         case 0x8022:
-            self = .c3
+            self = .custom3
         default:
             return nil
         }
@@ -86,11 +86,11 @@ extension WhiteBalance.Mode: SonyPTPPropValueConvertable {
             return Word(0x8030)
         case .colorTemp:
             return Word(0x8012)
-        case .c1:
+        case .custom1, .custom:
             return Word(0x8020)
-        case .c2:
+        case .custom2:
             return Word(0x8021)
-        case .c3:
+        case .custom3:
             return Word(0x8022)
         }
     }
