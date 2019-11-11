@@ -146,7 +146,7 @@ extension CameraEvent {
         stillSizeInfo = nil
         steadyMode = nil
         viewAngle = nil
-        exposureMode = nil
+        var exposureMode: (current: Exposure.Mode.Value, available: [Exposure.Mode.Value], supported: [Exposure.Mode.Value])?
         postViewImageSize = nil
         var selfTimer: (current: TimeInterval, available: [TimeInterval], supported: [TimeInterval])?
         var shootMode: (current: ShootingMode, available: [ShootingMode], supported: [ShootingMode]) = (.photo, [], [])
@@ -158,7 +158,6 @@ extension CameraEvent {
         isProgramShifted = false
         var shutterSpeed: (current: ShutterSpeed, available: [ShutterSpeed], supported: [ShutterSpeed]?)?
         var whiteBalance: WhiteBalanceInformation?
-        whiteBalance = nil
         touchAF = nil
         focusStatus = nil
         zoomSetting = nil
@@ -207,6 +206,19 @@ extension CameraEvent {
             }
             
             switch deviceProperty.code {
+                
+            case .exposureProgramMode:
+                
+                guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
+                    return
+                }
+                guard let compensation = Exposure.Mode.Value(sonyValue: enumProperty.currentValue) else {
+                    return
+                }
+                let available = enumProperty.available.compactMap({ Exposure.Mode.Value(sonyValue: $0) })
+                let supported = enumProperty.supported.compactMap({ Exposure.Mode.Value(sonyValue: $0) })
+                
+                exposureMode = (compensation, available, supported)
             
             case .stillCaptureMode:
                 
@@ -228,14 +240,12 @@ extension CameraEvent {
                 }
                 
                 // Adjust `ShootingMode`s that are supported
-                var supportedShootModes = shootMode.supported ?? []
                 supported.forEach {
                     guard let mode = $0.shootMode else { return }
-                    if !supportedShootModes.contains(mode) {
-                        supportedShootModes.append(mode)
+                    if !shootMode.supported.contains(mode) {
+                        shootMode.supported.append(mode)
                     }
                 }
-                shootMode.supported = supportedShootModes
                 
                 //TODO: Maybe we shouldn't be doing this?
                 switch current.shootMode {
@@ -270,7 +280,7 @@ extension CameraEvent {
                 if shootMode.available.contains(.photo) {
                     shootMode.available.append(.timelapse)
                 }
-                if supportedShootModes.contains(.photo) {
+                if shootMode.supported.contains(.photo) {
                     shootMode.supported.append(.timelapse)
                 }
                                 
@@ -432,6 +442,7 @@ extension CameraEvent {
         self.aperture = aperture
         self.whiteBalance = whiteBalance
         self.exposureCompensation = exposureCompensation
+        self.exposureMode = exposureMode
         self.selfTimer = selfTimer
         self.shootMode = shootMode
         self.focusMode = focusMode

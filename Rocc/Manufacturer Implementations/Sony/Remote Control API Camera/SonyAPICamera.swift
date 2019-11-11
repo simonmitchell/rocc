@@ -2109,7 +2109,7 @@ extension SonyAPICameraDevice: Camera {
                 
             case .setExposureMode:
                 
-                guard let mode = payload as? String else {
+                guard let mode = payload as? Exposure.Mode.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }

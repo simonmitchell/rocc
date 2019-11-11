@@ -14,6 +14,49 @@ import ThunderRequestMac
 import ThunderRequest
 #endif
 
+fileprivate extension Exposure.Mode.Value {
+    
+    init?(sonyString: String) {
+        switch sonyString.lowercased() {
+        case "aperture":
+            self = .aperturePriority
+        case "intelligent auto":
+            self = .intelligentAuto
+        case "program auto":
+            self = .programmedAuto
+        case "shutter":
+            self = .shutterPriority
+        case "manual":
+            self = .manual
+        case "superior auto":
+            self = .superiorAuto
+        default:
+            //TODO: Find strings for other cases
+            return nil
+        }
+    }
+    
+    var sonyString: String {
+        switch self {
+        case .aperturePriority:
+            return "Aperture"
+        case .intelligentAuto:
+            return "Intelligent Auto"
+        case .programmedAuto:
+            return "Program Auto"
+        case .shutterPriority:
+            return "Shutter"
+        case .manual:
+            return "Manual"
+        case .superiorAuto:
+            return "Superior Auto"
+        default:
+            //TODO: Find strings for other cases
+            return ""
+        }
+    }
+}
+
 fileprivate extension Focus.Mode.Value {
     
     init?(sonyString: String) {
@@ -372,7 +415,7 @@ fileprivate extension CameraEvent {
         var _stillSizeInfo: StillSizeInformation?
         var _steadyMode: (current: String, available: [String], supported: [String])?
         var _viewAngle: (current: Double, available: [Double], supported: [Double])?
-        var _exposureMode: (current: String, available: [String], supported: [String])?
+        var _exposureMode: (current: Exposure.Mode.Value, available: [Exposure.Mode.Value], supported: [Exposure.Mode.Value])?
         var _postViewImageSize: (current: String, available: [String], supported: [String])?
         var _selfTimer: (current: TimeInterval, available: [TimeInterval], supported: [TimeInterval])?
         var _shootMode: (current: ShootingMode, available: [ShootingMode]?, supported: [ShootingMode])?
@@ -471,8 +514,8 @@ fileprivate extension CameraEvent {
                     guard let current = dictionaryElement["currentViewAngle"] as? Int, let candidates = dictionaryElement["viewAngleCandidates"] as? [Int] else { return }
                     _viewAngle = (Double(current), candidates.map({ Double($0) }), candidates.map({ Double($0) }))
                 case "exposureMode":
-                    guard let current = dictionaryElement["currentExposureMode"] as? String, let candidates = dictionaryElement["exposureModeCandidates"] as? [String] else { return }
-                    _exposureMode = (current, candidates, candidates)
+                    guard let current = dictionaryElement["currentExposureMode"] as? String, let currentEnum = Exposure.Mode.Value(sonyString: current), let candidates = dictionaryElement["exposureModeCandidates"] as? [String] else { return }
+                    _exposureMode = (currentEnum, candidates.compactMap({ Exposure.Mode.Value(sonyString: $0) }), candidates.compactMap({ Exposure.Mode.Value(sonyString: $0) }))
                 case "postviewImageSize":
                     guard let current = dictionaryElement["currentPostviewImageSize"] as? String, let candidates = dictionaryElement["postviewImageSizeCandidates"] as? [String] else { return }
                     _postViewImageSize = (current, candidates, candidates)
@@ -2378,9 +2421,9 @@ internal class CameraClient: ServiceClient {
     
     //MARK: Mode
     
-    typealias ExposureModesCompletion = (_ result: Result<[String]>) -> Void
+    typealias ExposureModesCompletion = (_ result: Result<[Exposure.Mode.Value]>) -> Void
     
-    typealias ExposureModeCompletion = (_ result: Result<String>) -> Void
+    typealias ExposureModeCompletion = (_ result: Result<Exposure.Mode.Value>) -> Void
     
     func getSupportedExposureModes(_ completion: @escaping ExposureModesCompletion) {
         
@@ -2398,7 +2441,7 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            completion(Result(value: supported, error: nil))
+            completion(Result(value: supported.compactMap({ Exposure.Mode.Value(sonyString: $0) }), error: nil))
         }
     }
     
@@ -2418,13 +2461,13 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            completion(Result(value: available, error: nil))
+            completion(Result(value: available.compactMap({ Exposure.Mode.Value(sonyString: $0) }), error: nil))
         }
     }
     
-    func setExposureMode(_ mode: String, _ completion: @escaping GenericCompletion) {
+    func setExposureMode(_ mode: Exposure.Mode.Value, _ completion: @escaping GenericCompletion) {
         
-        let body = SonyRequestBody(method: "setExposureMode", params: [mode], id: 1, version: "1.0")
+        let body = SonyRequestBody(method: "setExposureMode", params: [mode.sonyString], id: 1, version: "1.0")
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             completion(error ?? CameraError(responseDictionary: response?.dictionary, methodName: "setExposureMode"))
         }
@@ -2440,12 +2483,12 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            guard let result = response?.dictionary?["result"] as? [String], let mode = result.first else {
+            guard let result = response?.dictionary?["result"] as? [String], let mode = result.first, let modeEnum = Exposure.Mode.Value(sonyString: mode) else {
                 completion(Result(value: nil, error: CameraError.invalidResponse("getExposureMode")))
                 return
             }
             
-            completion(Result(value: mode, error: nil))
+            completion(Result(value: modeEnum, error: nil))
         }
     }
     

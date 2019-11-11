@@ -1,5 +1,5 @@
 //
-//  ISOValue+SonyPTPPropValueConvertible.swift
+//  ExposureCompensation+SonyPTPPropValueConvertible.swift
 //  Rocc
 //
 //  Created by Simon Mitchell on 08/11/2019.

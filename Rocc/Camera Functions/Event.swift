@@ -168,7 +168,7 @@ public struct CameraEvent {
     public let viewAngle: (current: Double, available: [Double], supported: [Double])?
     
     /// Current and available exposure modes.
-    public let exposureMode: (current: String, available: [String], supported: [String])?
+    public let exposureMode: (current: Exposure.Mode.Value, available: [Exposure.Mode.Value], supported: [Exposure.Mode.Value])?
     
     /// Current and available post view image size.
     public let postViewImageSize: (current: String, available: [String], supported: [String])?

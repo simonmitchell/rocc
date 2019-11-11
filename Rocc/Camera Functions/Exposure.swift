@@ -13,12 +13,29 @@ public struct Exposure {
     
     /// Functions for configuring the exposure mode of the camera
     public struct Mode: CameraFunction {
+        
+        public enum Value {
+            case programmedAuto
+            case aperturePriority
+            case shutterPriority
+            case manual
+            case videoProgrammedAuto
+            case videoAperturePriority
+            case videoShutterPriority
+            case videoManual
+            case slowAndQuickProgrammedAuto
+            case slowAndQuickAperturePriority
+            case slowAndQuickShutterPriority
+            case slowAndQuickManual
+            case intelligentAuto
+            case superiorAuto
+        }
     
         public var function: _CameraFunction
         
-        public typealias SendType = String
+        public typealias SendType = Value
         
-        public typealias ReturnType = String
+        public typealias ReturnType = Value
         
         /// Set the exposure mode of the camera
         public static let set = Mode(function: .setExposureMode)
