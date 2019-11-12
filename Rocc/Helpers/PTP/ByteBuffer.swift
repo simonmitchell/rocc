@@ -209,7 +209,7 @@ extension ByteBuffer {
     
     subscript (int8 index: UInt) -> Int8? {
         get {
-            guard let littleEndian = getLittleEndian(offset: index, nBytes: 2) else {
+            guard let littleEndian = getLittleEndian(offset: index, nBytes: 1) else {
                 return nil
             }
             return Int8(bitPattern: UInt8(littleEndian))

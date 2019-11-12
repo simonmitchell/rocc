@@ -175,7 +175,7 @@ extension CameraEvent {
         tvColorSystem = nil
         trackingFocusStatus = nil
         trackingFocus = nil
-        batteryInfo = nil
+        var batteryInfo: [BatteryInformation]?
         numberOfShots = nil
         autoPowerOff = nil
         loopRecordTime = nil
@@ -206,6 +206,25 @@ extension CameraEvent {
             }
             
             switch deviceProperty.code {
+                
+            case .batteryLevel, .batteryLevelSony:
+                
+                guard let rangeProperty = deviceProperty as? PTP.DeviceProperty.Range else {
+                    return
+                }
+                guard let level = rangeProperty.currentValue.toInt else {
+                    return
+                }
+                
+                batteryInfo = [
+                    BatteryInformation(
+                        identifier: "",
+                        status: .active,
+                        chargeStatus: level < 10 ? .nearEnd : nil,
+                        description: nil,
+                        level: Double(level)/100.0
+                    )
+                ]
                 
             case .exposureProgramMode:
                 
@@ -469,5 +488,6 @@ extension CameraEvent {
         self.focusMode = focusMode
         self.flashMode = flashMode
         self.focusStatus = focusStatus
+        self.batteryInfo = batteryInfo
     }
 }
