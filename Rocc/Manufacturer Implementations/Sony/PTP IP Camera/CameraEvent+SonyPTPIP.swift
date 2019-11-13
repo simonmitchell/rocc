@@ -189,7 +189,7 @@ extension CameraEvent {
         
         sonyDeviceProperties.forEach { (deviceProperty) in
             
-            switch deviceProperty.getSet {
+            switch deviceProperty.getSetSupported {
             case .get:
                 if let getFunction = deviceProperty.code.getFunction {
                     functions.append(getFunction)

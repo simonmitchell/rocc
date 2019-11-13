@@ -413,9 +413,9 @@ protocol PTPDeviceProperty {
     
     var factoryValue: PTPDevicePropertyDataType { get set }
     
-    var getSet: PTP.DeviceProperty.GetSet { get set }
+    var getSetAvailable: PTP.DeviceProperty.GetSetAvailable { get set }
     
-    var unknown: Byte { get set }
+    var getSetSupported: PTP.DeviceProperty.GetSetSupported { get set }
     
     var length: UInt { get set }
 }
@@ -443,7 +443,8 @@ extension PTPRangeDeviceProperty {
         code = header.code
         currentValue = header.current
         factoryValue = header.factory
-        getSet = header.getSet
+        getSetAvailable = header.getSetAvailable
+        getSetSupported = header.getSetSupported
         
         guard let _min: PTPDevicePropertyDataType = data.getValue(of: type, at: offset) else { return nil }
         min = _min
@@ -465,8 +466,8 @@ extension PTPRangeDeviceProperty {
         var buffer = ByteBuffer()
         buffer.append(word: code.rawValue)
         buffer.append(word: type.rawValue)
-        buffer.append(byte: getSet.rawValue)
-        buffer.append(byte: unknown)
+        buffer.append(byte: getSetSupported.rawValue)
+        buffer.append(byte: getSetAvailable.rawValue)
         
         buffer.appendValue(factoryValue, ofType: type)
         buffer.appendValue(currentValue, ofType: type)
@@ -497,8 +498,8 @@ extension PTPEnumDeviceProperty {
         var buffer = ByteBuffer()
         buffer.append(word: code.rawValue)
         buffer.append(word: type.rawValue)
-        buffer.append(byte: getSet.rawValue)
-        buffer.append(byte: unknown)
+        buffer.append(byte: getSetSupported.rawValue)
+        buffer.append(byte: getSetAvailable.rawValue)
         
         buffer.appendValue(factoryValue, ofType: type)
         buffer.appendValue(currentValue, ofType: type)
@@ -528,7 +529,8 @@ extension PTPEnumDeviceProperty {
         code = header.code
         currentValue = header.current
         factoryValue = header.factory
-        getSet = header.getSet
+        getSetSupported = header.getSetSupported
+        getSetAvailable = header.getSetAvailable
         
         guard let available: (values: [PTPDevicePropertyDataType], length: UInt) = data.getArrayValues(of: type, at: offset) else { return nil }
         offset += available.length
@@ -574,8 +576,8 @@ extension PTP {
                 code = .undefined
                 currentValue = UInt8(0)
                 factoryValue = UInt8(0)
-                getSet = .unknown
-                unknown = 0
+                getSetSupported = .unknown
+                getSetAvailable = .unknown
                 length = 0
                 min = UInt8(0)
                 max = UInt8(0)
@@ -590,9 +592,9 @@ extension PTP {
             
             var factoryValue: PTPDevicePropertyDataType
             
-            var getSet: GetSet
+            var getSetAvailable: PTP.DeviceProperty.GetSetAvailable
             
-            var unknown: Byte
+            var getSetSupported: PTP.DeviceProperty.GetSetSupported
             
             var length: UInt
             
@@ -610,7 +612,8 @@ extension PTP {
                 code = .undefined
                 currentValue = UInt8(0)
                 factoryValue = UInt8(0)
-                getSet = .unknown
+                getSetSupported = .unknown
+                getSetAvailable = .unknown
                 unknown = 0
                 length = 0
                 available = []
@@ -625,7 +628,16 @@ extension PTP {
             
             var factoryValue: PTPDevicePropertyDataType
             
-            var getSet: GetSet
+            // 0x00, 0x00: Hidden entirely
+            // 0x00, 0x01: Entirely interactable
+            // 0x00, 0x02: Highly translucent
+            // 0x01, 0x00: Hidden entirely
+            // 0x01, 0x01: Entirely interactable
+            // 0x01, 0x02: Highly translucent
+            // get set supported, get set available?
+            var getSetSupported: GetSetSupported
+            
+            var getSetAvailable: GetSetAvailable
             
             var unknown: Byte
             
@@ -636,9 +648,16 @@ extension PTP {
             var supported: [PTPDevicePropertyDataType]
         }
         
-        enum GetSet: Byte {
+        enum GetSetSupported: Byte {
             case get = 0x00
             case getSet = 0x01
+            case unknown
+        }
+        
+        enum GetSetAvailable: Byte {
+            case unavailable = 0x00
+            case getSet = 0x01
+            case get = 0x02
             case unknown
         }
         

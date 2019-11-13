@@ -16,10 +16,10 @@ extension PTP.DeviceProperty {
         
         let dataType: PTP.DeviceProperty.DataType
         
-        let getSet: PTP.DeviceProperty.GetSet
+        let getSetAvailable: PTP.DeviceProperty.GetSetAvailable
         
-        let unknown: Byte
-        
+        let getSetSupported: PTP.DeviceProperty.GetSetSupported
+                
         let factory: PTPDevicePropertyDataType
         
         let current: PTPDevicePropertyDataType
@@ -47,11 +47,12 @@ extension ByteBuffer {
         }
         offset += UInt(MemoryLayout<Word>.size)
         
-        guard let getSetByte = self[offset] else { return nil }
-        let getSet = PTP.DeviceProperty.GetSet(rawValue: getSetByte) ?? .unknown
+        guard let getSetSupportedByte = self[offset] else { return nil }
+        let getSetSupported = PTP.DeviceProperty.GetSetSupported(rawValue: getSetSupportedByte) ?? .unknown
         offset += UInt(MemoryLayout<Byte>.size)
         
-        guard let unknown = self[offset] else { return nil }
+        guard let getSetAvailableByte = self[offset] else { return nil }
+        let getSetAvailable = PTP.DeviceProperty.GetSetAvailable(rawValue: getSetAvailableByte) ?? .unknown
         offset += UInt(MemoryLayout<Byte>.size)
         
         guard let factoryValue: PTPDevicePropertyDataType = getValue(of: type, at: offset) else { return nil }
@@ -63,8 +64,8 @@ extension ByteBuffer {
         return PTP.DeviceProperty.Header(
             code: code,
             dataType: type,
-            getSet: getSet,
-            unknown: unknown,
+            getSetAvailable: getSetAvailable,
+            getSetSupported: getSetSupported,
             factory: factoryValue,
             current: currentValue,
             isRange: self[offset] == 0x01,
