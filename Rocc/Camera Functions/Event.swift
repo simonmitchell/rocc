@@ -109,6 +109,12 @@ public struct CameraEvent {
         
         /// The still size the camera is shooting in.
         public let stillSize: StillSize
+        
+        /// The currently available still sizes.
+        public let available: [StillSize]?
+               
+        /// The currently supported still sizes.
+        public let supported: [StillSize]?
     }
     
     /// A structural representation of information about the white balance being used by the camera

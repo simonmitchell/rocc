@@ -143,7 +143,7 @@ extension CameraEvent {
         function = nil
         functionResult = false
         videoQuality = nil
-        stillSizeInfo = nil
+        var stillSizeInfo: StillSizeInformation?
         steadyMode = nil
         viewAngle = nil
         var exposureMode: (current: Exposure.Mode.Value, available: [Exposure.Mode.Value], supported: [Exposure.Mode.Value])?
@@ -393,6 +393,126 @@ extension CameraEvent {
                 aperture = (value, available, supported)
                 break
                 
+            case .imageSizeSony, .imageSize:
+                
+                guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
+                    return
+                }
+                let size: String
+                switch enumProperty.currentValue.toInt {
+                case 0x01:
+                    size = "L"
+                case 0x02:
+                    size = "M"
+                case 0x03:
+                    size = "S"
+                default:
+                    return
+                }
+                
+                var currentSize = StillSize(aspectRatio: nil, size: size)
+                
+                let availableSizes: [String] = enumProperty.available.compactMap({
+                    switch $0.toInt {
+                    case 0x01:
+                        return "L"
+                    case 0x02:
+                        return "M"
+                    case 0x03:
+                        return "S"
+                    default:
+                        return nil
+                    }
+                })
+                
+                let supportedSizes: [String] = enumProperty.supported.compactMap({
+                    switch $0.toInt {
+                    case 0x01:
+                        return "L"
+                    case 0x02:
+                        return "M"
+                    case 0x03:
+                        return "S"
+                    default:
+                        return nil
+                    }
+                })
+                
+                guard let ratioProperty = sonyDeviceProperties.first(where: { $0.code == .aspectRatio }) as? PTP.DeviceProperty.Enum else {
+                    stillSizeInfo = StillSizeInformation(
+                        shouldCheck: false,
+                        stillSize: currentSize,
+                        available: availableSizes.compactMap({ StillSize(aspectRatio: nil, size: $0)
+                        }),
+                        supported: supportedSizes.compactMap({
+                            StillSize(aspectRatio: nil, size: $0)
+                        })
+                    )
+                    return
+                }
+                
+                let ratio: String?
+                switch ratioProperty.currentValue.toInt {
+                case 0x01:
+                    ratio = "3:2"
+                case 0x02:
+                    ratio = "16:9"
+                case 0x04:
+                    ratio = "1:1"
+                default:
+                    ratio = nil
+                }
+                
+                currentSize = StillSize(aspectRatio: ratio, size: currentSize.size)
+                
+                let availableRatios: [String] = ratioProperty.available.compactMap({
+                    switch $0.toInt {
+                    case 0x01:
+                        return "3:2"
+                    case 0x02:
+                        return "16:9"
+                    case 0x04:
+                        return "1:1"
+                    default:
+                        return nil
+                    }
+                })
+                
+                let supportedRatios: [String] = ratioProperty.supported.compactMap({
+                    switch $0.toInt {
+                    case 0x01:
+                        return "3:2"
+                    case 0x02:
+                        return "16:9"
+                    case 0x04:
+                        return "1:1"
+                    default:
+                        return nil
+                    }
+                })
+                
+                var allAvailableSizes: [StillSize] = []
+                var allSupportedSizes: [StillSize] = []
+                
+                availableSizes.forEach { (size) in
+                    availableRatios.forEach { (ratio) in
+                        allAvailableSizes.append(StillSize(aspectRatio: ratio, size: size))
+                    }
+                }
+                
+                supportedSizes.forEach { (size) in
+                    supportedRatios.forEach { (ratio) in
+                        allSupportedSizes.append(StillSize(aspectRatio: ratio, size: size))
+                    }
+                }
+                
+                stillSizeInfo = StillSizeInformation(
+                    shouldCheck: false,
+                    stillSize: currentSize,
+                    available: allAvailableSizes,
+                    supported: allSupportedSizes
+                )
+                
             case .whiteBalance:
                 
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
@@ -489,5 +609,6 @@ extension CameraEvent {
         self.flashMode = flashMode
         self.focusStatus = focusStatus
         self.batteryInfo = batteryInfo
+        self.stillSizeInfo = stillSizeInfo
     }
 }

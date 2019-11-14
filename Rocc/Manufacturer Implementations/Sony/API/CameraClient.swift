@@ -544,7 +544,7 @@ fileprivate extension CameraEvent {
                     _videoQuality = (current, candidates, candidates)
                 case "stillSize":
                     guard let check = dictionaryElement["checkAvailability"] as? Bool, let currentAspect = dictionaryElement["currentAspect"] as? String, let currentSize = dictionaryElement["currentSize"] as? String else { return }
-                    _stillSizeInfo = StillSizeInformation(shouldCheck: check, stillSize: StillSize(aspectRatio: currentAspect, size: currentSize))
+                    _stillSizeInfo = StillSizeInformation(shouldCheck: check, stillSize: StillSize(aspectRatio: currentAspect, size: currentSize), available: nil, supported: nil)
                 case "cameraFunctionResult":
                     guard let current = dictionaryElement["cameraFunctionResult"] as? String, current == "Success" || current == "Failure" else { return }
                     _functionResult = current == "Success"
@@ -2860,7 +2860,7 @@ internal class CameraClient: ServiceClient {
     
     func setStillSize(_ stillSize: StillSize, completion: @escaping GenericCompletion) {
         
-        let body = SonyRequestBody(method: "setStillSize", params: [stillSize.aspectRatio, stillSize.size], id: 1, version: "1.0")
+        let body = SonyRequestBody(method: "setStillSize", params: [stillSize.aspectRatio ?? "", stillSize.size], id: 1, version: "1.0")
         
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             completion(error ?? CameraError(responseDictionary: response?.dictionary, methodName: "setStillSize"))

@@ -12,12 +12,11 @@ import Foundation
 public struct StillSize {
     
     /// The aspect ratio of the size
-    let aspectRatio: String
+    let aspectRatio: String?
     
     /// The size itself
     let size: String
 }
-
 
 /// Functions for interacting with the camera's still capture API.
 public struct StillCapture: CameraFunction {
