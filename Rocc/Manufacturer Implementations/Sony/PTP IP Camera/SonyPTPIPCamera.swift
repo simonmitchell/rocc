@@ -281,6 +281,57 @@ extension SonyPTPIPDevice: Camera {
             ptpIPClient?.sendSetControlDeviceAValue(
                 PTP.DeviceProperty.Value(value)
             )
+        case .setStillSize:
+            guard let stillSize = payload as? StillSize else {
+                callback(FunctionError.invalidPayload, nil)
+                return
+            }
+            var stillSizeByte: Byte? = nil
+            switch stillSize.size {
+            case "L":
+                stillSizeByte = 0x01
+            case "M":
+                stillSizeByte = 0x02
+            case "S":
+                stillSizeByte = 0x03
+            default:
+                break
+            }
+            
+            if let _stillSizeByte = stillSizeByte {
+                ptpIPClient?.sendSetControlDeviceAValue(
+                    PTP.DeviceProperty.Value(
+                        code: .imageSizeSony,
+                        type: .uint8,
+                        value: _stillSizeByte
+                    )
+                )
+            }
+            
+            guard let aspect = stillSize.aspectRatio else { return }
+            
+            var aspectRatioByte: Byte? = nil
+            switch aspect {
+            case "3:2":
+                aspectRatioByte = 0x01
+            case "16:9":
+                aspectRatioByte = 0x02
+            case "1:1":
+                aspectRatioByte = 0x04
+            default:
+                break
+            }
+            
+            guard let _aspectRatioByte = aspectRatioByte else { return }
+            
+            ptpIPClient?.sendSetControlDeviceAValue(
+                PTP.DeviceProperty.Value(
+                    code: .imageSizeSony,
+                    type: .uint8,
+                    value: _aspectRatioByte
+                )
+            )
+            
         case .setSelfTimerDuration:
             guard let timeInterval = payload as? TimeInterval else {
                 callback(FunctionError.invalidPayload, nil)
