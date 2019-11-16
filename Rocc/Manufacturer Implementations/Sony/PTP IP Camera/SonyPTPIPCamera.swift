@@ -98,6 +98,8 @@ internal final class SonyPTPIPDevice: SonyCamera {
     var isConnected: Bool = false
     
     var deviceInfo: PTP.DeviceInfo?
+    
+    var lastEvent: CameraEvent?
         
     override func update(with deviceInfo: SonyDeviceInfo?) {
         name = modelEnum == nil ? name : (deviceInfo?.model?.friendlyName ?? name)
@@ -216,22 +218,23 @@ extension SonyPTPIPDevice: Camera {
     
     func supportsFunction<T>(_ function: T, callback: @escaping ((Bool?, Error?, [T.SendType]?) -> Void)) where T : CameraFunction {
         
-        //TODO: We shouldn't be dependent on this at this stage!
-        guard let deviceInfo = deviceInfo else {
-            callback(nil, PTPError.deviceInfoNotAvailable, nil)
-            return
-        }
+        var supported: Bool = false
                 
         // If the function has a related PTP property value
-        if let propTypeCodes = function.function.ptpDevicePropertyCodes {
-            
-            //TODO: When we pull and store the latest event, check that so we can send back supported values!
-            
+        if let deviceInfo = deviceInfo, let propTypeCodes = function.function.ptpDevicePropertyCodes {
+                        
             // Check that the related property value is supported
-            let supported = propTypeCodes.contains { (functionPropCode) -> Bool in
+            supported = propTypeCodes.contains { (functionPropCode) -> Bool in
                 return deviceInfo.supportedDeviceProperties.contains(functionPropCode)
             }
-            callback(supported, nil, nil)
+            if !supported {
+                callback(false, nil, nil)
+                return
+            }
+        }
+                
+        if let latestEvent = lastEvent, let _ = latestEvent.supportedFunctions {
+            latestEvent.supportsFunction(function, callback: callback)
             return
         }
         
@@ -246,8 +249,20 @@ extension SonyPTPIPDevice: Camera {
     }
     
     func isFunctionAvailable<T>(_ function: T, callback: @escaping ((Bool?, Error?, [T.SendType]?) -> Void)) where T : CameraFunction {
-        //TODO: Implement this properly!
-        callback(true, nil, nil)
+                        
+        if let latestEvent = lastEvent, let _ = latestEvent.availableFunctions {
+            latestEvent.isFunctionAvailable(function, callback: callback)
+            return
+        }
+        
+        // Fallback for functions that aren't related to a particular camera prop type, or that function differently to the PTP spec!
+        switch function.function {
+        case .ping:
+            callback(true, nil, nil)
+        //TODO: Finish implementing!
+        default:
+            callback(false, nil, nil)
+        }
     }
     
     func makeFunctionAvailable<T>(_ function: T, callback: @escaping ((Error?) -> Void)) where T : CameraFunction {
@@ -393,6 +408,6 @@ extension SonyPTPIPDevice: Camera {
     }
     
     func handleEvent(event: CameraEvent) {
-        
+        lastEvent = event
     }
 }
