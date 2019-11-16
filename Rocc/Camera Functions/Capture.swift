@@ -148,10 +148,14 @@ public struct ContinuousCapture: CameraFunction {
 /// - single: A single shot for each shutter press
 /// - continuous: Shoot continuously whilst the shutter button is pressed
 /// - spdPriorityContinuous: Shoots continuously (At higher speed than continuous) whilst the shutter button is pressed
+/// - burst: Shoots a burst
+/// - motionShot: Takes shots using Sony's "MotionShot" technology
 public enum ContinuousShootingMode: String {
     case single
     case continuous
     case spdPriorityContinuous = "spd priority cont."
+    case burst
+    case motionShot = "motionshot"
 }
 
 /// Enumeration representing the shooting speed for continuous shooting
@@ -159,8 +163,15 @@ public enum ContinuousShootingMode: String {
 /// - high: High speed
 /// - low: Low speed
 public enum ContinuousShootingSpeed: String {
+    case regular
     case high
+    case highPlus
     case low
+    case tenFps1Sec
+    case eightFps1Sec
+    case fiveFps2Sec
+    case twoFps5Sec
+    case s
 }
 
 /// Functions for interacting with the camera's video capture API

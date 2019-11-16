@@ -472,7 +472,7 @@ fileprivate extension CameraEvent {
         var _focusStatus: FocusStatus?
         var _zoomSetting: (current: String, available: [String], supported: [String])?
         var _stillQuality: (current: String, available: [String], supported: [String])?
-        var _continuousShootingMode: (current: ContinuousShootingMode, available: [ContinuousShootingMode], supported: [ContinuousShootingMode])?
+        var _continuousShootingMode: (current: ContinuousShootingMode?, available: [ContinuousShootingMode], supported: [ContinuousShootingMode])?
         var _continuousShootingSpeed: (current: ContinuousShootingSpeed, available: [ContinuousShootingSpeed], supported: [ContinuousShootingSpeed])?
         var _continuousShootingURLS: [(postView: URL, thumbnail: URL)]?
         var _flipSetting: (current: String, available: [String], supported: [String])?
@@ -816,6 +816,7 @@ fileprivate extension CameraEvent {
         windNoiseReduction = _windNoiseReduction
         bulbCapturingTime = _bulbCapturingTime
         bulbShootingUrl = _bulbShootingURL
+        supportedFunctions = []
     }
 }
 

@@ -273,7 +273,16 @@ extension SonyPTPIPDevice: Camera {
                 callback(nil, event as? T.ReturnType)
             })
             ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
-        case .setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setFocusMode, .setExposureMode, .setFlashMode:
+        case .setShootMode:
+            guard let value = payload as? ShootingMode else {
+                callback(FunctionError.invalidPayload, nil)
+                return
+            }
+            //TODO: Implement when we have better grasp of available shoot modes
+        case .setContinuousShootingMode:
+            // This isn't a thing via PTP according to Sony's app (Instead we just have multiple continuous shooting speeds) so we just don't do anything!
+            callback(nil, nil)
+        case .setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setFocusMode, .setExposureMode, .setFlashMode, .setContinuousShootingSpeed:
             guard let value = payload as? SonyPTPPropValueConvertable else {
                 callback(FunctionError.invalidPayload, nil)
                 return

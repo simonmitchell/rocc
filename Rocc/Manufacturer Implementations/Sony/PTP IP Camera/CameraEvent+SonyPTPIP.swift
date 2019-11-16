@@ -8,6 +8,12 @@
 
 import Foundation
 
+extension Array where Element : Hashable {
+    var unique: [Element] {
+        return Array(Set(self))
+    }
+}
+
 enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
     
     case single = 0x00000001
@@ -62,6 +68,32 @@ enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
     case whiteBalanceBracketLow = 0x00068018
     case droBracketHigh = 0x00078029
     case droBracketLow = 0x00078019
+    
+    var continuousShootingMode: ContinuousShootingMode? {
+        switch self {
+        case .continuous, .continuousS, .continuousLow, .continuousHigh, .continuousHighPlus:
+            return .continuous
+        default:
+            return nil
+        }
+    }
+    
+    var continuousShootingSpeed: ContinuousShootingSpeed? {
+        switch self {
+        case .continuous:
+            return .regular
+        case .continuousS:
+            return .s
+        case .continuousLow:
+            return .low
+        case .continuousHigh:
+            return .high
+        case .continuousHighPlus:
+            return .highPlus
+        default:
+            return nil
+        }
+    }
     
     var timerDuration: TimeInterval {
         switch self {
@@ -156,14 +188,14 @@ extension CameraEvent {
         var focusMode: (current: Focus.Mode.Value, available: [Focus.Mode.Value], supported: [Focus.Mode.Value])?
         var _iso: (current: ISO.Value, available: [ISO.Value], supported: [ISO.Value])?
         isProgramShifted = false
-        var shutterSpeed: (current: ShutterSpeed, available: [ShutterSpeed], supported: [ShutterSpeed]?)?
+        var shutterSpeed: (current: ShutterSpeed, available: [ShutterSpeed], supported: [ShutterSpeed])?
         var whiteBalance: WhiteBalanceInformation?
         touchAF = nil
         var focusStatus: FocusStatus?
         zoomSetting = nil
         stillQuality = nil
-        continuousShootingMode = nil
-        continuousShootingSpeed = nil
+        var continuousShootingMode: (current: ContinuousShootingMode?, available: [ContinuousShootingMode], supported: [ContinuousShootingMode])?
+        var continuousShootingSpeed: (current: ContinuousShootingSpeed?, available: [ContinuousShootingSpeed], supported: [ContinuousShootingSpeed])?
         continuousShootingURLS = nil
         flipSetting = nil
         scene = nil
@@ -185,21 +217,40 @@ extension CameraEvent {
          = nil
         bulbCapturingTime = nil
         
-        var functions: [_CameraFunction] = []
+        var availableFunctions: [_CameraFunction] = []
+        var supportedFunctions: [_CameraFunction] = []
         
         sonyDeviceProperties.forEach { (deviceProperty) in
+            
+            //TODO: Handle functions such as take picture which don't have a getFunction or setFunction
             
             switch deviceProperty.getSetSupported {
             case .get:
                 if let getFunction = deviceProperty.code.getFunction {
-                    functions.append(getFunction)
+                    supportedFunctions.append(getFunction)
                 }
             case .getSet:
                 if let getFunction = deviceProperty.code.getFunction {
-                    functions.append(getFunction)
+                    supportedFunctions.append(getFunction)
                 }
                 if let setFunctions = deviceProperty.code.setFunctions {
-                    functions.append(contentsOf: setFunctions)
+                    supportedFunctions.append(contentsOf: setFunctions)
+                }
+            default:
+                break
+            }
+            
+            switch deviceProperty.getSetAvailable {
+            case .get:
+                if let getFunction = deviceProperty.code.getFunction {
+                    availableFunctions.append(getFunction)
+                }
+            case .getSet:
+                if let getFunction = deviceProperty.code.getFunction {
+                    availableFunctions.append(getFunction)
+                }
+                if let setFunctions = deviceProperty.code.setFunctions {
+                    availableFunctions.append(contentsOf: setFunctions)
                 }
             default:
                 break
@@ -288,13 +339,38 @@ extension CameraEvent {
                     }
                 }
                 
+                // Sort out supported functions
+                
+                // Okay to for-each as array shouldn't hold multiple of each value
+                shootMode.supported.forEach({ (mode) in
+                    switch mode {
+                    case .audio:
+                        supportedFunctions.append(contentsOf: [.startAudioRecording, .endAudioRecording])
+                    case .bulb:
+                        supportedFunctions.append(contentsOf: [.startBulbCapture, .endBulbCapture])
+                    case .photo:
+                        supportedFunctions.append(contentsOf: [.takePicture])
+                    case .video:
+                        supportedFunctions.append(contentsOf: [.startVideoRecording, .endVideoRecording])
+                    case .continuous:
+                        supportedFunctions.append(contentsOf: [.startContinuousShooting, .endContinuousShooting])
+                    case .loop:
+                        supportedFunctions.append(contentsOf: [.startLoopRecording, .endLoopRecording])
+                    case .interval:
+                        supportedFunctions.append(contentsOf: [.startIntervalStillRecording, .endIntervalStillRecording])
+                    default:
+                        break
+                    }
+                })
+                
                 //TODO: Maybe we shouldn't be doing this?
                 switch current.shootMode {
                 case .photo:
-                    functions.append(.takePicture)
-                    functions.append(contentsOf: [.startBulbCapture, .endBulbCapture])
+                    availableFunctions.append(.takePicture)
+                    availableFunctions.append(contentsOf: [.startBulbCapture, .endBulbCapture])
                 case .continuous:
-                    functions.append(.startContinuousShooting)
+                    availableFunctions.append(.startContinuousShooting)
+                    availableFunctions.append(.endContinuousShooting)
                 default:
                     //TODO: Hande others?
                     break
@@ -304,6 +380,37 @@ extension CameraEvent {
                 if let currentShootMode = current.shootMode {
                     shootMode.current = currentShootMode
                 }
+                
+                //Munge continuous shooting modes
+                let availableContinuousShootingModes = available.filter({ $0.shootMode == .continuous })
+                let supportedContinuousShootingModes = available.filter({ $0.shootMode == .continuous })
+                if !availableContinuousShootingModes.isEmpty || !supportedContinuousShootingModes.isEmpty {
+                    
+                    let availableSpeeds = availableContinuousShootingModes.compactMap({ $0.continuousShootingSpeed }).unique
+                    let availableModes = availableContinuousShootingModes.compactMap({ $0.continuousShootingMode }).unique
+                    
+                    let supportedSpeeds = supportedContinuousShootingModes.compactMap({ $0.continuousShootingSpeed }).unique
+                    let supportedModes = supportedContinuousShootingModes.compactMap({ $0.continuousShootingMode }).unique
+                    
+                    continuousShootingSpeed = (current.continuousShootingSpeed, availableSpeeds, supportedSpeeds)
+                    continuousShootingMode = (current.continuousShootingMode, availableModes, supportedModes)
+                    
+                    if !availableModes.isEmpty {
+                        availableFunctions.append(contentsOf: [.setContinuousShootingMode, .getContinuousShootingMode])
+                    }
+                    if !supportedModes.isEmpty {
+                        supportedFunctions.append(contentsOf: [.setContinuousShootingMode, .getContinuousShootingMode])
+                    }
+                    
+                    if !availableSpeeds.isEmpty {
+                        availableFunctions.append(contentsOf: [.setContinuousShootingSpeed, .getContinuousShootingSpeed])
+                    }
+                    if !supportedSpeeds.isEmpty {
+                        supportedFunctions.append(contentsOf: [.setContinuousShootingMode, .getContinuousShootingMode])
+                    }
+                }
+                
+                //Munge self-timer modes
                 
                 let availableSelfTimerSingleModes = available.filter({ $0.isSingleTimerMode })
                 let supportedSelfTimerSingleModes = supported.filter({ $0.isSingleTimerMode })
@@ -315,7 +422,10 @@ extension CameraEvent {
                     availableDurations.append(0.0)
                     supportedDurations.append(0.0)
                     selfTimer = (current.timerDuration, availableDurations.sorted(), supportedDurations.sorted())
-                    functions.append(.setSelfTimerDuration)
+                    if !availableSelfTimerSingleModes.isEmpty {
+                        availableFunctions.append(.setSelfTimerDuration)
+                    }
+                    supportedFunctions.append(.setSelfTimerDuration)
                 }
                 
                 if shootMode.available.contains(.photo) {
@@ -378,6 +488,9 @@ extension CameraEvent {
                 let available = enumProperty.available.compactMap({ ShutterSpeed(sonyValue: $0) })
                 let supported = enumProperty.supported.compactMap({ ShutterSpeed(sonyValue: $0) })
                 shutterSpeed = (value, available, supported)
+                
+                //TODO: Check if contains BULB and add to supported shoot modes
+                
                 break
                 
             case .fNumber:
@@ -598,7 +711,7 @@ extension CameraEvent {
         
         self.shutterSpeed = shutterSpeed
         self.iso = _iso
-        self.availableFunctions = functions
+        self.availableFunctions = availableFunctions
         self.aperture = aperture
         self.whiteBalance = whiteBalance
         self.exposureCompensation = exposureCompensation
@@ -610,5 +723,8 @@ extension CameraEvent {
         self.focusStatus = focusStatus
         self.batteryInfo = batteryInfo
         self.stillSizeInfo = stillSizeInfo
+        self.supportedFunctions = supportedFunctions
+        self.continuousShootingMode = continuousShootingMode
+        self.continuousShootingSpeed = continuousShootingSpeed
     }
 }

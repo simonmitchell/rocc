@@ -161,7 +161,7 @@ internal final class SonyCameraDiscoverer: UDPDeviceDiscoverer {
         let parser = SonyCameraParser(xmlString: string)
         parser.parse { [weak self] (cameraDevice, error) in
             
-            guard var camera = cameraDevice as? Camera else {
+            guard let camera = cameraDevice as? Camera else {
                 callback(false)
                 return
             }

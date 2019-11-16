@@ -143,8 +143,12 @@ public struct CameraEvent {
     public let zoomPosition: Double?
     
     /// The functions that are currently available to the camera.
-    /// This can be used to check availability of APIs instead of the `Camera.isFunctionAvailable` method, although this doesn't return accepted values.
+    /// This can be used to check availability of functions instead of the `Camera.isFunctionAvailable` method, although this doesn't return accepted values.
     public let availableFunctions: [_CameraFunction]?
+    
+    /// The functions that are supported by the camera.
+    /// This can be used to check whether functions are available instead of `Camera.isFunctionSupported` method, although this doesn't contain supported values.
+    public let supportedFunctions: [_CameraFunction]?
     
     /// URLs for postView images that the camera has taken.
     public let postViewPictureURLs: [[URL]]?
@@ -222,10 +226,10 @@ public struct CameraEvent {
     public let stillQuality: (current: String, available: [String], supported: [String])?
     
     /// The current and available continuous shooting modes.
-    public let continuousShootingMode: (current: ContinuousShootingMode, available: [ContinuousShootingMode], supported: [ContinuousShootingMode])?
+    public let continuousShootingMode: (current: ContinuousShootingMode?, available: [ContinuousShootingMode], supported: [ContinuousShootingMode])?
     
     /// The current and available continuous shooting speeds.
-    public let continuousShootingSpeed: (current: ContinuousShootingSpeed, available: [ContinuousShootingSpeed], supported: [ContinuousShootingSpeed])?
+    public let continuousShootingSpeed: (current: ContinuousShootingSpeed?, available: [ContinuousShootingSpeed], supported: [ContinuousShootingSpeed])?
     
     /// Array of URL of continuous shooting. When more than one URL notifies, the last one is the latest.
     public let continuousShootingURLS: [(postView: URL, thumbnail: URL)]?

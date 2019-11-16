@@ -91,6 +91,10 @@
 		B180A7E6236F390B001AAF5D /* EndDataPacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = B180A7E4236F390B001AAF5D /* EndDataPacket.swift */; };
 		B180A7E9236F62C7001AAF5D /* PTPDeviceInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = B180A7E8236F62C7001AAF5D /* PTPDeviceInfo.swift */; };
 		B180A7EA236F62C7001AAF5D /* PTPDeviceInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = B180A7E8236F62C7001AAF5D /* PTPDeviceInfo.swift */; };
+		B182B889237DEA340054539E /* Event+FunctionSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B182B888237DEA340054539E /* Event+FunctionSupport.swift */; };
+		B182B88A237DEA340054539E /* Event+FunctionSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B182B888237DEA340054539E /* Event+FunctionSupport.swift */; };
+		B182B8EB237FF97E0054539E /* ContinuousShootingSpeed+SonyPTPPropValueConvertable.swift.swift in Sources */ = {isa = PBXBuildFile; fileRef = B182B8E3237FF97D0054539E /* ContinuousShootingSpeed+SonyPTPPropValueConvertable.swift.swift */; };
+		B182B8EC237FF97E0054539E /* ContinuousShootingSpeed+SonyPTPPropValueConvertable.swift.swift in Sources */ = {isa = PBXBuildFile; fileRef = B182B8E3237FF97D0054539E /* ContinuousShootingSpeed+SonyPTPPropValueConvertable.swift.swift */; };
 		B1990A8020C3FA1D0090A2F6 /* DeviceConnectivityNotifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1990A7F20C3FA1D0090A2F6 /* DeviceConnectivityNotifier.swift */; };
 		B1990A8120C3FA1D0090A2F6 /* DeviceConnectivityNotifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1990A7F20C3FA1D0090A2F6 /* DeviceConnectivityNotifier.swift */; };
 		B1990A8320C3FDAA0090A2F6 /* Reachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1990A8220C3FDAA0090A2F6 /* Reachability.swift */; };
@@ -362,6 +366,8 @@
 		B180A7E1236F37B6001AAF5D /* PTPIPClient+DataFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PTPIPClient+DataFlow.swift"; sourceTree = "<group>"; };
 		B180A7E4236F390B001AAF5D /* EndDataPacket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndDataPacket.swift; sourceTree = "<group>"; };
 		B180A7E8236F62C7001AAF5D /* PTPDeviceInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PTPDeviceInfo.swift; sourceTree = "<group>"; };
+		B182B888237DEA340054539E /* Event+FunctionSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Event+FunctionSupport.swift"; sourceTree = "<group>"; };
+		B182B8E3237FF97D0054539E /* ContinuousShootingSpeed+SonyPTPPropValueConvertable.swift.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ContinuousShootingSpeed+SonyPTPPropValueConvertable.swift.swift"; sourceTree = "<group>"; };
 		B1990A7F20C3FA1D0090A2F6 /* DeviceConnectivityNotifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceConnectivityNotifier.swift; sourceTree = "<group>"; };
 		B1990A8220C3FDAA0090A2F6 /* Reachability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Reachability.swift; sourceTree = "<group>"; };
 		B1990A8520C408C20090A2F6 /* Ping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ping.swift; sourceTree = "<group>"; };
@@ -572,6 +578,7 @@
 		B1AEE5052375CB3000224152 /* PropValueConversion */ = {
 			isa = PBXGroup;
 			children = (
+				B182B8E3237FF97D0054539E /* ContinuousShootingSpeed+SonyPTPPropValueConvertable.swift.swift */,
 				B1AEE51E2376C3DE00224152 /* ExposureCompensation+SonyPTPPropValueConvertable.swift */,
 				B1EADA3823795401000B7B36 /* ExposureMode+SonyPTPPropValueConvertable.swift */,
 				B1AEE50C2375D19A00224152 /* ApertureValue+SonyPTPPropValueConvertable.swift */,
@@ -644,6 +651,7 @@
 				B1D3591020AADC810069C698 /* Data+Conversion.swift */,
 				B1A25F3121AE950E00D9EE81 /* Errors.swift */,
 				B154535421EFDC1700C59096 /* Countable.swift */,
+				B182B888237DEA340054539E /* Event+FunctionSupport.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -858,6 +866,7 @@
 				B1316A492089C08F006BD136 /* Frameworks */,
 				B1316A4A2089C08F006BD136 /* Headers */,
 				B1316A4B2089C08F006BD136 /* Resources */,
+				B182B8CF237EEEE50054539E /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -1059,6 +1068,26 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		B182B8CF237EEEE50054539E /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "KEYWORDS=\"TODO|FIXME|\\?\\?\\?:|\\!\\!\\!:\"\nfind \"${SRCROOT}\" \\( -name \"*.swift\" \\) -print0 | \\\nxargs -0 egrep --with-filename --line-number --only-matching \"($KEYWORDS).*\\$\" | \\\nperl -p -e \"s/($KEYWORDS)/ warning: \\$1/\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		B1316A482089C08F006BD136 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -1110,6 +1139,7 @@
 				B11786F92187753F0006B72E /* SonyCamera+Model.swift in Sources */,
 				B1FB48732092743100C33C86 /* Aperture.swift in Sources */,
 				B1FB486C2092579E00C33C86 /* Camera.swift in Sources */,
+				B182B889237DEA340054539E /* Event+FunctionSupport.swift in Sources */,
 				B1D358F920AA34CF0069C698 /* LiveViewStreaming.swift in Sources */,
 				B164F02621811BD400590A05 /* SonyCameraDiscoverer.swift in Sources */,
 				B16BFD1121F5F0E600AF3F24 /* SimplePing.m in Sources */,
@@ -1144,6 +1174,7 @@
 				B100E1A220A04EE0004F7AB8 /* Focus.swift in Sources */,
 				B1CE24B42099AA7D0049EC87 /* Shutter.swift in Sources */,
 				B100E1BA20A0DA92004F7AB8 /* ColorSetting.swift in Sources */,
+				B182B8EB237FF97E0054539E /* ContinuousShootingSpeed+SonyPTPPropValueConvertable.swift.swift in Sources */,
 				B1F7CECF236D8968007E3921 /* SonyCamera.swift in Sources */,
 				B1A1B67F21F8BC78008B5181 /* Logger.swift in Sources */,
 				B1EADA3923795401000B7B36 /* ExposureMode+SonyPTPPropValueConvertable.swift in Sources */,
@@ -1239,6 +1270,7 @@
 				B1AF50A1208DC3B50029336B /* UDPClient.swift in Sources */,
 				B11786FA2187753F0006B72E /* SonyCamera+Model.swift in Sources */,
 				B1FB486D2092579E00C33C86 /* Camera.swift in Sources */,
+				B182B88A237DEA340054539E /* Event+FunctionSupport.swift in Sources */,
 				B1A1AA3A20A4E02200FD0A4A /* TVColorSystem.swift in Sources */,
 				B1D358FA20AA34CF0069C698 /* LiveViewStreaming.swift in Sources */,
 				B16BFD1221F5F0E600AF3F24 /* SimplePing.m in Sources */,
@@ -1273,6 +1305,7 @@
 				B16BFD1721F5F0F100AF3F24 /* Pinger.swift in Sources */,
 				B1AF50A0208DC3B20029336B /* DeviceDiscovery.swift in Sources */,
 				B1A1AA2120A4E02200FD0A4A /* Capture.swift in Sources */,
+				B182B8EC237FF97E0054539E /* ContinuousShootingSpeed+SonyPTPPropValueConvertable.swift.swift in Sources */,
 				B1F7CED0236D8968007E3921 /* SonyCamera.swift in Sources */,
 				B1A1B68021F8BC78008B5181 /* Logger.swift in Sources */,
 				B1EADA3A23795401000B7B36 /* ExposureMode+SonyPTPPropValueConvertable.swift in Sources */,
