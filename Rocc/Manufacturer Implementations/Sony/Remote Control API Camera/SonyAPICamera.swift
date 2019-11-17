@@ -98,9 +98,11 @@ internal final class SonyAPICameraDevice: SonyCamera {
         }
     }
     
-    var focusMode: String?
+    var focusMode: Focus.Mode.Value?
         
     var type: String?
+    
+    public var onEventAvailable: (() -> Void)?
     
     public var apiVersion: String?
     
@@ -178,7 +180,7 @@ internal final class SonyAPICameraDevice: SonyCamera {
 }
 
 extension SonyAPICameraDevice: Camera {
-    
+        
     func finishTransfer(callback: @escaping ((Error?) -> Void)) {
         callback(CameraError.noSuchMethod("Finish Transfer"))
     }
@@ -198,8 +200,8 @@ extension SonyAPICameraDevice: Camera {
         focusChangeAwaitingCallbacks.append(callback)
     }
     
-    public var supportsPolledEvents: Bool {
-        return true
+    var eventPollingMode: PollingMode {
+        return .continuous
     }
     
     public func connect(completion: @escaping Camera.ConnectedCompletion) {
@@ -1750,7 +1752,7 @@ extension SonyAPICameraDevice: Camera {
                     return
                 }
                 
-                guard focusMode == nil || focusMode!.lowercased().contains("af") else {
+                guard focusMode == nil || focusMode!.isAutoFocus else {
                     Logger.shared.log("Camera not in AF mode, skipping half-press shutter", category: "SonyCamera", level: .debug)
                     takePicture(false, nil)
                     return
@@ -2107,7 +2109,7 @@ extension SonyAPICameraDevice: Camera {
                 
             case .setExposureMode:
                 
-                guard let mode = payload as? String else {
+                guard let mode = payload as? Exposure.Mode.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2129,7 +2131,7 @@ extension SonyAPICameraDevice: Camera {
                 
             case .setExposureCompensation:
                 
-                guard let compensation = payload as? Double else {
+                guard let compensation = payload as? Exposure.Compensation.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2142,13 +2144,13 @@ extension SonyAPICameraDevice: Camera {
                         
                         // Find the zero-based index of the compensation we are trying to set.
                         guard let index = availableCompensations.firstIndex(where: {
-                            Double.equal($0, compensation, precision: 2)
+                            Double.equal($0.value, compensation.value, precision: 2)
                         }) else {
                             callback(FunctionError.invalidPayload, nil)
                             return
                         }
                         guard let zeroIndex = availableCompensations.firstIndex(where: {
-                            Double.equal($0, 0.0, precision: 4)
+                            Double.equal($0.value, 0.0, precision: 4)
                         }) else {
                             callback(FunctionError.invalidPayload, nil)
                             return
@@ -2183,7 +2185,7 @@ extension SonyAPICameraDevice: Camera {
                                 callback(error, nil)
                             case .success(let compensationIndex):
                                 
-                                guard let zeroIndex = availableCompensations.firstIndex(of: 0.0) else {
+                                guard let zeroIndex = availableCompensations.firstIndex(where: { $0.value == 0.0 }) else {
                                     callback(FunctionError.invalidResponse, nil)
                                     return
                                 }
@@ -2209,7 +2211,7 @@ extension SonyAPICameraDevice: Camera {
                 
             case .setFocusMode:
                 
-                guard let mode = payload as? String else {
+                guard let mode = payload as? Focus.Mode.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2231,7 +2233,7 @@ extension SonyAPICameraDevice: Camera {
                 
             case .setAperture:
                 
-                guard let aperture = payload as? String else {
+                guard let aperture = payload as? Aperture.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2253,7 +2255,7 @@ extension SonyAPICameraDevice: Camera {
                 
             case .setISO:
                 
-                guard let ISO = payload as? String else {
+                guard let ISO = payload as? ISO.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2808,7 +2810,7 @@ extension SonyAPICameraDevice: Camera {
                         // Check if shutterSpeed has changed away from Bulb! Sony doesn't have a "Bulb" shooting mode, so
                         // we need to do this automatically!
                         if let shutterSpeed = informations.shutterSpeed, let lastShootMode = self.lastShootMode, !shutterSpeed.current.isBulb && self.lastShutterSpeed?.isBulb == true {
-                            event.shootMode = (current: lastShootMode, available: informations.shootMode?.available)
+                            event.shootMode = (current: lastShootMode, available: informations.shootMode?.available ?? [], supported: informations.shootMode?.supported ?? [])
                         }
                         
                         // Only track this if we're not bulb shooting

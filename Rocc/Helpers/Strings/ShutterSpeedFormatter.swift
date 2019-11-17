@@ -99,13 +99,23 @@ public class ShutterSpeedFormatter {
             return "BULB"
         }
         
-        guard shutterSpeed.denominator != 1 else {
+        var fixedShutterSpeed = shutterSpeed
+        
+        // For some reason some cameras returns shutter speeds as 300/10 = 30 seconds.
+        if fixedShutterSpeed.value >= 1 {
+            while fixedShutterSpeed.denominator >= 10, fixedShutterSpeed.denominator.remainder(dividingBy: 10) == 0 {
+                fixedShutterSpeed = ShutterSpeed(numerator: fixedShutterSpeed.numerator/10, denominator: fixedShutterSpeed.denominator/10)
+            }
+        }
+        
+        //TODO: Change shutterSpeed.value
+        guard fixedShutterSpeed.denominator != 1 else {
             
             var string: String = ""
             if formattingOptions.contains(.forceIntegersToDouble) {
-                string = "\(shutterSpeed.value)"
+                string = "\(fixedShutterSpeed.value)"
             } else {
-                string = "\(shutterSpeed.value.toString)"
+                string = "\(fixedShutterSpeed.value.toString)"
             }
             
             if formattingOptions.contains(.appendQuotes) {
@@ -116,9 +126,9 @@ public class ShutterSpeedFormatter {
         }
         
         if formattingOptions.contains(.forceIntegersToDouble) {
-            return "\(shutterSpeed.numerator)/\(shutterSpeed.denominator)"
+            return "\(fixedShutterSpeed.numerator)/\(fixedShutterSpeed.denominator)"
         } else {
-            return "\(shutterSpeed.numerator.toString)/\(shutterSpeed.denominator.toString)"
+            return "\(fixedShutterSpeed.numerator.toString)/\(fixedShutterSpeed.denominator.toString)"
         }
     }
     

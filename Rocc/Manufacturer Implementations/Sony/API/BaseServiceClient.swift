@@ -44,11 +44,11 @@ internal struct SonyRequestBody {
 
 internal class ServiceClient {
     
-    typealias VersionsCompletion = (_ result: Result<[String]>) -> Void
+    typealias VersionsCompletion = (_ result: Result<[String], Error>) -> Void
     
-    typealias MethodTypesCompletion = (_ result: Result<[Any]>) -> Void
+    typealias MethodTypesCompletion = (_ result: Result<[Any], Error>) -> Void
     
-    typealias AvailableApiListCompletion = (_ result: Result<[String]>) -> Void
+    typealias AvailableApiListCompletion = (_ result: Result<[String], Error>) -> Void
 
     internal let requestController: RequestController
     
@@ -73,22 +73,22 @@ internal class ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { [weak self] (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getVersions") {
-                completion?(Result(value: nil, error: error))
+                completion?(Result.failure(error))
                 return
             }
             
             guard let responseDictionary = response?.dictionary else {
-                completion?(Result(value: nil, error: CameraError.invalidResponse("getVersions")))
+                completion?(Result.failure(CameraError.invalidResponse("getVersions")))
                 return
             }
             
             guard let result = responseDictionary["result"] as? [[String]], let firstResult = result.first else {
-                completion?(Result(value: nil, error: CameraError.invalidResponse("getVersions")))
+                completion?(Result.failure(CameraError.invalidResponse("getVersions")))
                 return
             }
             
             self?.versions = firstResult
-            completion?(Result(value: firstResult, error: nil))
+            completion?(Result.success(firstResult))
         }
     }
     
@@ -99,16 +99,16 @@ internal class ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getMethodTypes") {
-                completion?(Result(value: nil, error: error))
+                completion?(Result.failure(error))
                 return
             }
             
             guard let responseDictionary = response?.dictionary, let result = responseDictionary["results"] as? [[Any]] else {
-                completion?(Result(value: nil, error: CameraError.invalidResponse("getMethodTypes")))
+                completion?(Result.failure(CameraError.invalidResponse("getMethodTypes")))
                 return
             }
             
-            completion?(Result(value: result, error: nil))
+            completion?(Result.success(result))
         }
     }
     
@@ -119,21 +119,21 @@ internal class ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { [weak self] (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableApiList") {
-                completion?(Result(value: nil, error: error))
+                completion?(Result.failure(error))
                 return
             }
             
             guard let responseDictionary = response?.dictionary else {
-                completion?(Result(value: nil, error: CameraError.invalidResponse("getAvailableApiList")))
+                completion?(Result.failure(CameraError.invalidResponse("getAvailableApiList")))
                 return
             }
             guard let result = responseDictionary["result"] as? [[String]], let firstResult = result.first else {
-                completion?(Result(value: nil, error: CameraError.invalidResponse("getAvailableApiList")))
+                completion?(Result.failure(CameraError.invalidResponse("getAvailableApiList")))
                 return
             }
             
             self?.availableApiList = firstResult
-            completion?(Result(value: firstResult, error: nil))
+            completion?(Result.success(firstResult))
         }
     }
 }

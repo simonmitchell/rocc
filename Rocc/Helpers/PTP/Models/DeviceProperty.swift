@@ -8,6 +8,256 @@
 
 import Foundation
 
+extension PTP.DeviceProperty.Code {
+    
+    var setFunctions: [_CameraFunction]? {
+        switch self {
+        case .exposureBiasCompensation:
+            return [.setExposureCompensation]
+        case .undefined:
+            return nil
+        case .batteryLevel:
+            return nil
+        case .functionalMode:
+            //TODO: Unsure
+            return nil
+        case .imageSize:
+            return [.setStillSize]
+        case .compressionSetting:
+            //TODO: Add function
+            return nil
+        case .whiteBalance:
+            return [.setWhiteBalance]
+        case .rgbGain:
+            //TODO: Add function
+            return nil
+        case .fNumber:
+            return [.setAperture]
+        case .focalLength:
+            //TODO: Add function
+            return nil
+        case .focusDistance:
+            //TODO: Add function
+            return nil
+        case .focusMode:
+            return [.setFocusMode]
+        case .exposureMeteringMode:
+            //TODO: Add function
+            return nil
+        case .flashMode:
+            return [.setFlashMode]
+        case .exposureTime:
+            return [.setShutterSpeed]
+        case .exposureProgramMode:
+            return [.setExposureMode]
+        case .exposureIndex:
+            //TODO: Add function
+            return nil
+        case .dateTime:
+            //TODO: Is this correct?
+            return [.setCurrentTime]
+        case .captureDelay:
+            return [.setSelfTimerDuration]
+        case .stillCaptureMode:
+            return [.setShootMode]
+        case .contrast:
+            //TODO: Add function
+            return nil
+        case .sharpness:
+            //TODO: Add function
+            return nil
+        case .digitalZoom:
+            return [.startZooming, .stopZooming]
+        case .effectMode:
+            //TODO: Add function
+            return nil
+        case .burstNumber:
+            //TODO: Add function
+            return nil
+        case .burstInterval:
+            //TODO: Add function
+            return nil
+        case .timelapseNumber:
+            //TODO: Add function
+            return nil
+        case .timelapseInterval:
+            //TODO: Add function
+            return nil
+        case .focusMeteringMode:
+            //TODO: Add function
+            return nil
+        case .uploadURL:
+            return nil
+        case .artist:
+            return nil
+        case .copyrightInfo:
+            return nil
+        case .DPCCompensation:
+            //TODO: Add function
+            return nil
+        case .dRangeOptimize:
+            //TODO: Add function
+            return nil
+        case .imageSizeSony:
+            return [.setStillSize]
+        case .shutterSpeed:
+            return [.setShutterSpeed]
+        case .unknown_0xd20e:
+            return nil
+        case .colorTemp:
+            return nil
+        case .cCFilter:
+            //TODO: Add function
+            return nil
+        case .aspectRatio:
+            //TODO: Add function
+            return nil
+        case .focusFound:
+            return nil
+        case .objectInMemory:
+            return nil
+        case .exposeIndex:
+            //TODO: Add function?
+            return nil
+        case .batteryLevelSony:
+            return nil
+        case .pictureEffect:
+            return nil
+        case .ABFilter:
+            return nil
+        case .ISO:
+            return [.setISO]
+        case .movie:
+            return nil
+        case .stillImage:
+            return nil
+        }
+    }
+    
+    var getFunction: _CameraFunction? {
+        switch self {
+        case .exposureBiasCompensation:
+            return .getExposureCompensation
+        case .undefined:
+            return nil
+        case .batteryLevel:
+            return nil
+        case .functionalMode:
+            //TODO: Unsure
+            return nil
+        case .imageSize:
+            return .getStillSize
+        case .compressionSetting:
+            //TODO: Add function
+            return nil
+        case .whiteBalance:
+            return .getWhiteBalance
+        case .rgbGain:
+            //TODO: Add function
+            return nil
+        case .fNumber:
+            return .getAperture
+        case .focalLength:
+            //TODO: Add function
+            return nil
+        case .focusDistance:
+            //TODO: Add function
+            return nil
+        case .focusMode:
+            return .getFocusMode
+        case .exposureMeteringMode:
+            //TODO: Add function
+            return nil
+        case .flashMode:
+            return .getFlashMode
+        case .exposureTime:
+            return .getShutterSpeed
+        case .exposureProgramMode:
+            return .getExposureMode
+        case .exposureIndex:
+            //TODO: Add function
+            return nil
+        case .dateTime:
+            return nil
+        case .captureDelay:
+            return .getSelfTimerDuration
+        case .stillCaptureMode:
+            return .getShootMode
+        case .contrast:
+            //TODO: Add function
+            return nil
+        case .sharpness:
+            //TODO: Add function
+            return nil
+        case .digitalZoom:
+            return nil
+        case .effectMode:
+            //TODO: Add function
+            return nil
+        case .burstNumber:
+            //TODO: Add function
+            return nil
+        case .burstInterval:
+            //TODO: Add function
+            return nil
+        case .timelapseNumber:
+            //TODO: Add function
+            return nil
+        case .timelapseInterval:
+            //TODO: Add function
+            return nil
+        case .focusMeteringMode:
+            //TODO: Add function
+            return nil
+        case .uploadURL:
+            return nil
+        case .artist:
+            return nil
+        case .copyrightInfo:
+            return nil
+        case .DPCCompensation:
+            //TODO: Add function
+            return nil
+        case .dRangeOptimize:
+            //TODO: Add function
+            return nil
+        case .imageSizeSony:
+            return .getStillSize
+        case .shutterSpeed:
+            return .getShutterSpeed
+        case .unknown_0xd20e:
+            return nil
+        case .colorTemp:
+            return nil
+        case .cCFilter:
+            //TODO: Add function
+            return nil
+        case .aspectRatio:
+            //TODO: Add function
+            return nil
+        case .focusFound:
+            return nil
+        case .objectInMemory:
+            return nil
+        case .exposeIndex:
+            //TODO: Add function?
+            return nil
+        case .batteryLevelSony:
+            return nil
+        case .pictureEffect:
+            return nil
+        case .ABFilter:
+            return nil
+        case .ISO:
+            return .getISO
+        case .movie:
+            return nil
+        case .stillImage:
+            return nil
+        }
+    }
+}
+
 extension _CameraFunction {
     
     /// Returns the matching ptp device property codes that are required for the function to be supported.
@@ -53,17 +303,39 @@ extension _CameraFunction {
 protocol PTPDevicePropertyDataType {
     
     static var dataType: PTP.DeviceProperty.DataType { get }
+    
+    var sizeOf: Int { get }
+    
+    var toInt: Int? { get }
 }
 
 extension Int8: PTPDevicePropertyDataType {
+    
     static var dataType: PTP.DeviceProperty.DataType {
         return .int8
+    }
+    
+    var sizeOf: Int {
+        return MemoryLayout<Int8>.size
+    }
+    
+    var toInt: Int? {
+        return Int(self)
     }
 }
 
 extension UInt8: PTPDevicePropertyDataType {
+    
     static var dataType: PTP.DeviceProperty.DataType {
         return .uint8
+    }
+    
+    var sizeOf: Int {
+        return MemoryLayout<UInt8>.size
+    }
+    
+    var toInt: Int? {
+        return Int(self)
     }
 }
 
@@ -71,31 +343,65 @@ extension Int16: PTPDevicePropertyDataType {
     static var dataType: PTP.DeviceProperty.DataType {
         return .int16
     }
+    
+    var sizeOf: Int {
+        return MemoryLayout<Int16>.size
+    }
+    
+    var toInt: Int? {
+        return Int(self)
+    }
 }
 
 extension UInt16: PTPDevicePropertyDataType {
     static var dataType: PTP.DeviceProperty.DataType {
         return .uint16
     }
+    
+    var sizeOf: Int {
+        return MemoryLayout<UInt16>.size
+    }
+    
+    var toInt: Int? {
+        return Int(self)
+    }
 }
 
 extension UInt32: PTPDevicePropertyDataType {
+    
     static var dataType: PTP.DeviceProperty.DataType {
         return .uint32
+    }
+    
+    var sizeOf: Int {
+        return MemoryLayout<UInt32>.size
+    }
+    
+    var toInt: Int? {
+        return Int(self)
     }
 }
 
 extension String: PTPDevicePropertyDataType {
+    
     static var dataType: PTP.DeviceProperty.DataType {
         return .string
+    }
+    
+    var sizeOf: Int {
+        return count * 2
+    }
+    
+    var toInt: Int? {
+        return Int(self)
     }
 }
 
 protocol PTPDeviceProperty {
-    
-    associatedtype DataType: PTPDevicePropertyDataType
-        
+            
     init?(data: ByteBuffer)
+    
+    init()
     
     func toData() -> ByteBuffer
     
@@ -103,11 +409,13 @@ protocol PTPDeviceProperty {
     
     var code: PTP.DeviceProperty.Code { get set }
     
-    var currentValue: DataType { get set }
+    var currentValue: PTPDevicePropertyDataType { get set }
     
-    var factoryValue: DataType { get set }
+    var factoryValue: PTPDevicePropertyDataType { get set }
     
-    var getSet: Word { get set }
+    var getSetAvailable: PTP.DeviceProperty.GetSetAvailable { get set }
+    
+    var getSetSupported: PTP.DeviceProperty.GetSetSupported { get set }
     
     var length: UInt { get set }
 }
@@ -116,38 +424,39 @@ protocol PTPDeviceProperty {
 
 protocol PTPRangeDeviceProperty: PTPDeviceProperty {
     
-    var min: DataType { get set }
+    var min: PTPDevicePropertyDataType { get set }
     
-    var max: DataType { get set }
+    var max: PTPDevicePropertyDataType { get set }
     
-    var step: DataType { get set }
+    var step: PTPDevicePropertyDataType { get set }
 }
 
 extension PTPRangeDeviceProperty {
     
     init?(data: ByteBuffer) {
         
-        self.init(data: data)
-        
-        guard let header: PTP.DeviceProperty.Header<DataType> = data.getDevicePropHeader() else { return nil }
-        var offset: UInt = header.offset
+        self.init()
+                
+        guard let header: PTP.DeviceProperty.Header = data.getDevicePropHeader() else { return nil }
+        var offset: UInt = header.length
         type = header.dataType
         code = header.code
         currentValue = header.current
         factoryValue = header.factory
-        getSet = header.getSet
+        getSetAvailable = header.getSetAvailable
+        getSetSupported = header.getSetSupported
         
-        guard let _min: DataType = data.getValue(at: offset) else { return nil }
+        guard let _min: PTPDevicePropertyDataType = data.getValue(of: type, at: offset) else { return nil }
         min = _min
-        offset += UInt(MemoryLayout<DataType>.size)
+        offset += UInt(min.sizeOf)
         
-        guard let _max: DataType = data.getValue(at: offset) else { return nil }
+        guard let _max: PTPDevicePropertyDataType = data.getValue(of: type, at: offset) else { return nil }
         max = _max
-        offset += UInt(MemoryLayout<DataType>.size)
+        offset += UInt(max.sizeOf)
         
-        guard let _step: DataType = data.getValue(at: offset) else { return nil }
+        guard let _step: PTPDevicePropertyDataType = data.getValue(of: type, at: offset) else { return nil }
         step = _step
-        offset += UInt(MemoryLayout<DataType>.size)
+        offset += UInt(step.sizeOf)
         
         length = offset
     }
@@ -157,16 +466,17 @@ extension PTPRangeDeviceProperty {
         var buffer = ByteBuffer()
         buffer.append(word: code.rawValue)
         buffer.append(word: type.rawValue)
-        buffer.append(word: getSet)
+        buffer.append(byte: getSetSupported.rawValue)
+        buffer.append(byte: getSetAvailable.rawValue)
         
-        buffer.appendValue(factoryValue)
-        buffer.appendValue(currentValue)
-        
+        buffer.appendValue(factoryValue, ofType: type)
+        buffer.appendValue(currentValue, ofType: type)
+
         buffer.append(byte: 0x01)
         
-        buffer.appendValue(min)
-        buffer.appendValue(max)
-        buffer.appendValue(step)
+        buffer.appendValue(min, ofType: type)
+        buffer.appendValue(max, ofType: type)
+        buffer.appendValue(step, ofType: type)
         
         return buffer
     }
@@ -176,9 +486,9 @@ extension PTPRangeDeviceProperty {
 
 protocol PTPEnumDeviceProperty: PTPDeviceProperty {
     
-    var available: [DataType] { get set }
+    var available: [PTPDevicePropertyDataType] { get set }
     
-    var supported: [DataType] { get set }
+    var supported: [PTPDevicePropertyDataType] { get set }
 }
 
 extension PTPEnumDeviceProperty {
@@ -188,21 +498,22 @@ extension PTPEnumDeviceProperty {
         var buffer = ByteBuffer()
         buffer.append(word: code.rawValue)
         buffer.append(word: type.rawValue)
-        buffer.append(word: getSet)
+        buffer.append(byte: getSetSupported.rawValue)
+        buffer.append(byte: getSetAvailable.rawValue)
         
-        buffer.appendValue(factoryValue)
-        buffer.appendValue(currentValue)
+        buffer.appendValue(factoryValue, ofType: type)
+        buffer.appendValue(currentValue, ofType: type)
         
         buffer.append(byte: 0x02)
         
         buffer.append(word: Word(available.count))
         available.forEach { (value) in
-            buffer.appendValue(value)
+            buffer.appendValue(value, ofType: type)
         }
         
         buffer.append(word: Word(supported.count))
         supported.forEach { (value) in
-            buffer.appendValue(value)
+            buffer.appendValue(value, ofType: type)
         }
         
         return buffer
@@ -210,21 +521,22 @@ extension PTPEnumDeviceProperty {
         
     init?(data: ByteBuffer) {
         
-        self.init(data: data)
-        
-        guard let header: PTP.DeviceProperty.Header<DataType> = data.getDevicePropHeader() else { return nil }
-        var offset: UInt = header.offset
+        self.init()
+                
+        guard let header: PTP.DeviceProperty.Header = data.getDevicePropHeader() else { return nil }
+        var offset: UInt = header.length
         type = header.dataType
         code = header.code
         currentValue = header.current
         factoryValue = header.factory
-        getSet = header.getSet
+        getSetSupported = header.getSetSupported
+        getSetAvailable = header.getSetAvailable
         
-        guard let available: (values: [DataType], length: UInt) = data.getArrayValues(at: offset) else { return nil }
+        guard let available: (values: [PTPDevicePropertyDataType], length: UInt) = data.getArrayValues(of: type, at: offset) else { return nil }
         offset += available.length
         self.available = available.values
         
-        guard let supported: (values: [DataType], length: UInt) = data.getArrayValues(at: offset) else { return nil }
+        guard let supported: (values: [PTPDevicePropertyDataType], length: UInt) = data.getArrayValues(of: type, at: offset) else { return nil }
         offset += supported.length
         self.supported = supported.values
         
@@ -234,271 +546,120 @@ extension PTPEnumDeviceProperty {
 
 extension PTP {
     
-    struct Int8RangeDeviceProperty: PTPRangeDeviceProperty {
-                
-        var type: PTP.DeviceProperty.DataType
-        
-        var code: PTP.DeviceProperty.Code
-        
-        var currentValue: DataType
-        
-        var factoryValue: DataType
-        
-        var getSet: Word
-        
-        var length: UInt
-        
-        var min: DataType
-        
-        var max: DataType
-        
-        var step: DataType
-        
-        typealias DataType = Int8
-    }
-    
-    struct UInt8RangeDeviceProperty: PTPRangeDeviceProperty {
-                
-        var type: PTP.DeviceProperty.DataType
-        
-        var code: PTP.DeviceProperty.Code
-        
-        var currentValue: DataType
-        
-        var factoryValue: DataType
-        
-        var getSet: Word
-        
-        var length: UInt
-        
-        var min: DataType
-        
-        var max: DataType
-        
-        var step: DataType
-        
-        typealias DataType = UInt8
-    }
-    
-    struct Int16RangeDeviceProperty: PTPRangeDeviceProperty {
-                
-        var type: PTP.DeviceProperty.DataType
-        
-        var code: PTP.DeviceProperty.Code
-        
-        var currentValue: DataType
-        
-        var factoryValue: DataType
-        
-        var getSet: Word
-        
-        var length: UInt
-        
-        var min: DataType
-        
-        var max: DataType
-        
-        var step: DataType
-        
-        typealias DataType = Int16
-    }
-    
-    struct UInt16RangeDeviceProperty: PTPRangeDeviceProperty {
-                
-        var type: PTP.DeviceProperty.DataType
-        
-        var code: PTP.DeviceProperty.Code
-        
-        var currentValue: DataType
-        
-        var factoryValue: DataType
-        
-        var getSet: Word
-        
-        var length: UInt
-        
-        var min: DataType
-        
-        var max: DataType
-        
-        var step: DataType
-        
-        typealias DataType = UInt16
-    }
-    
-    struct UInt32RangeDeviceProperty: PTPRangeDeviceProperty {
-                
-        var type: PTP.DeviceProperty.DataType
-        
-        var code: PTP.DeviceProperty.Code
-        
-        var currentValue: DataType
-        
-        var factoryValue: DataType
-        
-        var getSet: Word
-        
-        var length: UInt
-        
-        var min: DataType
-        
-        var max: DataType
-        
-        var step: DataType
-        
-        typealias DataType = UInt32
-    }
-    
-    struct StringRangeDeviceProperty: PTPRangeDeviceProperty {
-                
-        var type: PTP.DeviceProperty.DataType
-        
-        var code: PTP.DeviceProperty.Code
-        
-        var currentValue: DataType
-        
-        var factoryValue: DataType
-        
-        var getSet: Word
-        
-        var length: UInt
-        
-        var min: DataType
-        
-        var max: DataType
-        
-        var step: DataType
-        
-        typealias DataType = String
-    }
-    
-    struct Int8EnumDeviceProperty: PTPEnumDeviceProperty {
-        
-        var type: PTP.DeviceProperty.DataType
-        
-        var code: PTP.DeviceProperty.Code
-        
-        var currentValue: DataType
-        
-        var factoryValue: DataType
-        
-        var getSet: Word
-        
-        var length: UInt
-        
-        var available: [DataType]
-        
-        var supported: [DataType]
-        
-        typealias DataType = Int8
-    }
-    
-    struct UInt8EnumDeviceProperty: PTPEnumDeviceProperty {
-        
-        var type: PTP.DeviceProperty.DataType
-        
-        var code: PTP.DeviceProperty.Code
-        
-        var currentValue: DataType
-        
-        var factoryValue: DataType
-        
-        var getSet: Word
-        
-        var length: UInt
-        
-        var available: [DataType]
-        
-        var supported: [DataType]
-        
-        typealias DataType = UInt8
-    }
-    
-    struct Int16EnumDeviceProperty: PTPEnumDeviceProperty {
-        
-        var type: PTP.DeviceProperty.DataType
-        
-        var code: PTP.DeviceProperty.Code
-        
-        var currentValue: DataType
-        
-        var factoryValue: DataType
-        
-        var getSet: Word
-        
-        var length: UInt
-        
-        var available: [DataType]
-        
-        var supported: [DataType]
-        
-        typealias DataType = Int16
-    }
-    
-    struct UInt16EnumDeviceProperty: PTPEnumDeviceProperty {
-        
-        var type: PTP.DeviceProperty.DataType
-        
-        var code: PTP.DeviceProperty.Code
-        
-        var currentValue: DataType
-        
-        var factoryValue: DataType
-        
-        var getSet: Word
-        
-        var length: UInt
-        
-        var available: [DataType]
-        
-        var supported: [DataType]
-        
-        typealias DataType = UInt16
-    }
-    
-    struct UInt32EnumDeviceProperty: PTPEnumDeviceProperty {
-        
-        var type: PTP.DeviceProperty.DataType
-        
-        var code: PTP.DeviceProperty.Code
-        
-        var currentValue: DataType
-        
-        var factoryValue: DataType
-        
-        var getSet: Word
-        
-        var length: UInt
-        
-        var available: [DataType]
-        
-        var supported: [DataType]
-        
-        typealias DataType = UInt32
-    }
-    
-    struct StringEnumDeviceProperty: PTPEnumDeviceProperty {
-        
-        var type: PTP.DeviceProperty.DataType
-        
-        var code: PTP.DeviceProperty.Code
-        
-        var currentValue: DataType
-        
-        var factoryValue: DataType
-        
-        var getSet: Word
-        
-        var length: UInt
-        
-        var available: [DataType]
-        
-        var supported: [DataType]
-        
-        typealias DataType = String
-    }
-    
     struct DeviceProperty {
+        
+        struct Value {
+            
+            var code: Code
+            
+            var type: DataType
+            
+            var value: PTPDevicePropertyDataType
+            
+            init(_ convertable: SonyPTPPropValueConvertable) {
+                self.code = convertable.code
+                self.type = convertable.type
+                self.value = convertable.sonyPTPValue
+            }
+            
+            init(code: Code, type: DataType, value: PTPDevicePropertyDataType) {
+                self.code = code
+                self.type = type
+                self.value = value
+            }
+        }
+        
+        struct Range: PTPRangeDeviceProperty {
+            
+            init() {
+                type = .int16
+                code = .undefined
+                currentValue = UInt8(0)
+                factoryValue = UInt8(0)
+                getSetSupported = .unknown
+                getSetAvailable = .unknown
+                length = 0
+                min = UInt8(0)
+                max = UInt8(0)
+                step = UInt8(0)
+            }
+                    
+            var type: DataType
+            
+            var code: Code
+            
+            var currentValue: PTPDevicePropertyDataType
+            
+            var factoryValue: PTPDevicePropertyDataType
+            
+            var getSetAvailable: PTP.DeviceProperty.GetSetAvailable
+            
+            var getSetSupported: PTP.DeviceProperty.GetSetSupported
+            
+            var length: UInt
+            
+            var min: PTPDevicePropertyDataType
+            
+            var max: PTPDevicePropertyDataType
+            
+            var step: PTPDevicePropertyDataType
+        }
+        
+        struct Enum: PTPEnumDeviceProperty {
+            
+            init() {
+                type = .int16
+                code = .undefined
+                currentValue = UInt8(0)
+                factoryValue = UInt8(0)
+                getSetSupported = .unknown
+                getSetAvailable = .unknown
+                unknown = 0
+                length = 0
+                available = []
+                supported = []
+            }
+            
+            var type: DataType
+            
+            var code: Code
+            
+            var currentValue: PTPDevicePropertyDataType
+            
+            var factoryValue: PTPDevicePropertyDataType
+            
+            // 0x00, 0x00: Hidden entirely
+            // 0x00, 0x01: Entirely interactable
+            // 0x00, 0x02: Highly translucent
+            // 0x01, 0x00: Hidden entirely
+            // 0x01, 0x01: Entirely interactable
+            // 0x01, 0x02: Highly translucent
+            // get set supported, get set available?
+            var getSetSupported: GetSetSupported
+            
+            var getSetAvailable: GetSetAvailable
+            
+            var unknown: Byte
+            
+            var length: UInt
+            
+            var available: [PTPDevicePropertyDataType]
+            
+            var supported: [PTPDevicePropertyDataType]
+        }
+        
+        enum GetSetSupported: Byte {
+            case get = 0x00
+            case getSet = 0x01
+            case unknown
+        }
+        
+        enum GetSetAvailable: Byte {
+            case unavailable = 0x00
+            case getSet = 0x01
+            case get = 0x02
+            case unknown
+        }
         
         enum DataType: Word {
             case int8 = 0x1
@@ -508,8 +669,9 @@ extension PTP {
             case uint32 = 0x6
             case string = 0xffff
         }
-        
+                
         enum Code: Word {
+
             case undefined = 0x5000
             case batteryLevel = 0x5001
             case functionalMode = 0x5002

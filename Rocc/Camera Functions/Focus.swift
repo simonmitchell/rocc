@@ -13,12 +13,25 @@ public struct Focus {
     
     /// Functions for controlling the focus mode of the camera
     public struct Mode: CameraFunction {
+        
+        public enum Value {
+            
+            case auto
+            case autoSingle
+            case autoContinuous
+            case directManual
+            case manual
+            
+            var isAutoFocus: Bool {
+                return [.auto, .autoSingle, .autoContinuous].contains(self)
+            }
+        }
     
         public var function: _CameraFunction
         
-        public typealias SendType = String
+        public typealias SendType = Value
         
-        public typealias ReturnType = String
+        public typealias ReturnType = Value
         
         /// Sets the focus mode of the camera
         public static let set = Mode(function: .setFocusMode)

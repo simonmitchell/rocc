@@ -71,8 +71,20 @@ public enum ConnectionMode {
     case contentsTransfer(Bool)
 }
 
+/// The polling mode of the camera
+///
+/// - continuous: We should continually call get event and the camera will respond when ready
+/// - timer: We should fetch events on a timed basis
+/// - cameraDriven: The camera will let us know when events are available
+public enum PollingMode {
+    case continuous
+    case timed
+    case cameraDriven
+    case none
+}
+
 /// A protocol which defines the base functionality of a camera.
-public protocol Camera {
+public protocol Camera: class {
     
     typealias ConnectedCompletion = (_ error: Error?, _ transferMode: Bool) -> Void
     
@@ -112,8 +124,11 @@ public protocol Camera {
     /// The unique identifier of the camera
     var identifier: String { get }
     
-    /// Whether the camera supports polling for events, or if they should be fetched at a regular interval.
-    var supportsPolledEvents: Bool { get }
+    /// The event polling method of the camera.
+    var eventPollingMode: PollingMode { get }
+    
+    /// Called by the camera when an event is available.
+    var onEventAvailable: (() -> Void)? { get set }
     
     /// The connection mode of the camera, this determines the core functionality that is available
     /// on the camera once it has been connected.

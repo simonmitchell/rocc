@@ -11,11 +11,17 @@ import Foundation
 /// Functions for controlling the ISO of the camera
 public struct ISO: CameraFunction {
     
+    public enum Value {
+        case auto
+        case extended(Int)
+        case native(Int)
+    }
+    
     public var function: _CameraFunction
     
-    public typealias SendType = String
+    public typealias SendType = ISO.Value
     
-    public typealias ReturnType = String
+    public typealias ReturnType = ISO.Value
     
     /// Sets the ISO of the camera
     public static let set = ISO(function: .setISO)

@@ -138,13 +138,13 @@ internal final class AVContentClient: ServiceClient {
     
     typealias GenericCompletion = (_ error: Error?) -> Void
     
-    typealias CountCompletion = (_ result: Result<Int>) -> Void
+    typealias CountCompletion = (_ result: Result<Int, Error>) -> Void
     
-    typealias FilesCompletion = (_ result: Result<[File]>) -> Void
+    typealias FilesCompletion = (_ result: Result<[File], Error>) -> Void
     
-    typealias SourcesCompletion = (_ result: Result<[String]>) -> Void
+    typealias SourcesCompletion = (_ result: Result<[String], Error>) -> Void
     
-    typealias SchemesCompletion = (_ result: Result<[String]>) -> Void
+    typealias SchemesCompletion = (_ result: Result<[String], Error>) -> Void
     
     internal convenience init?(apiInfo: SonyAPICameraDevice.ApiDeviceInfo) {
         guard let cameraService = apiInfo.services.first(where: { $0.type == "avContent" }) else { return nil }
@@ -157,16 +157,16 @@ internal final class AVContentClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSchemeList") {
-                completion?(Result(value: nil, error: error))
+                completion?(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[[AnyHashable : Any]]], let first = result.first else {
-                completion?(Result(value: nil, error: CameraError.invalidResponse("getSchemeList")))
+                completion?(Result.failure(CameraError.invalidResponse("getSchemeList")))
                 return
             }
             
-            completion?(Result(value: first.compactMap({ $0["scheme"] as? String }), error: nil))
+            completion?(Result.success(first.compactMap({ $0["scheme"] as? String })))
         }
     }
     
@@ -177,16 +177,16 @@ internal final class AVContentClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSourceList") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[[AnyHashable : Any]]], let first = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSourceList")))
+                completion(Result.failure(CameraError.invalidResponse("getSourceList")))
                 return
             }
             
-            completion(Result(value: first.compactMap({ $0["source"] as? String }), error: nil))
+            completion(Result.success(first.compactMap({ $0["source"] as? String })))
         }
     }
     
@@ -196,16 +196,16 @@ internal final class AVContentClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getContentList") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[[AnyHashable : Any]]], let first = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getContentList")))
+                completion(Result.failure(CameraError.invalidResponse("getContentList")))
                 return
             }
             
-            completion(Result(value: first.compactMap({ File(dictionary: $0) }), error: nil))
+            completion(Result.success(first.compactMap({ File(dictionary: $0) })))
         }
     }
     
@@ -215,16 +215,16 @@ internal final class AVContentClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getContentCount") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let count = result.first?["count"] as? Int else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getContentCount")))
+                completion(Result.failure(CameraError.invalidResponse("getContentCount")))
                 return
             }
             
-            completion(Result(value: count, error: nil))
+            completion(Result.success(count))
         }
     }
     
@@ -238,11 +238,11 @@ internal final class AVContentClient: ServiceClient {
     
     //MARK: - Streaming -
     
-    typealias StreamingContentCompletion = (_ result: Result<URL>) -> Void
+    typealias StreamingContentCompletion = (_ result: Result<URL, Error>) -> Void
     
-    typealias StreamingPositionCompletion = (_ result: Result<TimeInterval>) -> Void
+    typealias StreamingPositionCompletion = (_ result: Result<TimeInterval, Error>) -> Void
     
-    typealias StreamingStatusCompletion = (_ result: Result<(status: String, factor: String?)>) -> Void
+    typealias StreamingStatusCompletion = (_ result: Result<(status: String, factor: String?), Error>) -> Void
     
     func setStreamingContent(_ content: String, completion: @escaping StreamingContentCompletion) {
         
@@ -250,16 +250,16 @@ internal final class AVContentClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "setStreamingContent") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let urlString = result.first?["playbackUrl"] as? String, let url = URL(string: urlString) else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("setStreamingContent")))
+                completion(Result.failure(CameraError.invalidResponse("setStreamingContent")))
                 return
             }
             
-            completion(Result(value: url, error: nil))
+            completion(Result.success(url))
         }
     }
     
@@ -293,16 +293,16 @@ internal final class AVContentClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "seekStreamingPosition") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let milliseconds = result.first?["positionMsec"] as? Int else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("seekStreamingPosition")))
+                completion(Result.failure(CameraError.invalidResponse("seekStreamingPosition")))
                 return
             }
             
-            completion(Result(value: Double(milliseconds) / 1000, error: nil))
+            completion(Result.success(Double(milliseconds) / 1000))
         }
     }
     
@@ -312,16 +312,16 @@ internal final class AVContentClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "requestToNotifyStreamingStatus") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let firstResult = result.first, let status = firstResult["status"] as? String else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("requestToNotifyStreamingStatus")))
+                completion(Result.failure(CameraError.invalidResponse("requestToNotifyStreamingStatus")))
                 return
             }
             
-            completion(Result(value: (status, firstResult["factor"] as? String), error: nil))
+            completion(Result.success((status, firstResult["factor"] as? String)))
         }
     }
 }
