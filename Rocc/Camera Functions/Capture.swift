@@ -164,13 +164,13 @@ public enum ContinuousShootingMode: String {
 /// - low: Low speed
 public enum ContinuousShootingSpeed: String {
     case regular
-    case high
+    case high = "hi"
     case highPlus
     case low
-    case tenFps1Sec
-    case eightFps1Sec
-    case fiveFps2Sec
-    case twoFps5Sec
+    case tenFps1Sec = "10fps 1 sec"
+    case eightFps1Sec = "8fps 1 sec"
+    case fiveFps2Sec = "5fps 2 sec"
+    case twoFps5Sec = "2fps 5 sec"
     case s
 }
 

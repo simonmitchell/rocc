@@ -129,8 +129,8 @@ internal final class SonyPTPIPDevice: SonyCamera {
     
     private func getDeviceInfo(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
         
-        let packet = Packet.commandRequestPacket(code: .getDeviceInfo, arguments: nil, transactionId: 1)
-        ptpIPClient?.awaitDataFor(transactionId: 1, callback: { [weak self] (dataContainer) in
+        let packet = Packet.commandRequestPacket(code: .getDeviceInfo, arguments: nil, transactionId: ptpIPClient?.getNextTransactionId() ?? 1)
+        ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { [weak self] (dataContainer) in
             guard let deviceInfo = PTP.DeviceInfo(data: dataContainer.data) else {
                 completion(PTPError.fetchDeviceInfoFailed, false)
                 return
@@ -146,7 +146,7 @@ internal final class SonyPTPIPDevice: SonyCamera {
         ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
     }
         
-    private func performSdioConnect(completion: @escaping (Error?) -> Void, number: DWord, transactionId: DWord = 2) {
+    private func performSdioConnect(completion: @escaping (Error?) -> Void, number: DWord, transactionId: DWord) {
         
         //TODO: Try and find out what the arguments are for this!
         let packet = Packet.commandRequestPacket(code: .sdioConnect, arguments: [number, 0x0000, 0x0000], transactionId: transactionId)
@@ -171,14 +171,14 @@ internal final class SonyPTPIPDevice: SonyCamera {
                     guard let _this = this else { return }
                     
                     // One parameter into this call, not sure what it represents!
-                    let packet = Packet.commandRequestPacket(code: .sdioGetExtDeviceInfo, arguments: [0x0000012c], transactionId: 4)
+                    let packet = Packet.commandRequestPacket(code: .sdioGetExtDeviceInfo, arguments: [0x0000012c], transactionId: _this.ptpIPClient?.getNextTransactionId() ?? 4)
                     _this.ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { [weak _this] (dataContainer) in
                         guard let extDeviceInfo = PTP.SDIOExtDeviceInfo(data: dataContainer.data) else {
                             completion(PTPError.fetchSdioExtDeviceInfoFailed, false)
                             return
                         }
                         _this?.deviceInfo?.update(with: extDeviceInfo)
-                        _this?.performSdioConnect(completion: { _ in }, number: 3, transactionId: 5)
+                        _this?.performSdioConnect(completion: { _ in }, number: 3, transactionId: _this?.ptpIPClient?.getNextTransactionId() ?? 5)
 //                        _this?.performFunction(Event.get, payload: nil, callback: { (error, event) in
 //                            print("Got event", event)
 //                        })
@@ -187,9 +187,9 @@ internal final class SonyPTPIPDevice: SonyCamera {
                     _this.ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
                 },
                 number: 2,
-                transactionId: 3
+                transactionId: this.ptpIPClient?.getNextTransactionId() ?? 3
             )
-        }, number: 1)
+        }, number: 1, transactionId: ptpIPClient?.getNextTransactionId() ?? 2)
     }
     
     enum PTPError: Error {
@@ -255,13 +255,344 @@ extension SonyPTPIPDevice: Camera {
             return
         }
         
+//        ptpIPClient?.getDevicePropDescFor(propCode: <#Code#>, callback: { (result) in
+//            switch result {
+//            case .success(let property):
+//                let event = CameraEvent(sonyDeviceProperties: [property])
+//                callback(event.availableFunctions?.contains(function.function), nil, event.<#Property#>?.available as? [T.SendType])
+//            case .failure(let error):
+//                callback(false, error, nil)
+//            }
+//        })
+        
         // Fallback for functions that aren't related to a particular camera prop type, or that function differently to the PTP spec!
+        // We re-use the `CameraEvent` logic which parses and munges the response into the correct types here. Really should be moved to a formatter!
         switch function.function {
         case .ping:
             callback(true, nil, nil)
-        //TODO: Finish implementing!
-        default:
+        case .setAperture, .getAperture:
+            ptpIPClient?.getDevicePropDescFor(propCode: .fNumber, callback: { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent(sonyDeviceProperties: [property])
+                    callback(event.availableFunctions?.contains(function.function), nil, event.aperture?.available as? [T.SendType])
+                case .failure(let error):
+                    callback(false, error, nil)
+                }
+            })
+        case .setISO, .getISO:
+            ptpIPClient?.getDevicePropDescFor(propCode: .ISO, callback: { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent(sonyDeviceProperties: [property])
+                    callback(event.availableFunctions?.contains(function.function), nil, event.iso?.available as? [T.SendType])
+                case .failure(let error):
+                    callback(false, error, nil)
+                }
+            })
+        case .setWhiteBalance, .getWhiteBalance:
+            // White balance requires white balance and colorTemp codes to be fetched!
+            ptpIPClient?.getDevicePropDescFor(propCode: .whiteBalance, callback: { [weak self] (wbResult) in
+                
+                guard let this = self else {
+                    callback(false, nil, nil)
+                    return
+                }
+                
+                switch wbResult {
+                case .success(let wbProperty):
+                    this.ptpIPClient?.getDevicePropDescFor(propCode: .colorTemp, callback: { (ctResult) in
+                        switch ctResult {
+                        case .success(let ctProperty):
+                            let event = CameraEvent(sonyDeviceProperties: [wbProperty, ctProperty])
+                            callback(event.availableFunctions?.contains(function.function), nil, event.whiteBalance?.available as? [T.SendType])
+                        case .failure(let error):
+                            callback(false, error, nil)
+                        }
+                    })
+                    
+                case .failure(let error):
+                    callback(false, error, nil)
+                }
+            })
+        case .setupCustomWhiteBalanceFromShot:
+            //TODO: Implement
             callback(false, nil, nil)
+            break
+        case .setShootMode, .getShootMode:
+            ptpIPClient?.getDevicePropDescFor(propCode: .stillCaptureMode, callback: { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent(sonyDeviceProperties: [property])
+                    callback(event.availableFunctions?.contains(function.function), nil, event.shootMode?.available as? [T.SendType])
+                case .failure(let error):
+                    callback(false, error, nil)
+                }
+            })
+        case .setProgramShift, .getProgramShift:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .takePicture:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .startContinuousShooting, .endContinuousShooting:
+            ptpIPClient?.getDevicePropDescFor(propCode: .stillCaptureMode, callback: { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent(sonyDeviceProperties: [property])
+                    callback(event.availableFunctions?.contains(function.function), nil, nil)
+                case .failure(let error):
+                    callback(false, error, nil)
+                }
+            })
+        case .startVideoRecording, .endVideoRecording:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .startAudioRecording, .endAudioRecording:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .startIntervalStillRecording, .endIntervalStillRecording:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .startBulbCapture, .endBulbCapture:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .startLoopRecording, .endLoopRecording:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .startLiveView:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .startLiveViewWithSize:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .endLiveView:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .getLiveViewSize:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .setSendLiveViewFrameInfo, .getSendLiveViewFrameInfo:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .startZooming, .stopZooming:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .setZoomSetting, .getZoomSetting:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .halfPressShutter:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .cancelHalfPressShutter:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .setTouchAFPosition, .getTouchAFPosition, .cancelTouchAFPosition:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .startTrackingFocus, .stopTrackingFocus:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .setTrackingFocus, .getTrackingFocus:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .setContinuousShootingMode, .getContinuousShootingMode:
+            ptpIPClient?.getDevicePropDescFor(propCode: .stillCaptureMode, callback: { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent(sonyDeviceProperties: [property])
+                    callback(event.availableFunctions?.contains(function.function), nil, event.continuousShootingMode?.available as? [T.SendType])
+                case .failure(let error):
+                    callback(false, error, nil)
+                }
+            })
+        case .setContinuousShootingSpeed, .getContinuousShootingSpeed:
+            ptpIPClient?.getDevicePropDescFor(propCode: .stillCaptureMode, callback: { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent(sonyDeviceProperties: [property])
+                    callback(event.availableFunctions?.contains(function.function), nil, event.continuousShootingSpeed?.available as? [T.SendType])
+                case .failure(let error):
+                    callback(false, error, nil)
+                }
+            })
+        case .setSelfTimerDuration, .getSelfTimerDuration:
+            ptpIPClient?.getDevicePropDescFor(propCode: .stillCaptureMode, callback: { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent(sonyDeviceProperties: [property])
+                    callback(event.availableFunctions?.contains(function.function), nil, event.selfTimer?.available as? [T.SendType])
+                case .failure(let error):
+                    callback(false, error, nil)
+                }
+            })
+        case .setExposureMode, .getExposureMode:
+            ptpIPClient?.getDevicePropDescFor(propCode: .exposureProgramMode, callback: { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent(sonyDeviceProperties: [property])
+                    callback(event.availableFunctions?.contains(function.function), nil, event.exposureMode?.available as? [T.SendType])
+                case .failure(let error):
+                    callback(false, error, nil)
+                }
+            })
+        case .setFocusMode, .getFocusMode:
+            ptpIPClient?.getDevicePropDescFor(propCode: .focusMode, callback: { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent(sonyDeviceProperties: [property])
+                    callback(event.availableFunctions?.contains(function.function), nil, event.focusMode?.available as? [T.SendType])
+                case .failure(let error):
+                    callback(false, error, nil)
+                }
+            })
+        case .setExposureCompensation, .getExposureCompensation:
+            ptpIPClient?.getDevicePropDescFor(propCode: .exposureBiasCompensation, callback: { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent(sonyDeviceProperties: [property])
+                    callback(event.availableFunctions?.contains(function.function), nil, event.exposureCompensation?.available as? [T.SendType])
+                case .failure(let error):
+                    callback(false, error, nil)
+                }
+            })
+        case .setShutterSpeed, .getShutterSpeed:
+            ptpIPClient?.getDevicePropDescFor(propCode: .shutterSpeed, callback: { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent(sonyDeviceProperties: [property])
+                    callback(event.availableFunctions?.contains(function.function), nil, event.shutterSpeed?.available as? [T.SendType])
+                case .failure(let error):
+                    callback(false, error, nil)
+                }
+            })
+        case .setFlashMode, .getFlashMode:
+            ptpIPClient?.getDevicePropDescFor(propCode: .flashMode, callback: { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent(sonyDeviceProperties: [property])
+                    callback(event.availableFunctions?.contains(function.function), nil, event.flashMode?.available as? [T.SendType])
+                case .failure(let error):
+                    callback(false, error, nil)
+                }
+            })
+        case .setStillSize, .getStillSize:
+            // Still size requires still size and ratio codes to be fetched!
+            ptpIPClient?.getDevicePropDescFor(propCode: .imageSizeSony, callback: { [weak self] (imageSizeResult) in
+                
+                guard let this = self else {
+                    callback(false, nil, nil)
+                    return
+                }
+                
+                switch imageSizeResult {
+                case .success(let imageSizeProperty):
+                    this.ptpIPClient?.getDevicePropDescFor(propCode: .aspectRatio, callback: { (aspectResult) in
+                        switch aspectResult {
+                        case .success(let aspectProperty):
+                            let event = CameraEvent(sonyDeviceProperties: [imageSizeProperty, aspectProperty])
+                            callback(event.availableFunctions?.contains(function.function), nil, event.stillSizeInfo?.available as? [T.SendType])
+                        case .failure(let error):
+                            callback(false, error, nil)
+                        }
+                    })
+                    
+                case .failure(let error):
+                    callback(false, error, nil)
+                }
+            })
+        case .setStillQuality, .getStillQuality:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .getPostviewImageSize, .setPostviewImageSize:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .setVideoFileFormat, .getVideoFileFormat:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .setVideoQuality, .getVideoQuality:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .setSteadyMode, .getSteadyMode:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .setViewAngle, .getViewAngle:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .setScene, .getScene:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .setColorSetting, .getColorSetting:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .setIntervalTime, .getIntervalTime:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .setLoopRecordDuration, .getLoopRecordDuration:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .setWindNoiseReduction, .getWindNoiseReduction:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .setAudioRecording, .getAudioRecording:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .setFlipSetting, .getFlipSetting:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .setTVColorSystem, .getTVColorSystem:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .listContent:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .getContentCount:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .listSchemes:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .listSources:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .deleteContent:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .setStreamingContent:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .startStreaming:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .pauseStreaming:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .seekStreamingPosition:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .stopStreaming:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .getStreamingStatus:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .setInfraredRemoteControl, .getInfraredRemoteControl:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .setAutoPowerOff, .getAutoPowerOff:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .setBeepMode, .getBeepMode:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .setCurrentTime:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .getStorageInformation:
+            //TODO: Implement
+            callback(false, nil, nil)
+        case .getEvent, .setCameraFunction, .getCameraFunction, .startRecordMode:
+            callback(true, nil, nil)
         }
     }
     
@@ -274,7 +605,7 @@ extension SonyPTPIPDevice: Camera {
         
         switch function.function {
         case .getEvent:
-            let packet = Packet.commandRequestPacket(code: .getAllDevicePropData, arguments: [0], transactionId: 7)
+            let packet = Packet.commandRequestPacket(code: .getAllDevicePropData, arguments: [0], transactionId: ptpIPClient?.getNextTransactionId() ?? 0)
             ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { (data) in
                 guard let numberOfProperties = data.data[qWord: 0] else { return }
                 var offset: UInt = UInt(MemoryLayout<QWord>.size)

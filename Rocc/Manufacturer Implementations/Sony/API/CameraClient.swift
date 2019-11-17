@@ -185,8 +185,10 @@ fileprivate extension ShootingMode {
 fileprivate extension ContinuousShootingMode {
     var sonyString: String {
         switch self {
-        case .continuous, .single:
+        case .continuous, .single, .burst:
             return rawValue.capitalized
+        case .motionShot:
+            return "Motion Shot"
         case .spdPriorityContinuous:
             return "Spd Priority Cont."
         }
@@ -194,24 +196,13 @@ fileprivate extension ContinuousShootingMode {
 }
 
 fileprivate extension ContinuousShootingSpeed {
-    
-    init?(sonyString: String) {
-        switch sonyString {
-        case "Hi":
-            self = .high
-        case "Low":
-            self = .low
-        default:
-            return nil
-        }
-    }
-    
+
     var sonyString: String {
         switch self {
         case .high:
             return "Hi"
-        case .low:
-            return "Low"
+        default:
+            return rawValue.capitalized
         }
     }
 }
@@ -621,10 +612,10 @@ fileprivate extension CameraEvent {
                     _continuousShootingMode = (currentEnum, candidates.compactMap({ ContinuousShootingMode(rawValue: $0.lowercased()) }), candidates.compactMap({ ContinuousShootingMode(rawValue: $0.lowercased()) }))
                 case "contShootingSpeed":
                     guard let current = dictionaryElement["contShootingSpeed"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
-                    guard let currentEnum = ContinuousShootingSpeed(sonyString: current) else {
+                    guard let currentEnum = ContinuousShootingSpeed(rawValue: current.lowercased()) else {
                         return
                     }
-                    _continuousShootingSpeed = (currentEnum, candidates.compactMap({ ContinuousShootingSpeed(sonyString: $0) }), candidates.compactMap({ ContinuousShootingSpeed(sonyString: $0) }))
+                    _continuousShootingSpeed = (currentEnum, candidates.compactMap({ ContinuousShootingSpeed(rawValue: $0.lowercased()) }), candidates.compactMap({ ContinuousShootingSpeed(rawValue: $0.lowercased()) }))
                 case "contShooting":
                     guard let urlDicts = dictionaryElement["contShootingUrl"] as? [[AnyHashable : Any]] else { return }
                     let urls: [(postView: URL, thumbnail: URL)] = urlDicts.compactMap({
@@ -940,9 +931,9 @@ internal class CameraClient: ServiceClient {
     
     //MARK: - Shoot Mode
     
-    typealias ShootModesCompletion = (_ result: Result<[ShootingMode]>) -> Void
+    typealias ShootModesCompletion = (_ result: Result<[ShootingMode], Error>) -> Void
     
-    typealias ShootModeCompletion = (_ result: Result<ShootingMode>) -> Void
+    typealias ShootModeCompletion = (_ result: Result<ShootingMode, Error>) -> Void
     
     func getSupportedShootModes(_ completion: @escaping ShootModesCompletion) {
         
@@ -951,18 +942,18 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedShootMode") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[String]], let supported = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedShootMode")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedShootMode")))
                 return
             }
             
             var enumValues = supported.compactMap({ ShootingMode(sonyString: $0) })
             guard !enumValues.isEmpty else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedShootMode")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedShootMode")))
                 return
             }
             
@@ -970,7 +961,7 @@ internal class CameraClient: ServiceClient {
                 enumValues.append(contentsOf: [.timelapse, .continuous])
             }
             
-            completion(Result(value: enumValues, error: nil))
+            completion(Result.success(enumValues))
         }
     }
     
@@ -981,18 +972,18 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableShootMode") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Any], let available = result.compactMap({ $0 as? [String] }).first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableShootMode")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableShootMode")))
                 return
             }
             
             var enumValues = available.compactMap({ ShootingMode(sonyString: $0) })
             guard !enumValues.isEmpty else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableShootMode")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableShootMode")))
                 return
             }
             
@@ -1000,7 +991,7 @@ internal class CameraClient: ServiceClient {
                 enumValues.append(contentsOf: [.timelapse, .continuous, .bulb])
             }
             
-            completion(Result(value: enumValues, error: nil))
+            completion(Result.success(enumValues))
         }
     }
     
@@ -1020,29 +1011,29 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getShootMode") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [String], let shootingMode = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getShootMode")))
+                completion(Result.failure(CameraError.invalidResponse("getShootMode")))
                 return
             }
             
             guard let enumResult = ShootingMode(sonyString: shootingMode) else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getShootMode")))
+                completion(Result.failure(CameraError.invalidResponse("getShootMode")))
                 return
             }
             
-            completion(Result(value: enumResult, error: nil))
+            completion(Result.success(enumResult))
         }
     }
     
     //MARK: - Aperture
     
-    typealias AperturesCompletion = (_ result: Result<[Aperture.Value]>) -> Void
+    typealias AperturesCompletion = (_ result: Result<[Aperture.Value], Error>) -> Void
 
-    typealias ApertureCompletion = (_ result: Result<Aperture.Value>) -> Void
+    typealias ApertureCompletion = (_ result: Result<Aperture.Value, Error>) -> Void
     
     func getSupportedApertures(_ completion: @escaping AperturesCompletion) {
         
@@ -1051,16 +1042,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedFNumber") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[String]], let supported = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedFNumber")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedFNumber")))
                 return
             }
             
-            completion(Result(value: supported.compactMap({ Aperture.Value(sonyString: $0) }), error: nil))
+            completion(Result.success(supported.compactMap({ Aperture.Value(sonyString: $0) })))
         }
     }
     
@@ -1071,16 +1062,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableFNumber") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Any], let available = result.compactMap({ $0 as? [String] }).first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableFNumber")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableFNumber")))
                 return
             }
             
-            completion(Result(value: available.compactMap({ Aperture.Value(sonyString: $0) }), error: nil))
+            completion(Result.success(available.compactMap({ Aperture.Value(sonyString: $0) })))
         }
     }
     
@@ -1100,24 +1091,24 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getFNumber") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [String], let apertureString = result.first, let aperture = Aperture.Value(sonyString: apertureString) else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getFNumber")))
+                completion(Result.failure(CameraError.invalidResponse("getFNumber")))
                 return
             }
             
-            completion(Result(value: aperture, error: nil))
+            completion(Result.success(aperture))
         }
     }
     
     //MARK: - ISO
     
-    typealias ISOValuesCompletion = (_ result: Result<[ISO.Value]>) -> Void
+    typealias ISOValuesCompletion = (_ result: Result<[ISO.Value], Error>) -> Void
     
-    typealias ISOCompletion = (_ result: Result<ISO.Value>) -> Void
+    typealias ISOCompletion = (_ result: Result<ISO.Value, Error>) -> Void
     
     func getSupportedISOValues(_ completion: @escaping ISOValuesCompletion) {
         
@@ -1126,16 +1117,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedIsoSpeedRate") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[String]], let supported = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedIsoSpeedRate")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedIsoSpeedRate")))
                 return
             }
             
-            completion(Result(value: supported.compactMap({ ISO.Value(sonyString: $0) }), error: nil))
+            completion(Result.success(supported.compactMap({ ISO.Value(sonyString: $0) })))
         }
     }
     
@@ -1146,16 +1137,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableIsoSpeedRate") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Any], let available = result.compactMap({ $0 as? [String] }).first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableIsoSpeedRate")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableIsoSpeedRate")))
                 return
             }
             
-            completion(Result(value: available.compactMap({ ISO.Value(sonyString: $0) }), error: nil))
+            completion(Result.success(available.compactMap({ ISO.Value(sonyString: $0) })))
         }
     }
     
@@ -1175,24 +1166,24 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getIsoSpeedRate") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [String], let iso = result.first, let ISOValue = ISO.Value(sonyString: iso) else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getIsoSpeedRate")))
+                completion(Result.failure(CameraError.invalidResponse("getIsoSpeedRate")))
                 return
             }
             
-            completion(Result(value: ISOValue, error: nil))
+            completion(Result.success(ISOValue))
         }
     }
     
     //MARK: - Shutter Speed
     
-    typealias ShutterSpeedsCompletion = (_ result: Result<[ShutterSpeed]>) -> Void
+    typealias ShutterSpeedsCompletion = (_ result: Result<[ShutterSpeed], Error>) -> Void
     
-    typealias ShutterSpeedCompletion = (_ result: Result<ShutterSpeed>) -> Void
+    typealias ShutterSpeedCompletion = (_ result: Result<ShutterSpeed, Error>) -> Void
     
     func getSupportedShutterSpeeds(_ completion: @escaping ShutterSpeedsCompletion) {
         
@@ -1201,18 +1192,18 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedShutterSpeed") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[String]], let supported = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedShutterSpeed")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedShutterSpeed")))
                 return
             }
             
             let formatter = ShutterSpeedFormatter()
             let shutterSpeeds = supported.compactMap({ formatter.shutterSpeed(from: $0) })
-            completion(Result(value: shutterSpeeds, error: nil))
+            completion(Result.success(shutterSpeeds))
         }
     }
     
@@ -1223,18 +1214,18 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableShutterSpeed") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Any], let available = result.compactMap({ $0 as? [String] }).first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableShutterSpeed")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableShutterSpeed")))
                 return
             }
             
             let formatter = ShutterSpeedFormatter()
             let shutterSpeeds = available.compactMap({ formatter.shutterSpeed(from: $0) })
-            completion(Result(value: shutterSpeeds, error: nil))
+            completion(Result.success(shutterSpeeds))
         }
     }
     
@@ -1256,25 +1247,25 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getShutterSpeed") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             let shutterSpeedFormatter = ShutterSpeedFormatter()
             guard let result = response?.dictionary?["result"] as? [String], let shutterSpeedString = result.first, let shutterSpeed = shutterSpeedFormatter.shutterSpeed(from: shutterSpeedString) else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getShutterSpeed")))
+                completion(Result.failure(CameraError.invalidResponse("getShutterSpeed")))
                 return
             }
             
-            completion(Result(value: shutterSpeed, error: nil))
+            completion(Result.success(shutterSpeed))
         }
     }
     
     //MARK: - White Balance
     
-    typealias WhiteBalancesCompletion = (_ result: Result<[WhiteBalance.Value]>) -> Void
+    typealias WhiteBalancesCompletion = (_ result: Result<[WhiteBalance.Value], Error>) -> Void
     
-    typealias WhiteBalanceCompletion = (_ result: Result<WhiteBalance.Value>) -> Void
+    typealias WhiteBalanceCompletion = (_ result: Result<WhiteBalance.Value, Error>) -> Void
     
     func getSupportedWhiteBalances(_ completion: @escaping WhiteBalancesCompletion) {
         
@@ -1283,12 +1274,12 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
 
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedWhiteBalance") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
 
             guard let result = response?.dictionary?["result"] as? [[[AnyHashable : Any]]], let supported = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedWhiteBalance")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedWhiteBalance")))
                 return
             }
             
@@ -1310,7 +1301,7 @@ internal class CameraClient: ServiceClient {
                 })
             })
             
-            completion(Result(value: supportedWhiteBalances, error: nil))
+            completion(Result.success(supportedWhiteBalances))
         }
     }
     
@@ -1321,12 +1312,12 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableWhiteBalance") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Any], let available = result.compactMap({ $0 as? [[AnyHashable : Any]] }).first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableWhiteBalance")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableWhiteBalance")))
                 return
             }
             
@@ -1348,7 +1339,7 @@ internal class CameraClient: ServiceClient {
                 })
             })
             
-            completion(Result(value: availableWhiteBalances, error: nil))
+            completion(Result.success(availableWhiteBalances))
         }
     }
     
@@ -1368,20 +1359,20 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getWhiteBalance") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let whiteBalanceDict = result.first, let whiteBalance = WhiteBalance.Value(dictionary: whiteBalanceDict) else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getWhiteBalance")))
+                completion(Result.failure(CameraError.invalidResponse("getWhiteBalance")))
                 return
             }
             
-            completion(Result(value: whiteBalance, error: nil))
+            completion(Result.success(whiteBalance))
         }
     }
     
-    typealias WhiteBalanceCustomFromShotCompletion = (_ result: Result<WhiteBalance.Custom.Result>) -> Void
+    typealias WhiteBalanceCustomFromShotCompletion = (_ result: Result<WhiteBalance.Custom.Result, Error>) -> Void
     
     func setCustomWhiteBalanceFromShot(_ completion: @escaping WhiteBalanceCustomFromShotCompletion) {
         
@@ -1390,29 +1381,29 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "actWhiteBalanceOnePushCustom") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let firstResult = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("actWhiteBalanceOnePushCustom")))
+                completion(Result.failure(CameraError.invalidResponse("actWhiteBalanceOnePushCustom")))
                 return
             }
             
             guard let resultObject = WhiteBalance.Custom.Result(dictionary: firstResult) else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("actWhiteBalanceOnePushCustom")))
+                completion(Result.failure(CameraError.invalidResponse("actWhiteBalanceOnePushCustom")))
                 return
             }
             
-            completion(Result(value: resultObject, error: nil))
+            completion(Result.success(resultObject))
         }
     }
     
     //MARK: - Camera Function -
     
-    typealias CameraFunctionCompletion = (_ result: Result<String>) -> Void
+    typealias CameraFunctionCompletion = (_ result: Result<String, Error>) -> Void
 
-    typealias CameraFunctionsCompletion = (_ result: Result<[String]>) -> Void
+    typealias CameraFunctionsCompletion = (_ result: Result<[String], Error>) -> Void
     
     func getSupportedCameraFunctions(_ completion: @escaping CameraFunctionsCompletion) {
         
@@ -1421,16 +1412,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedCameraFunction") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[String]], let functions = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedCameraFunction")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedCameraFunction")))
                 return
             }
             
-            completion(Result(value: functions, error: nil))
+            completion(Result.success(functions))
         }
     }
     
@@ -1441,16 +1432,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableCameraFunction") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Any], let functions = result.compactMap({ $0 as? [String] }).first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableCameraFunction")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableCameraFunction")))
                 return
             }
             
-            completion(Result(value: functions, error: nil))
+            completion(Result.success(functions))
         }
     }
     
@@ -1470,24 +1461,24 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getCameraFunction") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [String], let function = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getCameraFunction")))
+                completion(Result.failure(CameraError.invalidResponse("getCameraFunction")))
                 return
             }
             
-            completion(Result(value: function, error: nil))
+            completion(Result.success(function))
         }
     }
     
     //MARK: - Capture -
     
-    typealias TakePictureCompletion = (_ result: Result<(url: URL?, needsAwait: Bool)>) -> Void
+    typealias TakePictureCompletion = (_ result: Result<(url: URL?, needsAwait: Bool), Error>) -> Void
     
-    typealias AwaitPictureCompletion = (_ result: Result<URL>) -> Void
+    typealias AwaitPictureCompletion = (_ result: Result<URL, Error>) -> Void
     
     //MARK: Single
     
@@ -1498,7 +1489,7 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
@@ -1506,20 +1497,20 @@ internal class CameraClient: ServiceClient {
                 switch responseError {
                     
                 case .stillCapturingNotFinished:
-                    completion(Result(value: (nil, true), error: nil))
+                    completion(Result.success((nil, true)))
                 default:
-                    completion(Result(value: nil, error: responseError))
+                    completion(Result.failure(responseError))
                 }
                 
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[String]], let urlString = result.first?.first, let url = URL(string: urlString) else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("actTakePicture")))
+                completion(Result.failure(CameraError.invalidResponse("actTakePicture")))
                 return
             }
             
-            completion(Result(value: (url, false), error: nil))
+            completion(Result.success((url, false)))
         }
     }
     
@@ -1530,16 +1521,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "awaitTakePicture") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[String]], let urlString = result.first?.first, let url = URL(string: urlString) else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("awaitTakePicture")))
+                completion(Result.failure(CameraError.invalidResponse("awaitTakePicture")))
                 return
             }
             
-            completion(Result(value: url, error: nil))
+            completion(Result.success(url))
         }
     }
     
@@ -1585,9 +1576,9 @@ internal class CameraClient: ServiceClient {
     
     //MARK: Modes
     
-    typealias ContinuousShootingModesCompletion = (_ result: Result<[ContinuousShootingMode]>) -> Void
+    typealias ContinuousShootingModesCompletion = (_ result: Result<[ContinuousShootingMode], Error>) -> Void
     
-    typealias ContinuousShootingModeCompletion = (_ result: Result<ContinuousShootingMode>) -> Void
+    typealias ContinuousShootingModeCompletion = (_ result: Result<ContinuousShootingMode, Error>) -> Void
     
     func getSupportedContinuousShootingModes(_ completion: @escaping ContinuousShootingModesCompletion) {
         
@@ -1596,17 +1587,17 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedContShootingMode") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let continuousShootingModes = result.first, let supported = continuousShootingModes["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedContShootingMode")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedContShootingMode")))
                 return
             }
             
             let modes = supported.compactMap({ ContinuousShootingMode(rawValue: $0.lowercased()) })
-            completion(Result(value: modes, error: nil))
+            completion(Result.success(modes))
         }
     }
     
@@ -1617,17 +1608,17 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableContShootingMode") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let continuousShootingModes = result.first, let available = continuousShootingModes["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableContShootingMode")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableContShootingMode")))
                 return
             }
             
             let modes = available.compactMap({ ContinuousShootingMode(rawValue: $0.lowercased()) })
-            completion(Result(value: modes, error: nil))
+            completion(Result.success(modes))
         }
     }
     
@@ -1645,29 +1636,29 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getContShootingMode") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let continuousShootingModes = result.first, let value = continuousShootingModes["contShootingMode"] as? String else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getContShootingMode")))
+                completion(Result.failure(CameraError.invalidResponse("getContShootingMode")))
                 return
             }
             
             guard let mode = ContinuousShootingMode(rawValue: value.lowercased()) else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getContShootingMode")))
+                completion(Result.failure(CameraError.invalidResponse("getContShootingMode")))
                 return
             }
             
-            completion(Result(value: mode, error: nil))
+            completion(Result.success(mode))
         }
     }
     
     //MARK: Speeds
     
-    typealias ContinuousShootingSpeedsCompletion = (_ result: Result<[ContinuousShootingSpeed]>) -> Void
+    typealias ContinuousShootingSpeedsCompletion = (_ result: Result<[ContinuousShootingSpeed], Error>) -> Void
     
-    typealias ContinuousShootingSpeedCompletion = (_ result: Result<ContinuousShootingSpeed>) -> Void
+    typealias ContinuousShootingSpeedCompletion = (_ result: Result<ContinuousShootingSpeed, Error>) -> Void
     
     func getSupportedContinuousShootingSpeeds(_ completion: @escaping ContinuousShootingSpeedsCompletion) {
         
@@ -1676,18 +1667,18 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedContShootingSpeed") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let continuousShootingSpeeds = result.first, let supported = continuousShootingSpeeds["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedContShootingSpeed")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedContShootingSpeed")))
                 return
             }
             
-            let supportedEnums = supported.compactMap({ ContinuousShootingSpeed(sonyString: $0) })
+            let supportedEnums = supported.compactMap({ ContinuousShootingSpeed(rawValue: $0.lowercased()) })
             
-            completion(Result(value: supportedEnums, error: nil))
+            completion(Result.success(supportedEnums))
         }
     }
     
@@ -1698,17 +1689,17 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableContShootingSpeed") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let continuousShootingSpeeds = result.first, let available = continuousShootingSpeeds["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableContShootingSpeed")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableContShootingSpeed")))
                 return
             }
             
-            let availableEnums = available.compactMap({ ContinuousShootingSpeed(sonyString: $0) })
-            completion(Result(value: availableEnums, error: nil))
+            let availableEnums = available.compactMap({ ContinuousShootingSpeed(rawValue: $0.lowercased()) })
+            completion(Result.success(availableEnums))
         }
     }
     
@@ -1726,21 +1717,21 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getContShootingSpeed") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let speedSettings = result.first, let value = speedSettings["contShootingSpeed"] as? String else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getContShootingSpeed")))
+                completion(Result.failure(CameraError.invalidResponse("getContShootingSpeed")))
                 return
             }
             
-            guard let enumValue = ContinuousShootingSpeed(sonyString: value) else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getContShootingSpeed")))
+            guard let enumValue = ContinuousShootingSpeed(rawValue: value.lowercased()) else {
+                completion(Result.failure(CameraError.invalidResponse("getContShootingSpeed")))
                 return
             }
             
-            completion(Result(value: enumValue, error: nil))
+            completion(Result.success(enumValue))
         }
     }
     
@@ -1766,9 +1757,9 @@ internal class CameraClient: ServiceClient {
     
     //MARK: Audio
     
-    typealias AudioRecordingSettingsCompletion = (_ result: Result<[String]>) -> Void
+    typealias AudioRecordingSettingsCompletion = (_ result: Result<[String], Error>) -> Void
     
-    typealias AudioRecordingSettingCompletion = (_ result: Result<String>) -> Void
+    typealias AudioRecordingSettingCompletion = (_ result: Result<String, Error>) -> Void
     
     func getSupportedAudioRecordingSettings(_ completion: @escaping AudioRecordingSettingsCompletion) {
         
@@ -1777,16 +1768,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedAudioRecording") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let supported = result.first?["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedAudioRecording")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedAudioRecording")))
                 return
             }
             
-            completion(Result(value: supported, error: nil))
+            completion(Result.success(supported))
         }
     }
     
@@ -1797,16 +1788,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableAudioRecording") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let available = result.first?["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableAudioRecording")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableAudioRecording")))
                 return
             }
             
-            completion(Result(value: available, error: nil))
+            completion(Result.success(available))
         }
     }
     
@@ -1826,16 +1817,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAudioRecording") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let scene = result.first?["windNoiseReduction"] as? String else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAudioRecording")))
+                completion(Result.failure(CameraError.invalidResponse("getAudioRecording")))
                 return
             }
             
-            completion(Result(value: scene, error: nil))
+            completion(Result.success(scene))
         }
     }
     
@@ -1901,9 +1892,9 @@ internal class CameraClient: ServiceClient {
     
     //MARK: Duration
     
-    typealias LoopDurationsCompletion = (_ result: Result<[TimeInterval]>) -> Void
+    typealias LoopDurationsCompletion = (_ result: Result<[TimeInterval], Error>) -> Void
     
-    typealias LoopDurationCompletion = (_ result: Result<TimeInterval>) -> Void
+    typealias LoopDurationCompletion = (_ result: Result<TimeInterval, Error>) -> Void
     
     func getSupportedLoopDurations(_ completion: @escaping LoopDurationsCompletion) {
         
@@ -1912,12 +1903,12 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedLoopDuration") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let supported = result.first?["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedLoopDuration")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedLoopDuration")))
                 return
             }
             
@@ -1928,7 +1919,7 @@ internal class CameraClient: ServiceClient {
                 return TimeInterval($0)
             })
             
-            completion(Result(value: _supported, error: nil))
+            completion(Result.success(_supported))
         }
     }
     
@@ -1939,12 +1930,12 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableLoopDuration") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let available = result.first?["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableLoopDuration")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableLoopDuration")))
                 return
             }
             
@@ -1955,7 +1946,7 @@ internal class CameraClient: ServiceClient {
                 return TimeInterval($0)
             })
             
-            completion(Result(value: _available, error: nil))
+            completion(Result.success(_available))
         }
     }
     
@@ -1980,28 +1971,28 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getLoopDuration") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let durationMinString = result.first?["loopRecTimeMin"] as? String else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getLoopDuration")))
+                completion(Result.failure(CameraError.invalidResponse("getLoopDuration")))
                 return
             }
             
             if let durationMin = TimeInterval(durationMinString) {
-                completion(Result(value: durationMin * 60, error: nil))
+                completion(Result.success(durationMin * 60))
             } else if durationMinString == "unlimited" {
-                completion(Result(value: TimeInterval.infinity, error: nil))
+                completion(Result.success(TimeInterval.infinity))
             } else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getLoopDuration")))
+                completion(Result.failure(CameraError.invalidResponse("getLoopDuration")))
             }
         }
     }
     
     //MARK: - Live View -
     
-    typealias LiveViewCompletion = (_ result: Result<URL>) -> Void
+    typealias LiveViewCompletion = (_ result: Result<URL, Error>) -> Void
 
     func startLiveView(_ completion: @escaping LiveViewCompletion) {
         
@@ -2009,16 +2000,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "startLiveview") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [String], let streamURLString = result.first, let streamURL = URL(string: streamURLString) else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("startLiveview")))
+                completion(Result.failure(CameraError.invalidResponse("startLiveview")))
                 return
             }
             
-            completion(Result(value: streamURL, error: nil))
+            completion(Result.success(streamURL))
         }
     }
     
@@ -2032,9 +2023,9 @@ internal class CameraClient: ServiceClient {
     
     //MARK: - With Size
     
-    typealias LiveViewSizesCompletion = (_ result: Result<[String]>) -> Void
+    typealias LiveViewSizesCompletion = (_ result: Result<[String], Error>) -> Void
     
-    typealias LiveViewSizeCompletion = (_ result: Result<String>) -> Void
+    typealias LiveViewSizeCompletion = (_ result: Result<String, Error>) -> Void
     
     func getAvailableLiveViewSizes(_ completion: @escaping LiveViewSizesCompletion) {
         
@@ -2043,16 +2034,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableLiveviewSize") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Any], let available = result.compactMap({ $0 as? [String] }).first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableLiveviewSize")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableLiveviewSize")))
                 return
             }
             
-            completion(Result(value: available, error: nil))
+            completion(Result.success(available))
         }
     }
     
@@ -2063,16 +2054,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedLiveviewSize") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Any], let supported = result.compactMap({ $0 as? [String] }).first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedLiveviewSize")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedLiveviewSize")))
                 return
             }
             
-            completion(Result(value: supported, error: nil))
+            completion(Result.success(supported))
         }
     }
     
@@ -2082,16 +2073,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "startLiveviewWithSize") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [String], let streamURLString = result.first, let streamURL = URL(string: streamURLString) else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("startLiveviewWithSize")))
+                completion(Result.failure(CameraError.invalidResponse("startLiveviewWithSize")))
                 return
             }
             
-            completion(Result(value: streamURL, error: nil))
+            completion(Result.success(streamURL))
         }
     }
     
@@ -2101,22 +2092,22 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getLiveviewSize") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [String], let size = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getLiveviewSize")))
+                completion(Result.failure(CameraError.invalidResponse("getLiveviewSize")))
                 return
             }
             
-            completion(Result(value: size, error: nil))
+            completion(Result.success(size))
         }
     }
     
     //MARK: - Frame info
     
-    typealias LiveViewFrameInfoCompletion = (_ result: Result<Bool>) -> Void
+    typealias LiveViewFrameInfoCompletion = (_ result: Result<Bool, Error>) -> Void
     
     func setLiveViewFrameInfo(_ enabled: Bool, _ completion: @escaping GenericCompletion) {
         
@@ -2133,16 +2124,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getLiveviewFrameInfo") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let info = result.first, let enabled = info["frameInfo"] as? Bool else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getLiveviewFrameInfo")))
+                completion(Result.failure(CameraError.invalidResponse("getLiveviewFrameInfo")))
                 return
             }
             
-            completion(Result(value: enabled, error: nil))
+            completion(Result.success(enabled))
         }
     }
     
@@ -2156,9 +2147,9 @@ internal class CameraClient: ServiceClient {
         }
     }
     
-    typealias ZoomSettingsCompletion = (_ result: Result<[String]>) -> Void
+    typealias ZoomSettingsCompletion = (_ result: Result<[String], Error>) -> Void
     
-    typealias ZoomSettingCompletion = (_ result: Result<String>) -> Void
+    typealias ZoomSettingCompletion = (_ result: Result<String, Error>) -> Void
     
     //MARK: - Settings
     
@@ -2169,16 +2160,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedZoomSetting") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let zoomSettings = result.first, let supported = zoomSettings["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedZoomSetting")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedZoomSetting")))
                 return
             }
             
-            completion(Result(value: supported, error: nil))
+            completion(Result.success(supported))
         }
     }
     
@@ -2189,16 +2180,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableZoomSetting") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let zoomSettings = result.first, let supported = zoomSettings["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableZoomSetting")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableZoomSetting")))
                 return
             }
             
-            completion(Result(value: supported, error: nil))
+            completion(Result.success(supported))
         }
     }
     
@@ -2218,16 +2209,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getZoomSetting") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let zoomSettingDict = result.first, let setting = zoomSettingDict["zoom"] as? String else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getZoomSetting")))
+                completion(Result.failure(CameraError.invalidResponse("getZoomSetting")))
                 return
             }
             
-            completion(Result(value: setting, error: nil))
+            completion(Result.success(setting))
         }
     }
     
@@ -2250,7 +2241,7 @@ internal class CameraClient: ServiceClient {
     
     //MARK: - Touch AF Position -
     
-    typealias TouchAFPositionCompletion = (_ result: Result<TouchAF.Information>) -> Void
+    typealias TouchAFPositionCompletion = (_ result: Result<TouchAF.Information, Error>) -> Void
     
     func setTouchAFPosition(_ position: CGPoint, _ completion: @escaping TouchAFPositionCompletion) {
         
@@ -2259,11 +2250,11 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             guard let result = (response?.dictionary?["result"] as? [Any])?.compactMap({ $0 as? [AnyHashable : Any] }).first, let touchAFInfo = TouchAF.Information(dictionary: result) else {
-                completion(Result(value: nil, error: error ?? CameraError(responseDictionary: response?.dictionary, methodName: "setTouchAFPosition") ?? CameraError.invalidResponse("setTouchAFPosition")))
+                completion(Result.failure(error ?? CameraError(responseDictionary: response?.dictionary, methodName: "setTouchAFPosition") ?? CameraError.invalidResponse("setTouchAFPosition")))
                 return
             }
             
-            completion(Result(value: touchAFInfo, error: nil))
+            completion(Result.success(touchAFInfo))
         }
     }
     
@@ -2274,16 +2265,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getTouchAFPosition") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = (response?.dictionary?["result"] as? [[AnyHashable : Any]])?.first, let touchAFInfo = TouchAF.Information(dictionary: result) else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getTouchAFPosition")))
+                completion(Result.failure(CameraError.invalidResponse("getTouchAFPosition")))
                 return
             }
             
-            completion(Result(value: touchAFInfo, error: nil))
+            completion(Result.success(touchAFInfo))
         }
     }
     
@@ -2313,9 +2304,9 @@ internal class CameraClient: ServiceClient {
         }
     }
     
-    typealias TrackingFocusCompletion = (_ result: Result<String>) -> Void
+    typealias TrackingFocusCompletion = (_ result: Result<String, Error>) -> Void
     
-    typealias TrackingFocussesCompletion = (_ result: Result<[String]>) -> Void
+    typealias TrackingFocussesCompletion = (_ result: Result<[String], Error>) -> Void
     
     //MARK: - Settings
     
@@ -2326,16 +2317,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedTrackingFocus") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let trackingFocusSettings = result.first, let supported = trackingFocusSettings["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedTrackingFocus")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedTrackingFocus")))
                 return
             }
             
-            completion(Result(value: supported, error: nil))
+            completion(Result.success(supported))
         }
     }
     
@@ -2346,16 +2337,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableTrackingFocus") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let trackingFocusSettings = result.first, let supported = trackingFocusSettings["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableTrackingFocus")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableTrackingFocus")))
                 return
             }
             
-            completion(Result(value: supported, error: nil))
+            completion(Result.success(supported))
         }
     }
     
@@ -2373,24 +2364,24 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getTrackingFocus") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let trackingFocusSettings = result.first, let value = trackingFocusSettings["trackingFocus"] as? String else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getTrackingFocus")))
+                completion(Result.failure(CameraError.invalidResponse("getTrackingFocus")))
                 return
             }
             
-            completion(Result(value: value, error: nil))
+            completion(Result.success(value))
         }
     }
     
     //MARK: - Self Timer -
     
-    typealias SelfTimerDurationsCompletion = (_ result: Result<[TimeInterval]>) -> Void
+    typealias SelfTimerDurationsCompletion = (_ result: Result<[TimeInterval], Error>) -> Void
     
-    typealias SelfTimerDurationCompletion = (_ result: Result<TimeInterval>) -> Void
+    typealias SelfTimerDurationCompletion = (_ result: Result<TimeInterval, Error>) -> Void
     
     func getSupportedSelfTimerDurations(_ completion: @escaping SelfTimerDurationsCompletion) {
         
@@ -2399,16 +2390,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedSelfTimer") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[Int]], let supported = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedSelfTimer")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedSelfTimer")))
                 return
             }
             
-            completion(Result(value: supported.map({ TimeInterval($0) }), error: nil))
+            completion(Result.success(supported.map({ TimeInterval($0) })))
         }
     }
     
@@ -2419,16 +2410,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableSelfTimer") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Any], let available = result.compactMap({ $0 as? [Int] }).first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableSelfTimer")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableSelfTimer")))
                 return
             }
             
-            completion(Result(value: available.map({ TimeInterval($0) }), error: nil))
+            completion(Result.success(available.map({ TimeInterval($0) })))
         }
     }
     
@@ -2446,16 +2437,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSelfTimer") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Int], let selfTimerDuration = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSelfTimer")))
+                completion(Result.failure(CameraError.invalidResponse("getSelfTimer")))
                 return
             }
             
-            completion(Result(value: TimeInterval(selfTimerDuration), error: nil))
+            completion(Result.success(TimeInterval(selfTimerDuration)))
         }
     }
     
@@ -2463,9 +2454,9 @@ internal class CameraClient: ServiceClient {
     
     //MARK: Mode
     
-    typealias ExposureModesCompletion = (_ result: Result<[Exposure.Mode.Value]>) -> Void
+    typealias ExposureModesCompletion = (_ result: Result<[Exposure.Mode.Value], Error>) -> Void
     
-    typealias ExposureModeCompletion = (_ result: Result<Exposure.Mode.Value>) -> Void
+    typealias ExposureModeCompletion = (_ result: Result<Exposure.Mode.Value, Error>) -> Void
     
     func getSupportedExposureModes(_ completion: @escaping ExposureModesCompletion) {
         
@@ -2474,16 +2465,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedFocusMode") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[String]], let supported = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedExposureMode")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedExposureMode")))
                 return
             }
             
-            completion(Result(value: supported.compactMap({ Exposure.Mode.Value(sonyString: $0) }), error: nil))
+            completion(Result.success(supported.compactMap({ Exposure.Mode.Value(sonyString: $0) })))
         }
     }
     
@@ -2494,16 +2485,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableExposureMode") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Any], let available = result.compactMap({ $0 as? [String] }).first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableExposureMode")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableExposureMode")))
                 return
             }
             
-            completion(Result(value: available.compactMap({ Exposure.Mode.Value(sonyString: $0) }), error: nil))
+            completion(Result.success(available.compactMap({ Exposure.Mode.Value(sonyString: $0) })))
         }
     }
     
@@ -2521,24 +2512,24 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getExposureMode") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [String], let mode = result.first, let modeEnum = Exposure.Mode.Value(sonyString: mode) else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getExposureMode")))
+                completion(Result.failure(CameraError.invalidResponse("getExposureMode")))
                 return
             }
             
-            completion(Result(value: modeEnum, error: nil))
+            completion(Result.success(modeEnum))
         }
     }
     
     //MARK: Compensation
     
-    typealias ExposureCompensationsCompletion = (_ result: Result<[Exposure.Compensation.Value]>) -> Void
+    typealias ExposureCompensationsCompletion = (_ result: Result<[Exposure.Compensation.Value], Error>) -> Void
     
-    typealias ExposureCompensationCompletion = (_ result: Result<Int>) -> Void
+    typealias ExposureCompensationCompletion = (_ result: Result<Int, Error>) -> Void
     
     func getSupportedExposureCompensations(_ completion: @escaping ExposureCompensationsCompletion) {
         
@@ -2547,21 +2538,21 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedExposureCompensation") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[Int]], result.count == 3 else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedExposureCompensation")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedExposureCompensation")))
                 return
             }
             
             guard let upperIndex = result[0].first, let lowerIndex = result[1].first, let stepSize = result[2].first, stepSize == 1 || stepSize == 2 else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedExposureCompensation")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedExposureCompensation")))
                 return
             }
             
-            completion(Result(value: exposureCompensationsFor(lowerIndex: lowerIndex, upperIndex: upperIndex, stepSize: stepSize), error: nil))
+            completion(Result.success(exposureCompensationsFor(lowerIndex: lowerIndex, upperIndex: upperIndex, stepSize: stepSize)))
         }
     }
     
@@ -2572,12 +2563,12 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableExposureCompensation") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Int], result.count == 4 else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableExposureCompensation")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableExposureCompensation")))
                 return
             }
             
@@ -2585,7 +2576,7 @@ internal class CameraClient: ServiceClient {
             let upperIndex = result[1]
             let stepSize = result[3]
             
-            completion(Result(value: exposureCompensationsFor(lowerIndex: lowerIndex, upperIndex: upperIndex, stepSize: stepSize), error: nil))
+            completion(Result.success(exposureCompensationsFor(lowerIndex: lowerIndex, upperIndex: upperIndex, stepSize: stepSize)))
         }
     }
     
@@ -2603,16 +2594,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getExposureCompensation") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Int], let compensation = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getExposureCompensation")))
+                completion(Result.failure(CameraError.invalidResponse("getExposureCompensation")))
                 return
             }
             
-            completion(Result(value: compensation, error: nil))
+            completion(Result.success(compensation))
         }
     }
     
@@ -2620,9 +2611,9 @@ internal class CameraClient: ServiceClient {
     
     //MARK: Mode
     
-    typealias FocusModesCompletion = (_ result: Result<[Focus.Mode.Value]>) -> Void
+    typealias FocusModesCompletion = (_ result: Result<[Focus.Mode.Value], Error>) -> Void
     
-    typealias FocusModeCompletion = (_ result: Result<Focus.Mode.Value >) -> Void
+    typealias FocusModeCompletion = (_ result: Result<Focus.Mode.Value, Error>) -> Void
     
     func getSupportedFocusModes(_ completion: @escaping FocusModesCompletion) {
         
@@ -2631,16 +2622,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedFocusMode") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[String]], let supported = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedFocusMode")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedFocusMode")))
                 return
             }
             
-            completion(Result(value: supported.compactMap({ Focus.Mode.Value(sonyString: $0) }), error: nil))
+            completion(Result.success(supported.compactMap({ Focus.Mode.Value(sonyString: $0) })))
         }
     }
     
@@ -2651,16 +2642,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableFocusMode") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Any], let available = result.compactMap({ $0 as? [String] }).first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableFocusMode")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableFocusMode")))
                 return
             }
             
-            completion(Result(value: available.compactMap({ Focus.Mode.Value(sonyString: $0) }), error: nil))
+            completion(Result.success(available.compactMap({ Focus.Mode.Value(sonyString: $0) })))
         }
     }
     
@@ -2678,22 +2669,22 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getFocusMode") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [String], let mode = result.first, let modeEnum = Focus.Mode.Value(sonyString: mode) else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getFocusMode")))
+                completion(Result.failure(CameraError.invalidResponse("getFocusMode")))
                 return
             }
             
-            completion(Result(value: modeEnum, error: nil))
+            completion(Result.success(modeEnum))
         }
     }
     
     //MARK: - Program Shift -
     
-    typealias ProgramShiftsCompletion = (_ result: Result<[Int]>) -> Void
+    typealias ProgramShiftsCompletion = (_ result: Result<[Int], Error>) -> Void
     
     func getSupportedProgramShifts(_ completion: @escaping ProgramShiftsCompletion) {
         
@@ -2702,12 +2693,12 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedProgramShift") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[Int]], let supported = result.first, supported.count == 2 else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedProgramShift")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedProgramShift")))
                 return
             }
             
@@ -2719,7 +2710,7 @@ internal class CameraClient: ServiceClient {
                 supportedValues.append(i)
             }
             
-            completion(Result(value: supportedValues, error: nil))
+            completion(Result.success(supportedValues))
         }
     }
     
@@ -2734,9 +2725,9 @@ internal class CameraClient: ServiceClient {
     
     //MARK: - Flash Mode -
     
-    typealias FlashModesCompletion = (_ result: Result<[String]>) -> Void
+    typealias FlashModesCompletion = (_ result: Result<[String], Error>) -> Void
     
-    typealias FlashModeCompletion = (_ result: Result<String>) -> Void
+    typealias FlashModeCompletion = (_ result: Result<String, Error>) -> Void
     
     func getSupportedFlashModes(_ completion: @escaping FlashModesCompletion) {
         
@@ -2745,16 +2736,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedFlashMode") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[String]], let supported = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedFlashMode")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedFlashMode")))
                 return
             }
             
-            completion(Result(value: supported, error: nil))
+            completion(Result.success(supported))
         }
     }
     
@@ -2765,16 +2756,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableFlashMode") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Any], let available = result.compactMap({ $0 as? [String] }).first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableFlashMode")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableFlashMode")))
                 return
             }
             
-            completion(Result(value: available, error: nil))
+            completion(Result.success(available))
         }
     }
     
@@ -2794,16 +2785,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getFlashMode") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [String], let flashMode = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getFlashMode")))
+                completion(Result.failure(CameraError.invalidResponse("getFlashMode")))
                 return
             }
             
-            completion(Result(value: flashMode, error: nil))
+            completion(Result.success(flashMode))
         }
     }
     
@@ -2811,9 +2802,9 @@ internal class CameraClient: ServiceClient {
     
     //MARK: Size
     
-    typealias StillSizesCompletion = (_ result: Result<[StillSize]>) -> Void
+    typealias StillSizesCompletion = (_ result: Result<[StillSize], Error>) -> Void
     
-    typealias StillSizeCompletion = (_ result: Result<StillSize>) -> Void
+    typealias StillSizeCompletion = (_ result: Result<StillSize, Error>) -> Void
     
     func getSupportedStillSizes(_ completion: @escaping StillSizesCompletion) {
         
@@ -2822,18 +2813,18 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedStillSize") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[[AnyHashable : Any]]], let supported = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedStillSize")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedStillSize")))
                 return
             }
             
             let _supported = supported.compactMap({ StillSize(dictionary: $0) })
             
-            completion(Result(value: _supported, error: nil))
+            completion(Result.success(_supported))
         }
     }
     
@@ -2844,18 +2835,18 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableStillSize") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Any], let available = result.compactMap({ $0 as? [[AnyHashable : Any]] }).first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableStillSize")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableStillSize")))
                 return
             }
             
             let _available = available.compactMap({ StillSize(dictionary: $0) })
             
-            completion(Result(value: _available, error: nil))
+            completion(Result.success(_available))
         }
     }
     
@@ -2875,24 +2866,24 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getStillSize") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let size = result.first, let stillSize = StillSize(dictionary: size) else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getStillSize")))
+                completion(Result.failure(CameraError.invalidResponse("getStillSize")))
                 return
             }
             
-            completion(Result(value: stillSize, error: nil))
+            completion(Result.success(stillSize))
         }
     }
     
     //MARK: Quality
     
-    typealias StillQualitiesCompletion = (_ result: Result<[String]>) -> Void
+    typealias StillQualitiesCompletion = (_ result: Result<[String], Error>) -> Void
     
-    typealias StillQualityCompletion = (_ result: Result<String>) -> Void
+    typealias StillQualityCompletion = (_ result: Result<String, Error>) -> Void
     
     func getSupportedStillQualities(_ completion: @escaping StillQualitiesCompletion) {
         
@@ -2901,16 +2892,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedStillQuality") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let supported = result.first?["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedStillQuality")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedStillQuality")))
                 return
             }
             
-            completion(Result(value: supported, error: nil))
+            completion(Result.success(supported))
         }
     }
     
@@ -2921,16 +2912,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableStillQuality") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let available = result.first?["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableStillQuality")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableStillQuality")))
                 return
             }
             
-            completion(Result(value: available, error: nil))
+            completion(Result.success(available))
         }
     }
     
@@ -2950,24 +2941,24 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getStillQuality") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let quality = result.first?["stillQuality"] as? String else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getStillQuality")))
+                completion(Result.failure(CameraError.invalidResponse("getStillQuality")))
                 return
             }
             
-            completion(Result(value: quality, error: nil))
+            completion(Result.success(quality))
         }
     }
     
     //MARK: - Post View Image Size
     
-    typealias PostviewImageSizesCompletion = (_ result: Result<[String]>) -> Void
+    typealias PostviewImageSizesCompletion = (_ result: Result<[String], Error>) -> Void
     
-    typealias PostviewImageSizeCompletion = (_ result: Result<String>) -> Void
+    typealias PostviewImageSizeCompletion = (_ result: Result<String, Error>) -> Void
     
     func getSupportedPostviewImageSizes(_ completion: @escaping PostviewImageSizesCompletion) {
         
@@ -2976,16 +2967,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedPostviewImageSize") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[String]], let supported = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedPostviewImageSize")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedPostviewImageSize")))
                 return
             }
             
-            completion(Result(value: supported, error: nil))
+            completion(Result.success(supported))
         }
     }
     
@@ -2996,16 +2987,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailablePostviewImageSize") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Any], let available = result.compactMap({ $0 as? [String] }).first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailablePostviewImageSize")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailablePostviewImageSize")))
                 return
             }
             
-            completion(Result(value: available, error: nil))
+            completion(Result.success(available))
         }
     }
     
@@ -3025,25 +3016,25 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getPostviewImageSize") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [String], let size = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getPostviewImageSize")))
+                completion(Result.failure(CameraError.invalidResponse("getPostviewImageSize")))
                 return
             }
             
-            completion(Result(value: size, error: nil))
+            completion(Result.success(size))
         }
     }
     
     //MARK: - Movie -
     //MARK: File Format
     
-    typealias MovieFileFormatsCompletion = (_ result: Result<[String]>) -> Void
+    typealias MovieFileFormatsCompletion = (_ result: Result<[String], Error>) -> Void
     
-    typealias MovieFileFormatCompletion = (_ result: Result<String>) -> Void
+    typealias MovieFileFormatCompletion = (_ result: Result<String, Error>) -> Void
     
     func getSupportedMovieFileFormats(_ completion: @escaping MovieFileFormatsCompletion) {
         
@@ -3052,16 +3043,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedMovieFileFormat") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let supported = result.first?["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedMovieFileFormat")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedMovieFileFormat")))
                 return
             }
             
-            completion(Result(value: supported, error: nil))
+            completion(Result.success(supported))
         }
     }
     
@@ -3072,16 +3063,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableMovieFileFormat") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let available = result.first?["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableMovieFileFormat")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableMovieFileFormat")))
                 return
             }
             
-            completion(Result(value: available, error: nil))
+            completion(Result.success(available))
         }
     }
     
@@ -3101,24 +3092,24 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getMovieFileFormat") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let format = result.first?["movieFileFormat"] as? String else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getMovieFileFormat")))
+                completion(Result.failure(CameraError.invalidResponse("getMovieFileFormat")))
                 return
             }
             
-            completion(Result(value: format, error: nil))
+            completion(Result.success(format))
         }
     }
     
     //MARK: Quality
     
-    typealias MovieQualitiesCompletion = (_ result: Result<[String]>) -> Void
+    typealias MovieQualitiesCompletion = (_ result: Result<[String], Error>) -> Void
     
-    typealias MovieQualityCompletion = (_ result: Result<String>) -> Void
+    typealias MovieQualityCompletion = (_ result: Result<String, Error>) -> Void
     
     func getSupportedMovieQualities(_ completion: @escaping MovieQualitiesCompletion) {
         
@@ -3127,16 +3118,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedMovieQuality") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[String]], let supported = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedMovieQuality")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedMovieQuality")))
                 return
             }
             
-            completion(Result(value: supported, error: nil))
+            completion(Result.success(supported))
         }
     }
     
@@ -3147,16 +3138,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableMovieQuality") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Any], let available = result.compactMap({ $0 as? [String] }).first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableMovieQuality")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableMovieQuality")))
                 return
             }
             
-            completion(Result(value: available, error: nil))
+            completion(Result.success(available))
         }
     }
     
@@ -3176,24 +3167,24 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getMovieQuality") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [String], let quality = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getMovieQuality")))
+                completion(Result.failure(CameraError.invalidResponse("getMovieQuality")))
                 return
             }
             
-            completion(Result(value: quality, error: nil))
+            completion(Result.success(quality))
         }
     }
     
     //MARK: - Steady Mode -
     
-    typealias SteadyModesCompletion = (_ result: Result<[String]>) -> Void
+    typealias SteadyModesCompletion = (_ result: Result<[String], Error>) -> Void
     
-    typealias SteadyModeCompletion = (_ result: Result<String>) -> Void
+    typealias SteadyModeCompletion = (_ result: Result<String, Error>) -> Void
     
     func getSupportedSteadyModes(_ completion: @escaping SteadyModesCompletion) {
         
@@ -3202,16 +3193,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedSteadyMode") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[String]], let supported = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedSteadyMode")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedSteadyMode")))
                 return
             }
             
-            completion(Result(value: supported, error: nil))
+            completion(Result.success(supported))
         }
     }
     
@@ -3222,16 +3213,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableSteadyMode") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Any], let available = result.compactMap({ $0 as? [String] }).first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableSteadyMode")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableSteadyMode")))
                 return
             }
             
-            completion(Result(value: available, error: nil))
+            completion(Result.success(available))
         }
     }
     
@@ -3251,24 +3242,24 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSteadyMode") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [String], let mode = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSteadyMode")))
+                completion(Result.failure(CameraError.invalidResponse("getSteadyMode")))
                 return
             }
             
-            completion(Result(value: mode, error: nil))
+            completion(Result.success(mode))
         }
     }
     
     //MARK: - View Angle -
     
-    typealias ViewAnglesCompletion = (_ result: Result<[Double]>) -> Void
+    typealias ViewAnglesCompletion = (_ result: Result<[Double], Error>) -> Void
     
-    typealias ViewAngleCompletion = (_ result: Result<Double>) -> Void
+    typealias ViewAngleCompletion = (_ result: Result<Double, Error>) -> Void
     
     func getSupportedViewAngles(_ completion: @escaping ViewAnglesCompletion) {
         
@@ -3277,16 +3268,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedViewAngle") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[Int]], let supported = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedViewAngle")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedViewAngle")))
                 return
             }
             
-            completion(Result(value: supported.map({ Double($0) }), error: nil))
+            completion(Result.success(supported.map({ Double($0) })))
         }
     }
     
@@ -3297,16 +3288,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableViewAngle") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Any], let available = result.compactMap({ $0 as? [Int] }).first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableViewAngle")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableViewAngle")))
                 return
             }
             
-            completion(Result(value: available.map({ Double($0) }), error: nil))
+            completion(Result.success(available.map({ Double($0) })))
         }
     }
     
@@ -3326,24 +3317,24 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getViewAngle") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Int], let angle = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getViewAngle")))
+                completion(Result.failure(CameraError.invalidResponse("getViewAngle")))
                 return
             }
             
-            completion(Result(value: Double(angle), error: nil))
+            completion(Result.success(Double(angle)))
         }
     }
     
     //MARK: - Scene Selection -
     
-    typealias SceneSelectionsCompletion = (_ result: Result<[String]>) -> Void
+    typealias SceneSelectionsCompletion = (_ result: Result<[String], Error>) -> Void
     
-    typealias SceneSelectionCompletion = (_ result: Result<String>) -> Void
+    typealias SceneSelectionCompletion = (_ result: Result<String, Error>) -> Void
     
     func getSupportedSceneSelections(_ completion: @escaping SceneSelectionsCompletion) {
         
@@ -3352,16 +3343,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedSceneSelection") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let supported = result.first?["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedSceneSelection")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedSceneSelection")))
                 return
             }
             
-            completion(Result(value: supported, error: nil))
+            completion(Result.success(supported))
         }
     }
     
@@ -3372,16 +3363,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableSceneSelection") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let available = result.first?["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableSceneSelection")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableSceneSelection")))
                 return
             }
             
-            completion(Result(value: available, error: nil))
+            completion(Result.success(available))
         }
     }
     
@@ -3401,24 +3392,24 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSceneSelection") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let scene = result.first?["scene"] as? String else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSceneSelection")))
+                completion(Result.failure(CameraError.invalidResponse("getSceneSelection")))
                 return
             }
             
-            completion(Result(value: scene, error: nil))
+            completion(Result.success(scene))
         }
     }
     
     //MARK: - Color Setting -
     
-    typealias ColorSettingsCompletion = (_ result: Result<[String]>) -> Void
+    typealias ColorSettingsCompletion = (_ result: Result<[String], Error>) -> Void
     
-    typealias ColorSettingCompletion = (_ result: Result<String>) -> Void
+    typealias ColorSettingCompletion = (_ result: Result<String, Error>) -> Void
     
     func getSupportedColorSettings(_ completion: @escaping ColorSettingsCompletion) {
         
@@ -3427,16 +3418,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedColorSetting") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let supported = result.first?["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedColorSetting")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedColorSetting")))
                 return
             }
             
-            completion(Result(value: supported, error: nil))
+            completion(Result.success(supported))
         }
     }
     
@@ -3447,16 +3438,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableColorSetting") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let available = result.first?["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableColorSetting")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableColorSetting")))
                 return
             }
             
-            completion(Result(value: available, error: nil))
+            completion(Result.success(available))
         }
     }
     
@@ -3476,24 +3467,24 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getColorSetting") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let scene = result.first?["colorSetting"] as? String else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getColorSetting")))
+                completion(Result.failure(CameraError.invalidResponse("getColorSetting")))
                 return
             }
             
-            completion(Result(value: scene, error: nil))
+            completion(Result.success(scene))
         }
     }
     
     //MARK: - Interval Times -
     
-    typealias IntervalTimesCompletion = (_ result: Result<[TimeInterval]>) -> Void
+    typealias IntervalTimesCompletion = (_ result: Result<[TimeInterval], Error>) -> Void
     
-    typealias IntervalTimeCompletion = (_ result: Result<TimeInterval>) -> Void
+    typealias IntervalTimeCompletion = (_ result: Result<TimeInterval, Error>) -> Void
     
     func getSupportedIntervalTimes(_ completion: @escaping IntervalTimesCompletion) {
         
@@ -3502,18 +3493,18 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedIntervalTime") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let supported = result.first?["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedIntervalTime")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedIntervalTime")))
                 return
             }
             
             let _supported = supported.compactMap({ TimeInterval($0) })
             
-            completion(Result(value: _supported, error: nil))
+            completion(Result.success(_supported))
         }
     }
     
@@ -3524,18 +3515,18 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableIntervalTime") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let available = result.first?["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableIntervalTime")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableIntervalTime")))
                 return
             }
             
             let _available = available.compactMap({ TimeInterval($0) })
             
-            completion(Result(value: _available, error: nil))
+            completion(Result.success(_available))
         }
     }
     
@@ -3555,28 +3546,28 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getIntervalTime") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let intervalSec = result.first?["intervalTimeSec"] as? String else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getIntervalTime")))
+                completion(Result.failure(CameraError.invalidResponse("getIntervalTime")))
                 return
             }
             guard let interval = TimeInterval(intervalSec) else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getIntervalTime")))
+                completion(Result.failure(CameraError.invalidResponse("getIntervalTime")))
                 return
             }
             
-            completion(Result(value: interval, error: nil))
+            completion(Result.success(interval))
         }
     }
     
     //MARK: - Wind Noise Reduction -
     
-    typealias WindNoiseReductionsCompletion = (_ result: Result<[String]>) -> Void
+    typealias WindNoiseReductionsCompletion = (_ result: Result<[String], Error>) -> Void
     
-    typealias WindNoiseReductionCompletion = (_ result: Result<String>) -> Void
+    typealias WindNoiseReductionCompletion = (_ result: Result<String, Error>) -> Void
     
     func getSupportedWindNoiseReductions(_ completion: @escaping WindNoiseReductionsCompletion) {
         
@@ -3585,16 +3576,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedWindNoiseReduction") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let supported = result.first?["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedWindNoiseReduction")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedWindNoiseReduction")))
                 return
             }
             
-            completion(Result(value: supported, error: nil))
+            completion(Result.success(supported))
         }
     }
     
@@ -3605,16 +3596,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableWindNoiseReduction") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let available = result.first?["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableWindNoiseReduction")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableWindNoiseReduction")))
                 return
             }
             
-            completion(Result(value: available, error: nil))
+            completion(Result.success(available))
         }
     }
     
@@ -3634,24 +3625,24 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getWindNoiseReduction") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let scene = result.first?["windNoiseReduction"] as? String else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getWindNoiseReduction")))
+                completion(Result.failure(CameraError.invalidResponse("getWindNoiseReduction")))
                 return
             }
             
-            completion(Result(value: scene, error: nil))
+            completion(Result.success(scene))
         }
     }
     
     //MARK: - Flip Setting -
     
-    typealias FlipSettingsCompletion = (_ result: Result<[String]>) -> Void
+    typealias FlipSettingsCompletion = (_ result: Result<[String], Error>) -> Void
     
-    typealias FlipSettingCompletion = (_ result: Result<String>) -> Void
+    typealias FlipSettingCompletion = (_ result: Result<String, Error>) -> Void
     
     func getSupportedFlipSettings(_ completion: @escaping FlipSettingsCompletion) {
         
@@ -3660,16 +3651,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedFlipSetting") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let supported = result.first?["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedFlipSetting")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedFlipSetting")))
                 return
             }
             
-            completion(Result(value: supported, error: nil))
+            completion(Result.success(supported))
         }
     }
     
@@ -3680,16 +3671,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableFlipSetting") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let available = result.first?["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableFlipSetting")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableFlipSetting")))
                 return
             }
             
-            completion(Result(value: available, error: nil))
+            completion(Result.success(available))
         }
     }
     
@@ -3709,24 +3700,24 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getFlipSetting") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let scene = result.first?["flip"] as? String else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getFlipSetting")))
+                completion(Result.failure(CameraError.invalidResponse("getFlipSetting")))
                 return
             }
             
-            completion(Result(value: scene, error: nil))
+            completion(Result.success(scene))
         }
     }
     
     //MARK: - TV Color Setting -
     
-    typealias TVColorSystemsCompletion = (_ result: Result<[String]>) -> Void
+    typealias TVColorSystemsCompletion = (_ result: Result<[String], Error>) -> Void
     
-    typealias TVColorSystemCompletion = (_ result: Result<String>) -> Void
+    typealias TVColorSystemCompletion = (_ result: Result<String, Error>) -> Void
     
     func getSupportedTVColorSystems(_ completion: @escaping TVColorSystemsCompletion) {
         
@@ -3735,16 +3726,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedTVColorSystem") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let supported = result.first?["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedTVColorSystem")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedTVColorSystem")))
                 return
             }
             
-            completion(Result(value: supported, error: nil))
+            completion(Result.success(supported))
         }
     }
     
@@ -3755,16 +3746,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableTVColorSystem") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let available = result.first?["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableTVColorSystem")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableTVColorSystem")))
                 return
             }
             
-            completion(Result(value: available, error: nil))
+            completion(Result.success(available))
         }
     }
     
@@ -3784,24 +3775,24 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getTVColorSystem") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let scene = result.first?["tvColorSystem"] as? String else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getTVColorSystem")))
+                completion(Result.failure(CameraError.invalidResponse("getTVColorSystem")))
                 return
             }
             
-            completion(Result(value: scene, error: nil))
+            completion(Result.success(scene))
         }
     }
     
     //MARK: - Infrared Remote Control -
     
-    typealias InfraredRemoteControlsCompletion = (_ result: Result<[String]>) -> Void
+    typealias InfraredRemoteControlsCompletion = (_ result: Result<[String], Error>) -> Void
     
-    typealias InfraredRemoteControlCompletion = (_ result: Result<String>) -> Void
+    typealias InfraredRemoteControlCompletion = (_ result: Result<String, Error>) -> Void
     
     func getSupportedInfraredRemoteControls(_ completion: @escaping InfraredRemoteControlsCompletion) {
         
@@ -3810,16 +3801,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedInfraredRemoteControl") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let supported = result.first?["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedInfraredRemoteControl")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedInfraredRemoteControl")))
                 return
             }
             
-            completion(Result(value: supported, error: nil))
+            completion(Result.success(supported))
         }
     }
     
@@ -3830,16 +3821,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableInfraredRemoteControl") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let available = result.first?["candidate"] as? [String] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableInfraredRemoteControl")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableInfraredRemoteControl")))
                 return
             }
             
-            completion(Result(value: available, error: nil))
+            completion(Result.success(available))
         }
     }
     
@@ -3859,24 +3850,24 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getInfraredRemoteControl") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let scene = result.first?["infraredRemoteControl"] as? String else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getInfraredRemoteControl")))
+                completion(Result.failure(CameraError.invalidResponse("getInfraredRemoteControl")))
                 return
             }
             
-            completion(Result(value: scene, error: nil))
+            completion(Result.success(scene))
         }
     }
     
     //MARK: - Auto Power Off -
     
-    typealias AutoPowerOffsCompletion = (_ result: Result<[TimeInterval]>) -> Void
+    typealias AutoPowerOffsCompletion = (_ result: Result<[TimeInterval], Error>) -> Void
     
-    typealias AutoPowerOffCompletion = (_ result: Result<TimeInterval>) -> Void
+    typealias AutoPowerOffCompletion = (_ result: Result<TimeInterval, Error>) -> Void
     
     func getSupportedAutoPowerOffs(_ completion: @escaping AutoPowerOffsCompletion) {
         
@@ -3885,16 +3876,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedAutoPowerOff") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let supported = result.first?["candidate"] as? [Int] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedAutoPowerOff")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedAutoPowerOff")))
                 return
             }
             
-            completion(Result(value: supported.map({ TimeInterval($0) }), error: nil))
+            completion(Result.success(supported.map({ TimeInterval($0) })))
         }
     }
     
@@ -3905,16 +3896,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableAutoPowerOff") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let available = result.first?["candidate"] as? [Int] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableAutoPowerOff")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableAutoPowerOff")))
                 return
             }
             
-            completion(Result(value: available.map({ TimeInterval($0) }), error: nil))
+            completion(Result.success(available.map({ TimeInterval($0) })))
         }
     }
     
@@ -3934,24 +3925,24 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAutoPowerOff") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let powerOff = result.first?["autoPowerOff"] as? Int else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAutoPowerOff")))
+                completion(Result.failure(CameraError.invalidResponse("getAutoPowerOff")))
                 return
             }
             
-            completion(Result(value: TimeInterval(powerOff), error: nil))
+            completion(Result.success(TimeInterval(powerOff)))
         }
     }
     
     //MARK: - Beep Mode -
     
-    typealias BeepModesCompletion = (_ result: Result<[String]>) -> Void
+    typealias BeepModesCompletion = (_ result: Result<[String], Error>) -> Void
     
-    typealias BeepModeCompletion = (_ result: Result<String>) -> Void
+    typealias BeepModeCompletion = (_ result: Result<String, Error>) -> Void
     
     func getSupportedBeepModes(_ completion: @escaping BeepModesCompletion) {
         
@@ -3960,16 +3951,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedBeepMode") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[String]], let supported = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getSupportedBeepMode")))
+                completion(Result.failure(CameraError.invalidResponse("getSupportedBeepMode")))
                 return
             }
             
-            completion(Result(value: supported, error: nil))
+            completion(Result.success(supported))
         }
     }
     
@@ -3980,16 +3971,16 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableBeepMode") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Any], let available = result.compactMap({ $0 as? [String] }).first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getAvailableBeepMode")))
+                completion(Result.failure(CameraError.invalidResponse("getAvailableBeepMode")))
                 return
             }
             
-            completion(Result(value: available, error: nil))
+            completion(Result.success(available))
         }
     }
     
@@ -4009,22 +4000,22 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getBeepMode") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [String], let mode = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getBeepMode")))
+                completion(Result.failure(CameraError.invalidResponse("getBeepMode")))
                 return
             }
             
-            completion(Result(value: mode, error: nil))
+            completion(Result.success(mode))
         }
     }
     
     //MARK: - Storage Information -
     
-    typealias StorageInformationCompletion = (_ result: Result<[StorageInformation]>) -> Void
+    typealias StorageInformationCompletion = (_ result: Result<[StorageInformation], Error>) -> Void
     
     func getStorageInformation(_ completion: @escaping StorageInformationCompletion) {
         
@@ -4033,23 +4024,23 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getStorageInformation") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [[[AnyHashable : Any]]], let infos = result.first else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getStorageInformation")))
+                completion(Result.failure(CameraError.invalidResponse("getStorageInformation")))
                 return
             }
             
             let storageInformations = infos.map({ StorageInformation(dictionary: $0) })
-            completion(Result(value: storageInformations, error: nil))
+            completion(Result.success(storageInformations))
         }
     }
     
     //MARK: - Events -
     
-    typealias EventCompletion = (_ result: Result<CameraEvent>) -> Void
+    typealias EventCompletion = (_ result: Result<CameraEvent, Error>) -> Void
     
     func getEvent(polling: Bool, _ completion: @escaping EventCompletion) {
         
@@ -4058,17 +4049,17 @@ internal class CameraClient: ServiceClient {
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
             if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getEvent") {
-                completion(Result(value: nil, error: error))
+                completion(Result.failure(error))
                 return
             }
             
             guard let result = response?.dictionary?["result"] as? [Any] else {
-                completion(Result(value: nil, error: CameraError.invalidResponse("getEvent")))
+                completion(Result.failure(CameraError.invalidResponse("getEvent")))
                 return
             }
             
             let event = CameraEvent(result: result)
-            completion(Result(value: event, error: nil))
+            completion(Result.success(event))
         }
     }
 }

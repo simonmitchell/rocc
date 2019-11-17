@@ -38,6 +38,8 @@ final class PTPIPClient: NSObject {
     
     let port: Int
     
+    private var currentTransactionId: DWord = 0
+        
     init?(camera: Camera, port: Int = 15740) {
         
         guard let host = camera.baseURL?.host else { return nil }
@@ -73,6 +75,23 @@ final class PTPIPClient: NSObject {
     
         controlReadStream.open()
         controlWriteStream.open()
+    }
+    
+    func getNextTransactionId() -> DWord {
+        
+        defer {
+            if currentTransactionId == DWord.max {
+                currentTransactionId = 0
+            } else {
+                currentTransactionId += 1
+            }
+        }
+        
+        if currentTransactionId == 0 {
+            return 0
+        }
+        
+        return currentTransactionId + 1
     }
     
     var onEvent: ((_ event: EventPacket) -> Void)?
@@ -198,10 +217,10 @@ final class PTPIPClient: NSObject {
     
     func sendSetControlDeviceAValue(_ value: PTP.DeviceProperty.Value) {
         
-        let opRequestPacket = Packet.commandRequestPacket(code: .setControlDeviceA, arguments: [UInt32(value.code.rawValue)], transactionId: 8)
+        let opRequestPacket = Packet.commandRequestPacket(code: .setControlDeviceA, arguments: [UInt32(value.code.rawValue)], transactionId: getNextTransactionId())
         var data = ByteBuffer()
         data.appendValue(value.value, ofType: value.type)
-        let dataPackets = Packet.dataSendPackets(data: data, transactionId: 8)
+        let dataPackets = Packet.dataSendPackets(data: data, transactionId: getNextTransactionId())
         
         //TODO: Do we have to wait for callback?
         sendCommandRequestPacket(opRequestPacket, callback: nil)
@@ -352,4 +371,8 @@ extension PTPIPClient: StreamDelegate {
             break
         }
     }
+}
+
+enum PTPIPClientError: Error {
+    case invalidResponse
 }

@@ -12,6 +12,7 @@ struct CommandResponsePacket: Packetable {
     
     enum Code: Word {
         case okay = 0x2001
+        //TODO: Add other response codes
     }
     
     var name: Packet.Name
