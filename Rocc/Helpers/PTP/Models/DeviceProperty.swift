@@ -131,6 +131,10 @@ extension PTP.DeviceProperty.Code {
             return nil
         case .stillImage:
             return nil
+        case .autoFocus:
+            return [.halfPressShutter, .cancelHalfPressShutter]
+        case .capture:
+            return [.takePicture]
         }
     }
     
@@ -254,6 +258,10 @@ extension PTP.DeviceProperty.Code {
             return nil
         case .stillImage:
             return nil
+        case .autoFocus:
+            return nil
+        case .capture:
+            return nil
         }
     }
 }
@@ -294,6 +302,10 @@ extension _CameraFunction {
             return nil
         case .setCurrentTime:
             return [.dateTime]
+        case .cancelHalfPressShutter, .halfPressShutter:
+            return [.autoFocus]
+        case .takePicture:
+            return [.capture]
         default:
             return nil
         }
@@ -720,6 +732,8 @@ extension PTP {
             case pictureEffect = 0xD21B
             case ABFilter = 0xD21C
             case ISO = 0xD21E
+            case autoFocus = 0xD2C1
+            case capture = 0xD2C2
             case movie = 0xD2C8
             case stillImage = 0xD2C7
         }

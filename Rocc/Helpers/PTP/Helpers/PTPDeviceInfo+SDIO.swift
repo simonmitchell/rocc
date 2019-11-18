@@ -17,6 +17,7 @@ extension PTP.DeviceInfo {
         var supportedEvents = supportedEventCodes
         
         sdioExtDeviceInfo.supportedPropCodes.forEach { (propCode) in
+            print("Propcode", propCode, propCode & 0x7000)
             switch propCode & 0x7000 {
             case 0x1000:
                 guard let opCode = PTP.CommandCode(rawValue: propCode), !supportedOpCodes.contains(opCode) else { return

@@ -11,8 +11,6 @@ import os.log
 
 typealias CommandRequestPacketResponse = (_ packet: CommandResponsePacket) -> Void
 
-typealias DataResponse = (_ dataContainer: PTPIPClient.DataContainer) -> Void
-
 /// A client for transferring images using the PTP IP protocol
 final class PTPIPClient: NSObject {
     
@@ -229,6 +227,20 @@ final class PTPIPClient: NSObject {
         }
     }
     
+    func sendSetControlDeviceBValue(_ value: PTP.DeviceProperty.Value) {
+        
+        let opRequestPacket = Packet.commandRequestPacket(code: .setControlDeviceB, arguments: [UInt32(value.code.rawValue)], transactionId: getNextTransactionId())
+        var data = ByteBuffer()
+        data.appendValue(value.value, ofType: value.type)
+        let dataPackets = Packet.dataSendPackets(data: data, transactionId: getNextTransactionId())
+        
+        //TODO: Do we have to wait for callback?
+        sendCommandRequestPacket(opRequestPacket, callback: nil)
+        dataPackets.forEach { (dataPacket) in
+            sendControlPacket(dataPacket)
+        }
+    }
+    
     //MARK: - Handling Responses -
     
     fileprivate func handle(packet: Packetable) {
@@ -285,6 +297,11 @@ final class PTPIPClient: NSObject {
         }
         commandRequestCallbacks[transactionId]?.callback(packet)
         commandRequestCallbacks[transactionId] = nil
+        
+        guard let code = packet.code, code.isError else { return }
+        
+        dataCallbacks[transactionId]?(Result.failure(code))
+        dataCallbacks[transactionId] = nil
     }
     
     //MARK: Data

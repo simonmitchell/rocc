@@ -15,17 +15,23 @@ extension SonyPTPIPDevice {
         switch function.function {
         case .getEvent:
             let packet = Packet.commandRequestPacket(code: .getAllDevicePropData, arguments: [0], transactionId: ptpIPClient?.getNextTransactionId() ?? 0)
-            ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { (data) in
-                guard let numberOfProperties = data.data[qWord: 0] else { return }
-                var offset: UInt = UInt(MemoryLayout<QWord>.size)
-                var properties: [PTPDeviceProperty] = []
-                for _ in 0..<numberOfProperties {
-                    guard let property = data.data.getDeviceProperty(at: offset) else { break }
-                    properties.append(property)
-                    offset += property.length
+            ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { (dataResult) in
+                
+                switch dataResult {
+                case .success(let data):
+                    guard let numberOfProperties = data.data[qWord: 0] else { return }
+                    var offset: UInt = UInt(MemoryLayout<QWord>.size)
+                    var properties: [PTPDeviceProperty] = []
+                    for _ in 0..<numberOfProperties {
+                        guard let property = data.data.getDeviceProperty(at: offset) else { break }
+                        properties.append(property)
+                        offset += property.length
+                    }
+                    let event = CameraEvent(sonyDeviceProperties: properties)
+                    callback(nil, event as? T.ReturnType)
+                case .failure(let error):
+                    callback(error, nil)
                 }
-                let event = CameraEvent(sonyDeviceProperties: properties)
-                callback(nil, event as? T.ReturnType)
             })
             ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
         case .setShootMode:
@@ -359,12 +365,14 @@ extension SonyPTPIPDevice {
         case .getZoomSetting:
             //TODO: Implement
             callback(nil, nil)
-        case .halfPressShutter:
-            //TODO: Implement
-            callback(nil, nil)
-        case .cancelHalfPressShutter:
-            //TODO: Implement
-            callback(nil, nil)
+        case .halfPressShutter, .cancelHalfPressShutter:
+            ptpIPClient?.sendSetControlDeviceBValue(
+                PTP.DeviceProperty.Value(
+                    code: .autoFocus,
+                    type: .uint16,
+                    value: function.function == .halfPressShutter ? Word(2) : Word(1)
+                )
+            )
         case .setTouchAFPosition:
             //TODO: Implement
             callback(nil, nil)

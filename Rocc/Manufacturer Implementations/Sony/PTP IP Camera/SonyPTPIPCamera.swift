@@ -130,18 +130,24 @@ internal final class SonyPTPIPDevice: SonyCamera {
     private func getDeviceInfo(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
         
         let packet = Packet.commandRequestPacket(code: .getDeviceInfo, arguments: nil, transactionId: ptpIPClient?.getNextTransactionId() ?? 1)
-        ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { [weak self] (dataContainer) in
-            guard let deviceInfo = PTP.DeviceInfo(data: dataContainer.data) else {
-                completion(PTPError.fetchDeviceInfoFailed, false)
-                return
+        ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { [weak self] (dataResult) in
+            
+            switch dataResult {
+            case .success(let dataContainer):
+                guard let deviceInfo = PTP.DeviceInfo(data: dataContainer.data) else {
+                    completion(PTPError.fetchDeviceInfoFailed, false)
+                    return
+                }
+                self?.deviceInfo = deviceInfo
+                // Only get SDIO Ext Device Info if it's supported!
+                guard deviceInfo.supportedOperations.contains(.sdioGetExtDeviceInfo) else {
+                    completion(nil, false)
+                    return
+                }
+                self?.getSdioExtDeviceInfo(completion: completion)
+            case .failure(let error):
+                completion(error, false)
             }
-            self?.deviceInfo = deviceInfo
-            // Only get SDIO Ext Device Info if it's supported!
-            guard deviceInfo.supportedOperations.contains(.sdioGetExtDeviceInfo) else {
-                completion(nil, false)
-                return
-            }
-            self?.getSdioExtDeviceInfo(completion: completion)
         })
         ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
     }
@@ -172,17 +178,23 @@ internal final class SonyPTPIPDevice: SonyCamera {
                     
                     // One parameter into this call, not sure what it represents!
                     let packet = Packet.commandRequestPacket(code: .sdioGetExtDeviceInfo, arguments: [0x0000012c], transactionId: _this.ptpIPClient?.getNextTransactionId() ?? 4)
-                    _this.ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { [weak _this] (dataContainer) in
-                        guard let extDeviceInfo = PTP.SDIOExtDeviceInfo(data: dataContainer.data) else {
-                            completion(PTPError.fetchSdioExtDeviceInfoFailed, false)
-                            return
+                    _this.ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { [weak _this] (dataResult) in
+                        
+                        switch dataResult {
+                        case .success(let dataContainer):
+                            guard let extDeviceInfo = PTP.SDIOExtDeviceInfo(data: dataContainer.data) else {
+                                completion(PTPError.fetchSdioExtDeviceInfoFailed, false)
+                                return
+                            }
+                            _this?.deviceInfo?.update(with: extDeviceInfo)
+                            _this?.performSdioConnect(completion: { _ in }, number: 3, transactionId: _this?.ptpIPClient?.getNextTransactionId() ?? 5)
+    //                        _this?.performFunction(Event.get, payload: nil, callback: { (error, event) in
+    //                            print("Got event", event)
+    //                        })
+                            completion(nil, false)
+                        case .failure(let error):
+                            completion(error, false)
                         }
-                        _this?.deviceInfo?.update(with: extDeviceInfo)
-                        _this?.performSdioConnect(completion: { _ in }, number: 3, transactionId: _this?.ptpIPClient?.getNextTransactionId() ?? 5)
-//                        _this?.performFunction(Event.get, payload: nil, callback: { (error, event) in
-//                            print("Got event", event)
-//                        })
-                        completion(nil, false)
                     })
                     _this.ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
                 },

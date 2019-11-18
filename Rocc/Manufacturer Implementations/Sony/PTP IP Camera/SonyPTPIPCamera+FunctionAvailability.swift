@@ -11,6 +11,21 @@ import Foundation
 extension SonyPTPIPDevice {
     
     func isFunctionAvailable<T>(_ function: T, callback: @escaping ((Bool?, Error?, [T.SendType]?) -> Void)) where T : CameraFunction {
+        
+            // Some functions aren't returned by device prop desc so we can assume these are always available if they're supported!
+        
+            let alwaysAvailableFunctions: [_CameraFunction] = [.halfPressShutter, .cancelHalfPressShutter]
+            guard !alwaysAvailableFunctions.contains(function.function) else {
+                supportsFunction(function) { (supported, error, sendType) in
+                    guard let _supported = supported else {
+                        callback(nil, error, nil)
+                        return
+                    }
+                    // If it's supported, it's available!
+                    callback(_supported, error, nil)
+                }
+                return
+            }
                             
             if let latestEvent = lastEvent, let _ = latestEvent.availableFunctions {
                 latestEvent.isFunctionAvailable(function, callback: callback)
@@ -143,12 +158,16 @@ extension SonyPTPIPDevice {
             case .setZoomSetting, .getZoomSetting:
                 //TODO: Implement
                 callback(false, nil, nil)
-            case .halfPressShutter:
-                //TODO: Implement
-                callback(false, nil, nil)
-            case .cancelHalfPressShutter:
-                //TODO: Implement
-                callback(false, nil, nil)
+            case .halfPressShutter, .cancelHalfPressShutter:
+                ptpIPClient?.getDevicePropDescFor(propCode: .autoFocus, callback: { (result) in
+                    switch result {
+                    case .success(let property):
+                        let event = CameraEvent(sonyDeviceProperties: [property])
+                        callback(event.availableFunctions?.contains(function.function), nil, nil)
+                    case .failure(let error):
+                        callback(false, error, nil)
+                    }
+                })
             case .setTouchAFPosition, .getTouchAFPosition, .cancelTouchAFPosition:
                 //TODO: Implement
                 callback(false, nil, nil)

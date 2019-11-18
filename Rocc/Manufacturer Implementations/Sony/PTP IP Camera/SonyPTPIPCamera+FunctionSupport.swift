@@ -26,6 +26,13 @@ extension SonyPTPIPDevice {
                 return
             }
         }
+        
+        // Some functions aren't included in device prop, we'll handle them here otherwise we'll get incorrect results
+        let nonDevicePropFunctions: [_CameraFunction] = [.halfPressShutter, .cancelHalfPressShutter]
+        guard !nonDevicePropFunctions.contains(function.function) else {
+            callback(supported, nil, nil)
+            return
+        }
                 
         if let latestEvent = lastEvent, let _ = latestEvent.supportedFunctions {
             latestEvent.supportsFunction(function, callback: callback)
@@ -145,12 +152,16 @@ extension SonyPTPIPDevice {
         case .setZoomSetting, .getZoomSetting:
             //TODO: Implement
             callback(false, nil, nil)
-        case .halfPressShutter:
-            //TODO: Implement
-            callback(false, nil, nil)
-        case .cancelHalfPressShutter:
-            //TODO: Implement
-            callback(false, nil, nil)
+        case .halfPressShutter, .cancelHalfPressShutter:
+            ptpIPClient?.getDevicePropDescFor(propCode: .autoFocus, callback: { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent(sonyDeviceProperties: [property])
+                    callback(event.supportedFunctions?.contains(function.function), nil, nil)
+                case .failure(let error):
+                    callback(false, error, nil)
+                }
+            })
         case .setTouchAFPosition, .getTouchAFPosition, .cancelTouchAFPosition:
             //TODO: Implement
             callback(false, nil, nil)
