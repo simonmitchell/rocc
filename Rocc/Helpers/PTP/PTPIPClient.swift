@@ -11,6 +11,23 @@ import os.log
 
 typealias CommandRequestPacketResponse = (_ packet: CommandResponsePacket) -> Void
 
+extension Packet: CustomStringConvertible, CustomDebugStringConvertible {
+    
+    var debugDescription: String {
+        return description
+    }
+    
+    var description: String {
+        return """
+            {
+                length: \(length)
+                code: \(name)
+                data: \(data.toHex)
+            }
+        """
+    }
+}
+
 /// A client for transferring images using the PTP IP protocol
 final class PTPIPClient: NSObject {
     
@@ -181,6 +198,8 @@ final class PTPIPClient: NSObject {
             pendingEventPackets.append(packet)
             return
         }
+        Logger.log(message: "Sending event packet to device: \(packet.debugDescription)", category: "PTPIPClient")
+        os_log("Sending event packet to device: %@", log: ptpClientLog, type: .debug, "\(packet.debugDescription)")
         eventWriteStream.write(packet)
     }
     
@@ -192,6 +211,8 @@ final class PTPIPClient: NSObject {
             pendingControlPackets.append(packet)
             return
         }
+        Logger.log(message: "Sending control packet to device: \(packet.debugDescription)", category: "PTPIPClient")
+        os_log("Sending control packet to device: %@", log: ptpClientLog, type: .debug, "\(packet.debugDescription)")
         controlWriteStream.write(packet)
     }
     
@@ -244,6 +265,9 @@ final class PTPIPClient: NSObject {
     //MARK: - Handling Responses -
     
     fileprivate func handle(packet: Packetable) {
+        
+        Logger.log(message: "Received packet from device: \(packet.debugDescription)", category: "PTPIPClient")
+        os_log("Received packet from device: %@", log: ptpClientLog, type: .debug, "\(packet.debugDescription)")
         
         switch packet {
         case let initCommandAckPacket as InitCommandAckPacket:
@@ -355,7 +379,8 @@ extension PTPIPClient: StreamDelegate {
         switch eventCode {
         case Stream.Event.errorOccurred:
             guard let error = aStream.streamError else { return }
-            print("Stream error \(error.localizedDescription), \((error as NSError).code)")
+            Logger.log(message: "Stream error: \(error.localizedDescription)", category: "PTPIPClient")
+            os_log("Stream error: %@", log: ptpClientLog, type: .error, error.localizedDescription)
             break
         case Stream.Event.hasSpaceAvailable:
             switch aStream {
