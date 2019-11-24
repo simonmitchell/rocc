@@ -335,15 +335,9 @@ extension SonyPTPIPDevice {
         case .endLoopRecording:
             //TODO: Implement
             callback(nil, nil)
-        case .startLiveView:
-            //TODO: Implement
-            callback(nil, nil)
-        case .startLiveViewWithSize:
-            //TODO: Implement
-            callback(nil, nil)
-        case .endLiveView:
-            //TODO: Implement
-            callback(nil, nil)
+        case .startLiveView, .startLiveViewWithSize, .endLiveView:
+            //TODO: Check whether we need to call any PTP IP methods for this!
+            callback(nil, apiDeviceInfo.liveViewURL as? T.ReturnType)
         case .getLiveViewSize:
             //TODO: Implement
             callback(nil, nil)

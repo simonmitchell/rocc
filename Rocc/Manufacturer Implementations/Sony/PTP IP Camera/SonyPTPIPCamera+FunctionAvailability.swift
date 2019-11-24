@@ -137,15 +137,9 @@ extension SonyPTPIPDevice {
             case .startLoopRecording, .endLoopRecording:
                 //TODO: Implement
                 callback(false, nil, nil)
-            case .startLiveView:
-                //TODO: Implement
-                callback(false, nil, nil)
-            case .startLiveViewWithSize:
-                //TODO: Implement
-                callback(false, nil, nil)
-            case .endLiveView:
-                //TODO: Implement
-                callback(false, nil, nil)
+            case .startLiveView, .startLiveViewWithSize, .endLiveView:
+                //TODO: Check if we need to call something here!
+                callback(true, nil, nil)
             case .getLiveViewSize:
                 //TODO: Implement
                 callback(false, nil, nil)
