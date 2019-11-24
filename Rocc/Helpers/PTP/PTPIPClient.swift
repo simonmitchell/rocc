@@ -11,7 +11,7 @@ import os.log
 
 typealias CommandRequestPacketResponse = (_ packet: CommandResponsePacket) -> Void
 
-extension Packet: CustomStringConvertible, CustomDebugStringConvertible {
+extension Packetable {
     
     var debugDescription: String {
         return description
