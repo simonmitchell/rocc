@@ -133,7 +133,9 @@ struct CommandResponsePacket: Packetable {
         }
         guard let code = Code(rawValue: responseWord) else {
             self.code = nil
-            transactionId = data[dWord: 2]
+            // Some manufacturers *coughs* Sony, send malformed packets... we handle this by hard-coding the height!
+            self.length = 8
+            transactionId = nil
             return
         }
         

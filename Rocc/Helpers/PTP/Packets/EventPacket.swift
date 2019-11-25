@@ -24,7 +24,11 @@ struct EventPacket: Packetable {
         self.name = name
                 
         guard let codeWord = data[word: 0] else { return nil }
-        guard let code = PTP.EventCode(rawValue: codeWord) else { return nil }
+        guard let code = PTP.EventCode(rawValue: codeWord) else {
+            // Some manufacturers *coughs* Sony, send malformed packets... we handle this by hard-coding the height!
+            self.length = 8
+            return nil
+        }
         self.code = code
         
         // Use `length` here as otherwise we may end up stealing data from other packets!

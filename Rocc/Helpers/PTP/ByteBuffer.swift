@@ -134,8 +134,13 @@ struct ByteBuffer {
     
     mutating func slice(_ offset: Int, _ end: Int? = nil) {
         let internalEnd = end ?? bytes.endIndex
-        let fixedOffset = max(offset, bytes.startIndex)
         let fixedEnd = min(internalEnd, bytes.endIndex)
+        let fixedOffset = max(offset, bytes.startIndex)
+        // If offset >= end then we're after the end of the data, so we just create a new data array
+        guard fixedOffset < fixedEnd else {
+            bytes = []
+            return
+        }
         bytes = Array(bytes[fixedOffset..<fixedEnd])
     }
     
