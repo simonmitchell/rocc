@@ -322,9 +322,9 @@ final class PTPIPClient: NSObject {
         commandRequestCallbacks[transactionId]?.callback(packet)
         commandRequestCallbacks[transactionId] = nil
         
-        guard let code = packet.code, code.isError else { return }
+        guard packet.code.isError else { return }
         
-        dataCallbacks[transactionId]?(Result.failure(code))
+        dataCallbacks[transactionId]?(Result.failure(packet.code))
         dataCallbacks[transactionId] = nil
     }
     

@@ -117,7 +117,7 @@ struct CommandResponsePacket: Packetable {
                 
     var data: ByteBuffer = ByteBuffer()
     
-    let code: Code?
+    let code: Code
     
     let transactionId: DWord?
     
@@ -127,13 +127,15 @@ struct CommandResponsePacket: Packetable {
         self.length = length
         
         guard let responseWord = data[word: 0] else {
-            code = nil
+            // Some manufacturers *coughs* Sony, send malformed packets... we handle this by hard-coding the length and code!
+            self.code = .okay
+            self.length = 8
             transactionId = nil
             return
         }
         guard let code = Code(rawValue: responseWord) else {
-            self.code = nil
-            // Some manufacturers *coughs* Sony, send malformed packets... we handle this by hard-coding the height!
+            // Some manufacturers *coughs* Sony, send malformed packets... we handle this by hard-coding the length and code!
+            self.code = .okay
             self.length = 8
             transactionId = nil
             return
