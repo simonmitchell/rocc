@@ -75,10 +75,16 @@ struct Packet: Packetable {
             return nil
         }
        
-        guard let length = data[dWord: 0] else { return nil }
+        guard let length = data[dWord: 0] else {
+            return nil
+        }
        
-        guard let typeInt = data[dWord: 4] else { return nil }
-        guard let type = Name(rawValue: typeInt) else { return nil }
+        guard let typeInt = data[dWord: 4] else {
+            return nil
+        }
+        guard let type = Name(rawValue: typeInt) else {
+            return nil
+        }
               
         let unparsedData = data.sliced(Packet.headerLength, Int(length))
         
