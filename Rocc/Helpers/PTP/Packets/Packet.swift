@@ -45,6 +45,7 @@ struct Packet: Packetable {
         case endDataPacket
         case ping
         case pong
+        case sonyUnknown1 = 0x0000ffff
     }
     
     private static let headerLength: Int = 8
@@ -82,7 +83,8 @@ struct Packet: Packetable {
         let unparsedData = data.sliced(Packet.headerLength, Int(length))
         
         guard let packetType = nameToType[type] else {
-            return Packet(length: length, name: type, data: unparsedData)
+            // We send full data object through here becaue otherwise has incorrect `length`
+            return Packet(length: length, name: type, data: data.sliced(0, Int(length)))
         }
         
         return packetType.init(length: length, name: type, data: unparsedData)
@@ -90,8 +92,8 @@ struct Packet: Packetable {
         
     init?(length: DWord, name: Packet.Name, data: ByteBuffer) {
         self.name = name
-        self.unparsedData = data
-        self.data.set(header: name)
+        self.data = data
+        self.unparsedData = data.sliced(Packet.headerLength, nil)
     }
     
     init() {

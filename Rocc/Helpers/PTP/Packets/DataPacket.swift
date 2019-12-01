@@ -22,6 +22,11 @@ struct DataPacket: Packetable {
         
         self.length = length
         self.name = name
+        
+        // If we don't have enough data yet, return nil, otherwise we'll get broken packets when parsing!
+        guard data.length >= length - 8 else {
+            return nil
+        }
                 
         guard let transactionId = data[dWord: 0] else { return nil }
         self.transactionId = transactionId

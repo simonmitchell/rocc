@@ -45,7 +45,20 @@ internal final class SonyPTPIPDevice: SonyCamera {
     
     let apiDeviceInfo: ApiDeviceInfo
     
-    var ptpIPClient: PTPIPClient?
+    private var cachedPTPIPClient: PTPIPClient?
+    
+    var ptpIPClient: PTPIPClient? {
+        get {
+            if let cachedPTPIPClient = cachedPTPIPClient {
+                return cachedPTPIPClient
+            }
+            cachedPTPIPClient = PTPIPClient(camera: self)
+            return cachedPTPIPClient
+        }
+        set {
+            cachedPTPIPClient = newValue
+        }
+    }
     
     struct ApiDeviceInfo {
         
@@ -83,7 +96,7 @@ internal final class SonyPTPIPDevice: SonyCamera {
         manufacturer = dictionary["manufacturer"] as? String ?? "Sony"
         
         super.init(dictionary: dictionary)
-
+        
         name = dictionary["friendlyName"] as? String
 
         if let model = model {
@@ -218,7 +231,6 @@ extension SonyPTPIPDevice: Camera {
         
     func connect(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
         
-        ptpIPClient = PTPIPClient(camera: self)
         ptpIPClient?.connect(callback: { [weak self] (error) in
             self?.sendStartSessionPacket(completion: completion)
         })
