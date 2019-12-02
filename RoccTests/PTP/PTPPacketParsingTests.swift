@@ -127,4 +127,107 @@ class PTPPacketParsingTests: XCTestCase {
         
         XCTAssertNotNil(packets)
     }
+    
+    func testConnectionFlowParsesCorrectly() {
+        
+        let hexString = """
+            2e 00 00 00 02 00 00 00 6d ac 19 f4 00 00 00 00
+            00 00 00 00 ff ff 60 f1 89 af bf 39 49 00 4c 00
+            43 00 45 00 2d 00 39 00 00 00 00 00 01 00
+            08 00 00 00 04 00 00 00
+            0e 00 00 00 07 00 00 00
+            14 00 00 00 09 00 00 00 01 00 00 00 0b 01 00 00
+            00 00 00 00
+            17 01 00 00 0a 00 00 00 01 00 00 00 64 00 11 00
+            00 00 64 00 14 53 00 6f 00 6e 00 79 00 20 00 50
+            00 54 00 50 00 20 00 45 00 78 00 74 00 65 00 6e
+            00 73 00 69 00 6f 00 6e 00 73 00 00 00 00 00 18
+            00 00 00 01 10 02 10 03 10 04 10 05 10 06 10 07
+            10 08 10 09 10 0a 10 1b 10 01 92 02 92 05 92 07
+            92 09 92 0a 92 0b 92 0c 92 0d 92 01 98 02 98 03
+            98 05 98 07 00 00 00 01 c2 02 c2 03 c2 04 c2 05
+            c2 06 c2 07 c2 00 00 00 00 00 00 00 00 03 00 00
+            00 01 38 01 b3 01 b1 11 53 00 6f 00 6e 00 79 00
+            20 00 43 00 6f 00 72 00 70 00 6f 00 72 00 61 00
+            74 00 69 00 6f 00 6e 00 00 00 07 49 00 4c 00 43
+            00 45 00 2d 00 39 00 00 00 05 36 00 2e 00 30 00
+            30 00 00 00 21 30 00 30 00 30 00 30 00 30 00 30
+            00 30 00 30 00 30 00 30 00 30 00 30 00 30 00 30
+            00 30 00 30 00 33 00 32 00 38 00 32 00 38 00 39
+            00 33 00 30 00 30 00 33 00 37 00 37 00 37 00 39
+            00 38 00 32 00 00 00 0c 00 00 00 0c 00 00 00 01
+            00 00 00 0e 00 00 00 07 00 00 00 01 20 01 00 00
+            00
+            14 00 00 00 09 00 00 00 02 00 00 00 08 00 00 00
+            00 00 00 00
+            14 00 00 00 0a 00 00 00 02 00 00 00 00 00 00 00
+            00 00 00 00 0c 00 00 00 0c 00 00 00 02 00 00 00
+            0e 00 00 00 07 00 00 00 01 20 02 00 00 00
+            14 00 00 00 09 00 00 00 03 00 00 00 08 00 00 00
+            00 00 00 00
+            14 00 00 00 0a 00 00 00 03 00 00 00 00 00 00 00
+            00 00 00 00 0c 00 00 00 0c 00 00 00 03 00 00 00
+            0e 00 00 00 07 00 00 00 01 20 03 00 00 00
+            14 00 00 00 09 00 00 00 04 00 00 00 c6 00 00 00
+            00 00 00 00
+            12 00 00 00 08 00 00 00
+            d2 00 00 00 0a 00 00 00 04 00 00 00 2c 01 48 00
+            00 00 05 50 07 50 0a 50 0b 50 0c 50 0e 50 10 50
+            13 50 00 d2 01 d2 03 d2 0d d2 0e d2 0f d2 10 d2
+            11 d2 13 d2 14 d2 15 d2 17 d2 18 d2 1b d2 1c d2
+            1d d2 1e d2 1f d2 21 d2 22 d2 23 d2 2a d2 2c d2
+            31 d2 35 d2 36 d2 3e d2 3f d2 40 d2 41 d2 42 d2
+            43 d2 44 d2 45 d2 46 d2 47 d2 48 d2 49 d2 4a d2
+            4c d2 4e d2 4f d2 50 d2 51 d2 52 d2 53 d2 54 d2
+            55 d2 56 d2 57 d2 58 d2 59 d2 5a d2 5b d2 5c d2
+            5d d2 5f d2 60 d2 61 d2 62 d2 63 d2 64 d2 67 d2
+            78 d2 16 00 00 00 c1 d2 c2 d2 c3 d2 c7 d2 c8 d2
+            c9 d2 ca d2 cd d2 ce d2 cf d2 d0 d2 d1 d2 d2 d2
+            d5 d2 d6 d2 d7 d2 d8 d2 d9 d2 da d2 db d2 dc d2
+            dd d2 0c 00 00 00 0c 00 00 00 04 00 00 00
+            03 c2 ff ff ff ff 00 00 00 00
+            12 00 00 00 07 00 00 00 01 20 04 00 00 00 2c 01
+            00 00
+            14 00 00 00 09 00 00 00 02 00 00 00 08 00 00 00
+            00 00 00 00
+            14 00 00 00 0a 00 00 00 02 00 00 00 00 00 00 00
+            00 00 00 00 0c 00 00 00 0c 00 00 00 02 00 00 00
+            0e 00 00 00 07 00 00 00 01 20 02 00 00 00
+            """
+        var byteBuffer = ByteBuffer(hexString: hexString)
+        
+        let packets = byteBuffer.parsePackets()
+        
+        XCTAssertEqual(byteBuffer.length, 0)
+        XCTAssertEqual(packets?.count, 21)
+    }
+    
+    func testUnknownBrokenSonyPacketDoesntSwallowNextPacketsData() {
+        
+        let hexString = """
+            03 c2 ff ff ff ff 00 00 00 00
+            12 00 00 00 07 00 00 00 01 20 04 00 00 00 2c 01
+            00 00
+            """
+        
+        var byteBuffer = ByteBuffer(hexString: hexString)
+        
+        let packets = byteBuffer.parsePackets()
+        
+        XCTAssertEqual(byteBuffer.length, 0)
+        XCTAssertEqual(packets?.count, 2)
+        
+        let hexString2 = """
+            03 c2 ff ff ff ff 00 00 00 00 00 00 07 00 00 00
+            12 00 00 00 07 00 00 00 01 20 04 00 00 00 2c 01
+            00 00
+            """
+        
+        var byteBuffer2 = ByteBuffer(hexString: hexString2)
+        
+        let packets2 = byteBuffer2.parsePackets()
+        
+        XCTAssertEqual(byteBuffer2.length, 0)
+        XCTAssertEqual(packets2?.count, 2)
+    }
 }

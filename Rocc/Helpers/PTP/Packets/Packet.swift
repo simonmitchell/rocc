@@ -48,7 +48,7 @@ struct Packet: Packetable {
         case sonyUnknown1 = 0x0000ffff
     }
     
-    private static let headerLength: Int = 8
+    static let headerLength: Int = 8
     
     var data = ByteBuffer()
     
@@ -66,7 +66,8 @@ struct Packet: Packetable {
         .startDataPacket: StartDataPacket.self,
         .dataPacket: DataPacket.self,
         .endDataPacket: EndDataPacket.self,
-        .event: EventPacket.self
+        .event: EventPacket.self,
+        .sonyUnknown1: PainInTheArsePacket.self
     ]
     
     static func parse(from data: ByteBuffer) -> Packetable? {

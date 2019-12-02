@@ -104,6 +104,8 @@
 		B182B8FE2381E22A0054539E /* SonyPTPIPCamera+FunctionAvailability.swift in Sources */ = {isa = PBXBuildFile; fileRef = B182B8FC2381E22A0054539E /* SonyPTPIPCamera+FunctionAvailability.swift */; };
 		B182B9002381E2510054539E /* SonyPTPIPCamera+FunctionSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B182B8FF2381E2510054539E /* SonyPTPIPCamera+FunctionSupport.swift */; };
 		B182B9012381E2510054539E /* SonyPTPIPCamera+FunctionSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B182B8FF2381E2510054539E /* SonyPTPIPCamera+FunctionSupport.swift */; };
+		B185A4EE2394FCB400B87BC7 /* PainInTheArsePacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = B185A4ED2394FCB400B87BC7 /* PainInTheArsePacket.swift */; };
+		B185A4EF2394FCB400B87BC7 /* PainInTheArsePacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = B185A4ED2394FCB400B87BC7 /* PainInTheArsePacket.swift */; };
 		B1990A8020C3FA1D0090A2F6 /* DeviceConnectivityNotifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1990A7F20C3FA1D0090A2F6 /* DeviceConnectivityNotifier.swift */; };
 		B1990A8120C3FA1D0090A2F6 /* DeviceConnectivityNotifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1990A7F20C3FA1D0090A2F6 /* DeviceConnectivityNotifier.swift */; };
 		B1990A8320C3FDAA0090A2F6 /* Reachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1990A8220C3FDAA0090A2F6 /* Reachability.swift */; };
@@ -380,6 +382,7 @@
 		B182B8F22381E1CD0054539E /* SonyPTPIPCamera+PerformFunction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SonyPTPIPCamera+PerformFunction.swift"; sourceTree = "<group>"; };
 		B182B8FC2381E22A0054539E /* SonyPTPIPCamera+FunctionAvailability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SonyPTPIPCamera+FunctionAvailability.swift"; sourceTree = "<group>"; };
 		B182B8FF2381E2510054539E /* SonyPTPIPCamera+FunctionSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SonyPTPIPCamera+FunctionSupport.swift"; sourceTree = "<group>"; };
+		B185A4ED2394FCB400B87BC7 /* PainInTheArsePacket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PainInTheArsePacket.swift; sourceTree = "<group>"; };
 		B1990A7F20C3FA1D0090A2F6 /* DeviceConnectivityNotifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceConnectivityNotifier.swift; sourceTree = "<group>"; };
 		B1990A8220C3FDAA0090A2F6 /* Reachability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Reachability.swift; sourceTree = "<group>"; };
 		B1990A8520C408C20090A2F6 /* Ping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ping.swift; sourceTree = "<group>"; };
@@ -773,6 +776,7 @@
 				B1F7CEDE236DE31C007E3921 /* InitCommandAckPacket.swift */,
 				B180A7D5236F1B9D001AAF5D /* CommandResponsePacket.swift */,
 				B180A7D8236F1D0F001AAF5D /* CommandRequestPacket.swift */,
+				B185A4ED2394FCB400B87BC7 /* PainInTheArsePacket.swift */,
 				B180A7DB236F2E05001AAF5D /* StartDataPacket.swift */,
 				B180A7DE236F320F001AAF5D /* DataPacket.swift */,
 				B10A22F1237060D3000BEA56 /* EventPacket.swift */,
@@ -1129,6 +1133,7 @@
 				B1FF7A422371F4AB0010D5F0 /* DeviceProperty.swift in Sources */,
 				B182B8F32381E1CD0054539E /* SonyPTPIPCamera+PerformFunction.swift in Sources */,
 				B164F02921811C1200590A05 /* String+Regex.swift in Sources */,
+				B185A4EE2394FCB400B87BC7 /* PainInTheArsePacket.swift in Sources */,
 				B1CE24B22099184B0049EC87 /* Zoom.swift in Sources */,
 				B100E1AB20A0A42D004F7AB8 /* PostViewImage.swift in Sources */,
 				B1B4345D2097483300A81B9D /* WhiteBalance.swift in Sources */,
@@ -1264,6 +1269,7 @@
 				B1FF7A432371F4AB0010D5F0 /* DeviceProperty.swift in Sources */,
 				B182B8F42381E1CD0054539E /* SonyPTPIPCamera+PerformFunction.swift in Sources */,
 				B164F02A21811C1200590A05 /* String+Regex.swift in Sources */,
+				B185A4EF2394FCB400B87BC7 /* PainInTheArsePacket.swift in Sources */,
 				B1A1AA3520A4E02200FD0A4A /* SteadyMode.swift in Sources */,
 				B1A1AA3220A4E02200FD0A4A /* ShootMode.swift in Sources */,
 				B154535621EFDC1700C59096 /* Countable.swift in Sources */,
