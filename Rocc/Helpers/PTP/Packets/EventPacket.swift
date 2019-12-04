@@ -36,6 +36,10 @@ struct EventPacket: Packetable {
         self.data = data.sliced(MemoryLayout<Word>.size, Int(length) - Packet.headerLength)
     }
     
+    var debugDescription: String {
+        return description
+    }
+    
     var description: String {
            return """
            {

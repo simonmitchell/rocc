@@ -36,6 +36,10 @@ struct EndDataPacket: Packetable {
         data = ByteBuffer()
     }
     
+    var debugDescription: String {
+        return description
+    }
+    
     var description: String {
        return """
        {

@@ -69,6 +69,7 @@ struct PTP {
         case unknown2 = 0xc205
         case unknown3 = 0xc206
         case unknown4 = 0xc207
+        case unknown5 = 0xc20c
     }
     
     enum CommandCode: Word {

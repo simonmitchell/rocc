@@ -42,6 +42,10 @@ struct StartDataPacket: Packetable {
         self.dataLength = dataLength
     }
     
+    var debugDescription: String {
+        return description
+    }
+    
     var description: String {
         return """
         {

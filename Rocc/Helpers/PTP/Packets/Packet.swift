@@ -17,6 +17,10 @@ extension ByteBuffer {
 }
 
 protocol Packetable {
+    
+    var debugDescription: String { get }
+    
+    var description: String { get }
         
     var name: Packet.Name { get }
     

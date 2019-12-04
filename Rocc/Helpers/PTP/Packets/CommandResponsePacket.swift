@@ -148,6 +148,10 @@ struct CommandResponsePacket: Packetable {
         self.data = data.sliced(6, Int(length) - Packet.headerLength)
     }
     
+    var debugDescription: String {
+        return description
+    }
+    
     var description: String {
         return """
         {

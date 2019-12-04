@@ -37,6 +37,10 @@ struct CommandRequestPacket: Packetable {
         return PTP.CommandCode(rawValue: commandCodeWord)
     }
     
+    var debugDescription: String {
+        return description
+    }
+    
     var description: String {
         return """
         {

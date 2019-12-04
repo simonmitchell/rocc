@@ -200,11 +200,16 @@ internal final class SonyPTPIPDevice: SonyCamera {
                                 return
                             }
                             _this?.deviceInfo?.update(with: extDeviceInfo)
-                            _this?.performSdioConnect(completion: { _ in }, number: 3, transactionId: _this?.ptpIPClient?.getNextTransactionId() ?? 5)
+                            _this?.performSdioConnect(
+                                completion: { _ in
+                                    completion(nil, false)
+                                },
+                                number: 3,
+                                transactionId: _this?.ptpIPClient?.getNextTransactionId() ?? 5
+                            )
     //                        _this?.performFunction(Event.get, payload: nil, callback: { (error, event) in
     //                            print("Got event", event)
     //                        })
-                            completion(nil, false)
                         case .failure(let error):
                             completion(error, false)
                         }
