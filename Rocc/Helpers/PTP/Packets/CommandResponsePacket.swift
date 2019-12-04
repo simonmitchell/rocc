@@ -144,6 +144,20 @@ struct CommandResponsePacket: Packetable {
         self.code = code
         
         transactionId = data[dWord: 2]
+        // Use `length` here as otherwise we may end up stealing data from other packets!
+        self.data = data.sliced(6, Int(length) - Packet.headerLength)
+    }
+    
+    var description: String {
+        return """
+        {
+            length: \(length)
+            code: \(name)
+            transactionId: \(transactionId ?? 0)
+            responseCode: \(code)
+            data: \(data.toHex)
+        }
+        """
     }
 }
 

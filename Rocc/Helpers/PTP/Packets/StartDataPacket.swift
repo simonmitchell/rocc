@@ -41,4 +41,16 @@ struct StartDataPacket: Packetable {
         data = ByteBuffer()
         self.dataLength = dataLength
     }
+    
+    var description: String {
+        return """
+        {
+            length: \(length)
+            code: \(name)
+            transactionId: \(transactionId)
+            dataLength:  \(dataLength)
+            data: \(data.toHex)
+        }
+        """
+    }
 }

@@ -32,7 +32,7 @@ struct DataPacket: Packetable {
         self.transactionId = transactionId
         
         // Use `length` here as otherwise we may end up stealing data from other packets!
-        self.data = data.sliced(4, Int(length) - 8)
+        self.data = data.sliced(4, Int(length) - Packet.headerLength)
     }
     
     init(transactionId: DWord) {

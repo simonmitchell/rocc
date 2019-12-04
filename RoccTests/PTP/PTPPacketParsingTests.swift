@@ -202,6 +202,22 @@ class PTPPacketParsingTests: XCTestCase {
         XCTAssertEqual(packets?.count, 21)
     }
     
+    func testUnknownBrokenSonyPacketDoesntBreakEventPackets() {
+        
+        let hexString = """
+            03 c2 ff ff ff ff 00 00 00 00
+            0e 00 00 00 08 00 00 00 07 c2 ff ff ff ff
+            0e 00 00 00 08 00 00 00 0c c2 ff ff ff ff
+            """
+        
+        var byteBuffer = ByteBuffer(hexString: hexString)
+        
+        let packets = byteBuffer.parsePackets()
+        
+        XCTAssertEqual(byteBuffer.length, 0)
+        XCTAssertEqual(packets?.count, 2)
+    }
+    
     func testUnknownBrokenSonyPacketDoesntSwallowNextPacketsData() {
         
         let hexString = """

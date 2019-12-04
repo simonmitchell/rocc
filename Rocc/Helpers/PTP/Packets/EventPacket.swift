@@ -25,7 +25,7 @@ struct EventPacket: Packetable {
                 
         guard let codeWord = data[word: 0], let code = PTP.EventCode(rawValue: codeWord) else {
             // Some manufacturers *coughs* Sony, send malformed packets... we handle this by hard-coding the height, and assume the code was property changed!
-            self.length = 8
+            self.length = DWord(Packet.headerLength)
             self.code = .propertyChanged
             self.data = ByteBuffer()
             return
@@ -33,6 +33,17 @@ struct EventPacket: Packetable {
         self.code = code
         
         // Use `length` here as otherwise we may end up stealing data from other packets!
-        self.data = data.sliced(4, Int(length) - 8)
+        self.data = data.sliced(MemoryLayout<Word>.size, Int(length) - Packet.headerLength)
     }
+    
+    var description: String {
+           return """
+           {
+               length: \(length)
+               code: \(name)
+               event: \(code)
+               data: \(data.toHex)
+           }
+           """
+       }
 }

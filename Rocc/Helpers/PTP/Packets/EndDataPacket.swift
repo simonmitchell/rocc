@@ -35,4 +35,15 @@ struct EndDataPacket: Packetable {
         length = 12
         data = ByteBuffer()
     }
+    
+    var description: String {
+       return """
+       {
+           length: \(length)
+           code: \(name)
+           transactionId: \(transactionId)
+           data: \(data.toHex)
+       }
+       """
+   }
 }
