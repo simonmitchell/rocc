@@ -96,6 +96,7 @@ extension SonyCamera {
             case .cyberShot_WX500: return "Cyber-Shot WX500"
             case .cyberShot_RX10M2: return "Cyber-Shot RX1 R II"
             case .cyberShot_RX10M3: return "Cyber-Shot RX10 III"
+            case .cyberShot_RX100M2: return "Cyber-Shot RX100 II"
             case .cyberShot_RX100M3: return "Cyber-Shot RX100 III"
             case .cyberShot_RX100M4: return "Cyber-Shot RX100 IV"
             case .cyberShot_RX100M5: return "Cyber-Shot RX100 V"
@@ -317,7 +318,7 @@ extension SonyCamera {
         }
         
         static var cyberShotSeries: [Model] {
-            return [.cyberShot_HX60, .cyberShot_HX60V, .cyberShot_HX80, .cyberShot_HX90, .cyberShot_HX90V, .cyberShot_HX400, .cyberShot_HX400V, .cyberShot_WX500, .cyberShot_RX10M2, .cyberShot_RX10M3, .cyberShot_RX100M3, .cyberShot_RX100M4, .cyberShot_RX100M5, .cyberShot_RX0, .cyberShot_RX0M2]
+            return [.cyberShot_HX60, .cyberShot_HX60V, .cyberShot_HX80, .cyberShot_HX90, .cyberShot_HX90V, .cyberShot_HX400, .cyberShot_HX400V, .cyberShot_WX500, .cyberShot_RX10M2, .cyberShot_RX10M3, .cyberShot_RX100M2, .cyberShot_RX100M3, .cyberShot_RX100M4, .cyberShot_RX100M5, .cyberShot_RX0, .cyberShot_RX0M2]
         }
         
         static var fdrSeries: [Model] {
