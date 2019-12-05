@@ -204,7 +204,7 @@ extension SonyAPICameraDevice: Camera {
         return .continuous
     }
     
-    private func getVersions(callback: @escaping ServiceClient.VersionsCompletion) {
+    private func getInTransferMode(callback: @escaping (Result<Bool, Error>) -> Void) {
         
         guard let cameraClient = apiClient.camera else {
             callback(Result.failure(CameraError.cameraNotReady("getVersions")))
@@ -213,7 +213,7 @@ extension SonyAPICameraDevice: Camera {
         
         // If the camera model doesn't support getVersions then we don't need to worry!
         if let modelEnum = modelEnum, !modelEnum.supportsGetVersions {
-            callback(Result.success([]))
+            callback(Result.success(false))
         } else {
             cameraClient.getVersions { (result) in
 
@@ -223,16 +223,49 @@ extension SonyAPICameraDevice: Camera {
                 case .success(_):
                     
                     guard let avClient = self.apiClient.avContent else {
-                        callback(Result.success([]))
+                        callback(Result.success(false))
                         return
                     }
                     
-                    avClient.getVersions(callback)
+                    avClient.getVersions { (avResult) in
+                        
+                        switch avResult {
+                        case .failure(let avError):
+                            callback(Result.failure(avError))
+                        case .success(_):
+                            
+                            cameraClient.getCameraFunction({ (functionResult) in
+                                
+                                switch functionResult {
+                                case .failure(_): // If we can't get camera function then check what it currently
+                                    // is, and if it's "contents transfer" we know that we're in "Send to Smartphone" mode!
+                                    
+                                    // Get event, because getCameraFunction failed!
+                                    cameraClient.getEvent(polling: false, { (eventResult) in
+                                        
+                                        var isInTransferMode: Bool = false
+                                        
+                                        switch eventResult {
+                                        case .failure(_):
+                                            callback(Result.success(false))
+                                            break
+                                        case .success(let event):
+                                            if let function = event.function?.current {
+                                                isInTransferMode = function.lowercased() == "contents transfer"
+                                            }
+                                        }
+                                        
+                                        callback(Result.success(isInTransferMode))
+                                    })
+                                case .success(_): // If we can get camera function, we're not in "Send to Smartphone" mode!
+                                    callback(Result.success(false))
+                                }
+                            })
+                        }
+                    }
                 }
             }
         }
-        
-        
     }
     
     public func connect(completion: @escaping Camera.ConnectedCompletion) {
@@ -242,58 +275,26 @@ extension SonyAPICameraDevice: Camera {
             return
         }
         
-        getVersions { (result) in
+        getInTransferMode { (result) in
             
             switch result {
             case .failure(let error):
                 completion(error, false)
-            case .success(_):
+            case .success(let inTransferMode):
                 
-                let successCallback: (_ inTransferMode: Bool) -> Void = { inTransferMode in
-                    
-                    guard self.modelEnum == nil || SonyCamera.Model.supporting(function: .startRecordMode).contains(self.modelEnum!) else {
-                        completion(nil, inTransferMode)
-                        return
-                    }
-                    
-                    cameraClient.startRecordMode() { (error) in
-                        var _error = error
-                        // Ignore no such method errors because in that case we simply never needed to call this method in the first place!
-                        if let clientError = error as? CameraError, case .noSuchMethod(_) = clientError {
-                            _error = nil
-                        }
-                        completion(_error, inTransferMode)
-                    }
+                guard self.modelEnum == nil || SonyCamera.Model.supporting(function: .startRecordMode).contains(self.modelEnum!) else {
+                    completion(nil, inTransferMode)
+                    return
                 }
                 
-                cameraClient.getCameraFunction({ (functionResult) in
-                    
-                    switch functionResult {
-                    case .failure(_): // If we can't get camera function then check what it currently
-                        // is, and if it's "contents transfer" we know that we're in "Send to Smartphone" mode!
-                        
-                        // Get event, because getCameraFunction failed!
-                        cameraClient.getEvent(polling: false, { (eventResult) in
-                            
-                            var isInTransferMode: Bool = false
-                            
-                            switch eventResult {
-                            case .failure(_):
-                                successCallback(false)
-                                break
-                            case .success(let event):
-                                if let function = event.function?.current {
-                                    isInTransferMode = function.lowercased() == "contents transfer"
-                                }
-                            }
-                            
-                            successCallback(isInTransferMode)
-                        })
-                    case .success(_): // If we can get camera function, we're not in "Send to Smartphone" mode!
-                        successCallback(false)
+                cameraClient.startRecordMode() { (error) in
+                    var _error = error
+                    // Ignore no such method errors because in that case we simply never needed to call this method in the first place!
+                    if let clientError = error as? CameraError, case .noSuchMethod(_) = clientError {
+                        _error = nil
                     }
-                })
-                
+                    completion(_error, inTransferMode)
+                }
             }
         }
     }
