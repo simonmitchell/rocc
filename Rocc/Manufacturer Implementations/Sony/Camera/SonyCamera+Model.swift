@@ -318,7 +318,7 @@ extension SonyCameraDevice {
         }
         
         static var cyberShotSeries: [Model] {
-            return [.cyberShot_HX60, .cyberShot_HX60V, .cyberShot_HX80, .cyberShot_HX90, .cyberShot_HX90V, .cyberShot_HX400, .cyberShot_HX400V, .cyberShot_WX500, .cyberShot_RX10M2, .cyberShot_RX10M3, .cyberShot_RX100M3, .cyberShot_RX100M4, .cyberShot_RX100M5, .cyberShot_RX0, .cyberShot_RX0M2]
+            return [.cyberShot_HX60, .cyberShot_HX60V, .cyberShot_HX80, .cyberShot_HX90, .cyberShot_HX90V, .cyberShot_HX400, .cyberShot_HX400V, .cyberShot_WX500, .cyberShot_RX10M2, .cyberShot_RX10M3, .cyberShot_RX100M2, .cyberShot_RX100M3, .cyberShot_RX100M4, .cyberShot_RX100M5, .cyberShot_RX0, .cyberShot_RX0M2]
         }
         
         static var fdrSeries: [Model] {
