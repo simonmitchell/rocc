@@ -42,6 +42,7 @@ extension SonyCamera {
         case cyberShot_RX0M2 = "DSC-RX0M2"
         case cyberShot_RX10M2 = "DSC-RX1RM2"
         case cyberShot_RX10M3 = "DSC-RX10M3"
+        case cyberShot_RX100M2 = "DSC-RX100M2"
         case cyberShot_RX100M3 = "DSC-RX100M3"
         case cyberShot_RX100M4 = "DSC-RX100M4"
         case cyberShot_RX100M5 = "DSC-RX100M5"
@@ -119,6 +120,10 @@ extension SonyCamera {
             case .QX100: return "QX100"
             case .QX30: return "QX30"
             }
+        }
+        
+        internal var supportsGetVersions: Bool {
+            return ![.cyberShot_RX100M2].contains(self)
         }
         
         internal static func supporting(function: _CameraFunction) -> [Model] {
