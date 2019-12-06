@@ -156,8 +156,8 @@ internal final class SonyAPICameraDevice: SonyCamera {
         
         super.init(dictionary: dictionary)
         
-        if let model = model {
-            modelEnum = SonyCamera.Model(rawValue: model)
+        if let name = name, let modelEnum = SonyCamera.Model(rawValue: name) {
+            self.modelEnum = modelEnum
         } else {
             modelEnum = nil
         }
@@ -170,9 +170,7 @@ internal final class SonyAPICameraDevice: SonyCamera {
         // Keep name if modelEnum currently nil as user has renamed camera!
         name = modelEnum == nil ? name : (deviceInfo?.model?.friendlyName ?? name)
         modelEnum = deviceInfo?.model ?? modelEnum
-        if let modelEnum = deviceInfo?.model {
-            model = modelEnum.friendlyName
-        }
+        model = modelEnum?.friendlyName ?? model
         lensModelName = deviceInfo?.lensModelName
         firmwareVersion = deviceInfo?.firmwareVersion
         remoteAppVersion = deviceInfo?.installedPlayMemoriesApps.first(where :{ $0.name == "Smart Remote Control" })?.version
