@@ -88,6 +88,8 @@ extension SonyCamera {
             case .a6400: return "ɑ6400"
             case .a6500: return "ɑ6500"
             case .a6600: return "ɑ6600"
+            case .cyberShot_HX50: return "Cyber-Shot HX50"
+            case .cyberShot_HX50V: return "Cyber-Shot HX50V"
             case .cyberShot_HX60: return "Cyber-Shot HX60"
             case .cyberShot_HX60V: return "Cyber-Shot HX60V"
             case .cyberShot_HX80: return "Cyber-Shot HX80"
