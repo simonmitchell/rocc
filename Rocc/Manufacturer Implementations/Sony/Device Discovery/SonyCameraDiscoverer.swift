@@ -21,9 +21,7 @@ extension SonyCameraDevice {
         // Keep name if modelEnum currently nil as user has renamed camera!
         self.name = modelEnum == nil ? name : (deviceInfo?.model?.friendlyName ?? name)
         self.modelEnum = deviceInfo?.model ?? modelEnum
-        if let modelEnum = deviceInfo?.model {
-            self.model = modelEnum.friendlyName
-        }
+        self.model = modelEnum?.friendlyName ?? model
         self.lensModelName = deviceInfo?.lensModelName
         self.firmwareVersion = deviceInfo?.firmwareVersion
         self.remoteAppVersion = deviceInfo?.installedPlayMemoriesApps.first(where :{ $0.name == "Smart Remote Control" })?.version

@@ -161,8 +161,8 @@ internal final class SonyCameraDevice {
         
         identifier = udn ?? NSUUID().uuidString
         
-        if let model = model {
-            modelEnum = Model(rawValue: model)
+        if let name = name, let modelEnum = Model(rawValue: name) {
+            self.modelEnum = modelEnum
         } else {
             modelEnum = nil
         }
@@ -209,7 +209,7 @@ extension SonyCameraDevice: Camera {
         return true
     }
     
-    private func getInTransferMode(callback: @escaping (Result<Bool, Error>) -> Void) {
+    private func getInTransferMode(callback: @escaping (Result<Bool>) -> Void) {
         
         guard let cameraClient = apiClient.camera else {
             callback(Result.failure(CameraError.cameraNotReady("getVersions")))
@@ -287,7 +287,7 @@ extension SonyCameraDevice: Camera {
                 completion(error, false)
             case .success(let inTransferMode):
                 
-                guard self.modelEnum == nil || SonyCamera.Model.supporting(function: .startRecordMode).contains(self.modelEnum!) else {
+                guard self.modelEnum == nil || Model.supporting(function: .startRecordMode).contains(self.modelEnum!) else {
                     completion(nil, inTransferMode)
                     return
                 }
