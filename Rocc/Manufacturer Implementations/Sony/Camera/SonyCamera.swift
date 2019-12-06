@@ -221,53 +221,53 @@ extension SonyCameraDevice: Camera {
             callback(Result.success(false))
         } else {
             cameraClient.getVersions { (result) in
-
-                switch result {
-                case .failure(let versionsError):
-                    callback(Result.failure(versionsError))
-                case .success(_):
+                
+                // Ignore 404 as this just means we're a legacy camera
+                if case let .failure(error) = result, (error as NSError).code != 404 {
+                    callback(Result.failure(error))
+                    return
+                }
+                
+                guard let avClient = self.apiClient.avContent else {
+                    callback(Result.success(false))
+                    return
+                }
+                
+                avClient.getVersions { (avResult) in
                     
-                    guard let avClient = self.apiClient.avContent else {
-                        callback(Result.success(false))
+                    // Ignore 404 as this just means we're a legacy camera
+                    if case let .failure(error) = avResult, (error as NSError).code != 404 {
+                        callback(Result.failure(error))
                         return
                     }
                     
-                    avClient.getVersions { (avResult) in
+                    cameraClient.getCameraFunction({ (functionResult) in
                         
-                        switch avResult {
-                        case .failure(let avError):
-                            callback(Result.failure(avError))
-                        case .success(_):
+                        switch functionResult {
+                        case .failure(_): // If we can't get camera function then check what it currently
+                            // is, and if it's "contents transfer" we know that we're in "Send to Smartphone" mode!
                             
-                            cameraClient.getCameraFunction({ (functionResult) in
+                            // Get event, because getCameraFunction failed!
+                            cameraClient.getEvent(polling: false, { (eventResult) in
                                 
-                                switch functionResult {
-                                case .failure(_): // If we can't get camera function then check what it currently
-                                    // is, and if it's "contents transfer" we know that we're in "Send to Smartphone" mode!
-                                    
-                                    // Get event, because getCameraFunction failed!
-                                    cameraClient.getEvent(polling: false, { (eventResult) in
-                                        
-                                        var isInTransferMode: Bool = false
-                                        
-                                        switch eventResult {
-                                        case .failure(_):
-                                            callback(Result.success(false))
-                                            break
-                                        case .success(let event):
-                                            if let function = event.function?.current {
-                                                isInTransferMode = function.lowercased() == "contents transfer"
-                                            }
-                                        }
-                                        
-                                        callback(Result.success(isInTransferMode))
-                                    })
-                                case .success(_): // If we can get camera function, we're not in "Send to Smartphone" mode!
+                                var isInTransferMode: Bool = false
+                                
+                                switch eventResult {
+                                case .failure(_):
                                     callback(Result.success(false))
+                                    break
+                                case .success(let event):
+                                    if let function = event.function?.current {
+                                        isInTransferMode = function.lowercased() == "contents transfer"
+                                    }
                                 }
+                                
+                                callback(Result.success(isInTransferMode))
                             })
+                        case .success(_): // If we can get camera function, we're not in "Send to Smartphone" mode!
+                            callback(Result.success(false))
                         }
-                    }
+                    })
                 }
             }
         }
