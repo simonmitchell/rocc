@@ -182,44 +182,65 @@ internal final class SonyPTPIPDevice: SonyCamera {
         // 3. call sdio connect once more
         
         performSdioConnect(completion: { [weak self] (error) in
-            guard let this = self else { return }
+            guard let self = self else { return }
             //TODO: Handle errors
-            this.performSdioConnect(
-                completion: { [weak this] (secondaryError) in
+            self.performSdioConnect(
+                completion: { [weak self] (secondaryError) in
                     
-                    guard let _this = this else { return }
+                    guard let self = self else { return }
                     
                     // One parameter into this call, not sure what it represents!
-                    let packet = Packet.commandRequestPacket(code: .sdioGetExtDeviceInfo, arguments: [0x0000012c], transactionId: _this.ptpIPClient?.getNextTransactionId() ?? 4)
-                    _this.ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { [weak _this] (dataResult) in
+                    let packet = Packet.commandRequestPacket(code: .sdioGetExtDeviceInfo, arguments: [0x0000012c], transactionId: self.ptpIPClient?.getNextTransactionId() ?? 4)
+                    self.ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { [weak self] (dataResult) in
                         
                         switch dataResult {
                         case .success(let dataContainer):
+                            
+                            guard let self = self else { return }
+                            
                             guard let extDeviceInfo = PTP.SDIOExtDeviceInfo(data: dataContainer.data) else {
                                 completion(PTPError.fetchSdioExtDeviceInfoFailed, false)
                                 return
                             }
-                            _this?.deviceInfo?.update(with: extDeviceInfo)
-                            _this?.performSdioConnect(
-                                completion: { _ in
-                                    completion(nil, false)
+                            self.deviceInfo?.update(with: extDeviceInfo)
+                            self.performSdioConnect(
+                                completion: { [weak self] _ in
+                                    self?.performInitialEventFetch(completion: completion)
                                 },
                                 number: 3,
-                                transactionId: _this?.ptpIPClient?.getNextTransactionId() ?? 5
+                                transactionId: self.ptpIPClient?.getNextTransactionId() ?? 5
                             )
-    //                        _this?.performFunction(Event.get, payload: nil, callback: { (error, event) in
-    //                            print("Got event", event)
-    //                        })
                         case .failure(let error):
                             completion(error, false)
                         }
                     })
-                    _this.ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
+                    self.ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
                 },
                 number: 2,
-                transactionId: this.ptpIPClient?.getNextTransactionId() ?? 3
+                transactionId: self.ptpIPClient?.getNextTransactionId() ?? 3
             )
         }, number: 1, transactionId: ptpIPClient?.getNextTransactionId() ?? 2)
+    }
+    
+    private func performInitialEventFetch(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
+        
+        performFunction(Event.get, payload: nil, callback: { [weak self] (error, event) in
+            
+            guard let self = self else {
+                // Can ignore errors as we don't really require this event for the connection process to complete!
+                completion(nil, false)
+                return
+            }
+            
+            self.ptpIPClient?.sendCommandRequestPacket(Packet.commandRequestPacket(
+                code: .unknownHandshakeRequest,
+                arguments: nil,
+                transactionId: self.ptpIPClient?.getNextTransactionId() ?? 7
+            ), callback: { (response) in
+                // For now we'll ignore errors as we have no idea what this even does!
+                completion(nil, false)
+            })
+        })
     }
     
     enum PTPError: Error {
