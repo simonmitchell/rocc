@@ -46,9 +46,9 @@ struct CommandRequestPacket: Packetable {
         {
             length: \(data.length)
             code: \(name)
-            transactionId: \(data[dWord: UInt(Packet.headerLength)] ?? 0)
+            transactionId: \(data[dWord: UInt(Packet.headerLength + MemoryLayout<DWord>.size + MemoryLayout<Word>.size) ] ?? 0)
             command: \(commandCode != nil ? "\(commandCode!)" : "null")
-            data: \(data.sliced(16).toHex)
+            data: \(data.sliced(Packet.headerLength + (MemoryLayout<DWord>.size * 2) + MemoryLayout<Word>.size).toHex)
         }
         """
     }
