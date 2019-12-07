@@ -226,6 +226,8 @@ internal final class SonyPTPIPDevice: SonyCamera {
         
         performFunction(Event.get, payload: nil, callback: { [weak self] (error, event) in
             
+            self?.lastEvent = event
+            
             guard let self = self else {
                 // Can ignore errors as we don't really require this event for the connection process to complete!
                 completion(nil, false)
