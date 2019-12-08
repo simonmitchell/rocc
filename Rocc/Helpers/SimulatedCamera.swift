@@ -360,10 +360,11 @@ public final class DummyCamera: Camera {
             }
             
             var files: [File] = []
-            var date = Date(timeIntervalSinceNow: -100)
-            for i in 0..<request.count {
+            let twoDays: TimeInterval = 2*60.0*60.0
+            var date = Date(timeIntervalSinceNow: -(twoDays * TimeInterval(request.startIndex)))
+            for i in request.startIndex..<request.count + request.startIndex {
                 files.append(File.dummy(date: date, image: i))
-                date = Date(timeInterval: -Double.rand(60.0, 2*60*60.0, precision: 1), since: date)
+                date = Date(timeInterval: -Double.rand(60.0, twoDays, precision: 1), since: date)
             }
             callback(nil, FileResponse(fullyLoaded: false, files: files) as? T.ReturnType)
             
