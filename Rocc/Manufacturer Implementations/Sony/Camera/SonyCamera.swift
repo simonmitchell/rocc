@@ -297,6 +297,9 @@ extension SonyCameraDevice: Camera {
                     // Ignore no such method errors because in that case we simply never needed to call this method in the first place!
                     if let clientError = error as? CameraError, case .noSuchMethod(_) = clientError {
                         _error = nil
+                        // Also ignore 404 as this is what cameras like RX100 M2 return!
+                    } else if (error as NSError?)?.code == 404 {
+                        _error = nil
                     }
                     completion(_error, inTransferMode)
                 }
