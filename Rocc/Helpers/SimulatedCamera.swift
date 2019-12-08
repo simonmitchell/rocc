@@ -88,7 +88,7 @@ extension File {
         let file = File(
             content: content,
             created: date,
-            uri: imageUrls[index]
+            uri: imageUrls[index] + "\(index)"
         )
         
         return file
