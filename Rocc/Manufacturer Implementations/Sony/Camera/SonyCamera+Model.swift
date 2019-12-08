@@ -137,7 +137,7 @@ extension SonyCameraDevice {
             case .startBulbCapture, .endBulbCapture:
                 return []
             case .startRecordMode:
-                return allExcept([.a9, .a7iii, .a7riii, .a7siii])
+                return allExcept([.a9, .a7iii, .a7riii, .a7siii, .cyberShot_RX100M2, .cyberShot_HX50, .cyberShot_HX50V])
             case .ping:
                 return allCases
             case .takePicture:
