@@ -127,8 +127,8 @@ extension SonyCamera {
             }
         }
         
-        internal var supportsGetVersions: Bool {
-            return ![.cyberShot_RX100M2, .cyberShot_HX50, .cyberShot_HX50V].contains(self)
+        internal var usesLegacyAPI: Bool {
+            return [.cyberShot_RX100M2, .cyberShot_HX50, .cyberShot_HX50V].contains(self)
         }
         
         internal static func supporting(function: _CameraFunction) -> [Model] {
