@@ -49,7 +49,7 @@ internal final class SonyCameraDevice {
             
             let accessType: String?
             
-            init?(dictionary: [AnyHashable : Any]) {
+            init?(dictionary: [AnyHashable : Any], model: Model?) {
                 
                 guard let _type = dictionary["av:X_ScalarWebAPI_ServiceType"] as? String else {
                     return nil
@@ -57,8 +57,12 @@ internal final class SonyCameraDevice {
                 guard let urlString = dictionary["av:X_ScalarWebAPI_ActionList_URL"] as? String else {
                     return nil
                 }
-                guard let _url = URL(string: urlString) else {
+                guard var _url = URL(string: urlString) else {
                     return nil
+                }
+                
+                if let model = model, model.usesLegacyAPI {
+                    _url = _url.deletingLastPathComponent()
                 }
                 
                 url = _url
@@ -71,7 +75,7 @@ internal final class SonyCameraDevice {
         
         let services: [Service]
         
-        init?(dictionary: [AnyHashable : Any]) {
+        init?(dictionary: [AnyHashable : Any], model: Model?) {
             
             guard let versionString = dictionary["av:X_ScalarWebAPI_Version"] as? String else { return nil }
             version = versionString
@@ -79,7 +83,7 @@ internal final class SonyCameraDevice {
                 services = []
                 return
             }
-            services = serviceList.compactMap({ Service(dictionary: $0) })
+            services = serviceList.compactMap({ Service(dictionary: $0, model: model) })
         }
     }
     
@@ -148,7 +152,15 @@ internal final class SonyCameraDevice {
     
     init?(dictionary: [AnyHashable : Any]) {
         
-        guard let apiDeviceInfoDict = dictionary["av:X_ScalarWebAPI_DeviceInfo"] as? [AnyHashable : Any], let apiInfo = ApiDeviceInfo(dictionary: apiDeviceInfoDict) else {
+        let _name = dictionary["friendlyName"] as? String
+        let _modelEnum: Model?
+        if let _name = _name {
+            _modelEnum = Model(rawValue: _name)
+        } else {
+            _modelEnum = nil
+        }
+        
+        guard let apiDeviceInfoDict = dictionary["av:X_ScalarWebAPI_DeviceInfo"] as? [AnyHashable : Any], let apiInfo = ApiDeviceInfo(dictionary: apiDeviceInfoDict, model: _modelEnum) else {
             return nil
         }
         
@@ -156,17 +168,12 @@ internal final class SonyCameraDevice {
         apiClient = SonyCameraAPIClient(apiInfo: apiDeviceInfo)
         apiVersion = apiDeviceInfo.version
         
-        name = dictionary["friendlyName"] as? String
+        name = _modelEnum?.friendlyName ?? _name
         udn = dictionary["UDN"] as? String
         
         identifier = udn ?? NSUUID().uuidString
         
-        if let name = name, let modelEnum = Model(rawValue: name) {
-            self.modelEnum = modelEnum
-        } else {
-            modelEnum = nil
-        }
-        
+        modelEnum = _modelEnum
         model = modelEnum?.friendlyName
         manufacturer = dictionary["manufacturer"] as? String ?? "Sony"
         
@@ -217,7 +224,7 @@ extension SonyCameraDevice: Camera {
         }
         
         // If the camera model doesn't support getVersions then we don't need to worry!
-        if let modelEnum = modelEnum, !modelEnum.supportsGetVersions {
+        if let modelEnum = modelEnum, modelEnum.usesLegacyAPI {
             callback(Result.success(false))
         } else {
             cameraClient.getVersions { (result) in
