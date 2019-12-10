@@ -268,6 +268,16 @@ public final class LiveViewStream: NSObject {
         
         let frames: [FrameInfo]?
         
+        init(image: Image, dataRange: Range<Int>) {
+            
+            self.image = image
+            self.type = .image
+            self.timestamp = 0
+            self.sequence = 0
+            self.dataRange = dataRange
+            self.frames = nil
+        }
+        
         init?(data: Data) {
             
             var _data = Data(data)
@@ -356,17 +366,20 @@ public final class LiveViewStream: NSObject {
             
             // If we have a start byte, discard everything before it
             if receivedData.contains(0xFF) {
-                receivedData = receivedData.split(separator: 0xFF, maxSplits: 1, omittingEmptySubsequences: false).last ?? Data()
+                receivedData = Data(receivedData.split(separator: 0xFF, maxSplits: 1, omittingEmptySubsequences: false).last ?? Data())
+                // Add back in the 0xff byte as this is required to parse a JPEG!
+                receivedData.insert(0xFF, at: 0)
             } else {
                 receivedData = Data()
             }
         }
         
-        guard let payloads = payloads(), !payloads.isEmpty else {
-            return nil
+        var payloads = parsePayloads()
+        if payloads == nil, let images = parseJPEGs() {
+            payloads = images
         }
         
-        payloads.forEach { (payload) in
+        payloads?.forEach({ (payload) in
             
             if let image = payload.image {
                 delegate?.liveViewStream(self, didReceive: image)
@@ -375,7 +388,7 @@ public final class LiveViewStream: NSObject {
             if let frames = payload.frames {
                 delegate?.liveViewStream(self, didReceive: frames)
             }
-        }
+        })
         
         return payloads
     }
@@ -385,7 +398,7 @@ public final class LiveViewStream: NSObject {
         case frameInfo
     }
     
-    private func payloads() -> [Payload]? {
+    private func parsePayloads() -> [Payload]? {
         
         var payload = Payload(data: receivedData)
         
@@ -407,6 +420,71 @@ public final class LiveViewStream: NSObject {
                 receivedData.removeSubrange(payload!.dataRange)
                 payloads.append(_payload)
             }
+        }
+        
+        return payloads.isEmpty ? nil : payloads
+    }
+    
+    private func parseJPEGs() -> [Payload]? {
+        
+        // Keep local copy so not mutated whilst we're doing this
+        let data = Data(receivedData)
+        
+        // No point if data length < 2, also we may crash in that case...
+        guard data.count > 2 else { return nil }
+        
+        var offset: Int = 1
+        var startImageOffset: Int = 0
+        
+        var payloads: [Payload] = []
+        
+        // Search for next ff xx
+        while offset < data.count {
+            
+            // Find 0xff 0xx (ignoring multiple chained 0xff 0xff 0xff which is valid)
+            guard data[offset] == 0xff, data[offset + 1] != 0xff else {
+                offset += 1
+                continue
+            }
+            
+            switch data[offset + 1] {
+                // If any of these bytes follow the 0xff marker we don't get a length next
+                // so we just offset ++ and then continue
+            case 0x00, 0x01, 0xd0, 0xd1, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7, 0xdb:
+                offset += 1
+                // Start of image marker!
+            case 0xd8:
+                startImageOffset = offset - 1
+                offset += 1
+                // End of image marker!
+            case 0xd9:
+                let imageRange: Range<Int> = startImageOffset..<offset+2
+                let imageData = data[imageRange]
+                guard let image = Image(data: imageData) else {
+                    offset += 1
+                    continue
+                }
+                offset += 1
+                let payload = Payload(image: image, dataRange: imageRange)
+                payloads.append(payload)
+            default:
+                // We're going to read two bytes, so make sure we won't get out of bounds!
+                guard offset < data.count -  4 else {
+                    offset += 1
+                    continue
+                }
+                guard let length = UInt16(data: data[offset+2..<offset+4]) else {
+                    offset += 1
+                    continue
+                }
+                offset += Int(length) - 2
+                continue
+            }
+        }
+        
+        payloads.forEach { (payload) in
+            let range = payload.dataRange.clamped(to: receivedData.startIndex..<receivedData.endIndex)
+            receivedData.removeSubrange(range)
         }
         
         return payloads.isEmpty ? nil : payloads
