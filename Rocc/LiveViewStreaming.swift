@@ -249,7 +249,7 @@ public final class LiveViewStream: NSObject {
         }
     }
     
-    private struct Payload {
+    internal struct Payload {
         
         enum Content: UInt8 {
             case image = 0x01
@@ -346,7 +346,7 @@ public final class LiveViewStream: NSObject {
         }
     }
     
-    private func attemptImageParse() {
+    @discardableResult internal func attemptImageParse() -> [Payload]? {
         
         // Re-case as Data in-case we've received a DataSlice, which seems to be an issue somewhere!
         receivedData = Data(receivedData)
@@ -363,7 +363,7 @@ public final class LiveViewStream: NSObject {
         }
         
         guard let payloads = payloads(), !payloads.isEmpty else {
-            return
+            return nil
         }
         
         payloads.forEach { (payload) in
@@ -376,6 +376,8 @@ public final class LiveViewStream: NSObject {
                 delegate?.liveViewStream(self, didReceive: frames)
             }
         }
+        
+        return payloads
     }
     
     enum PayloadType {
