@@ -385,7 +385,7 @@ public final class LiveViewStream: NSObject {
         }
         
         if payloads != nil {
-            Logger.log(message: "Successfully parsed payloads, letting delegate know")
+            Logger.log(message: "Successfully parsed payloads, letting delegate know", category: "LiveViewStreaming")
             os_log("Successfully parsed payloads, letting delegate know", log: log, type: .debug)
         }
         
