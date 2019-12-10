@@ -364,19 +364,29 @@ public final class LiveViewStream: NSObject {
         // If for some reason our data doesn't start with the "Start Byte", then delete up to that point!
         if receivedData.count > 0, receivedData[0] != 0xFF {
             
+            Logger.log(message: "Received data didn't start with 0xFF deleting up to that point", category: "LiveViewStreaming")
+            os_log("Received data didn't start with 0xFF deleting up to that point", log: log, type: .debug)
+            
             // If we have a start byte, discard everything before it
             if receivedData.contains(0xFF) {
+                Logger.log(message: "Discarding data up to first 0xFF", category: "LiveViewStreaming")
+                os_log("Discarding data up to first 0xFF", log: log, type: .debug)
                 receivedData = Data(receivedData.split(separator: 0xFF, maxSplits: 1, omittingEmptySubsequences: false).last ?? Data())
                 // Add back in the 0xff byte as this is required to parse a JPEG!
                 receivedData.insert(0xFF, at: 0)
-            } else {
-                receivedData = Data()
             }
         }
         
         var payloads = parsePayloads()
-        if payloads == nil, let images = parseJPEGs() {
-            payloads = images
+        if payloads == nil {
+            Logger.log(message: "Couldn't parse documented Sony payloads, falling back to JPEG parsing", category: "LiveViewStreaming")
+            os_log("Couldn't parse documented Sony payloads, falling back to JPEG parsing", log: log, type: .debug)
+            payloads = parseJPEGs()
+        }
+        
+        if payloads != nil {
+            Logger.log(message: "Successfully parsed payloads, letting delegate know")
+            os_log("Successfully parsed payloads, letting delegate know", log: log, type: .debug)
         }
         
         payloads?.forEach({ (payload) in
@@ -494,7 +504,7 @@ public final class LiveViewStream: NSObject {
 extension LiveViewStream: URLSessionDataDelegate {
     
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-        Logger.log(message: "Received live view data:\n\(ByteBuffer(bytes: data.toBytes).toHex)", category: "LiveViewStreaming")
+        Logger.log(message: "Received live view data of length:\(data.count)", category: "LiveViewStreaming")
         os_log("Received live view data", log: log, type: .debug)
         receivedData.append(data)
         attemptImageParse()
