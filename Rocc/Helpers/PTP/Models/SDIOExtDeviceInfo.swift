@@ -19,11 +19,25 @@ extension PTP {
         
         init?(data: ByteBuffer) {
             
-            guard let _unknownWord = data[word: 0] else { return nil }
-            unknownWord = _unknownWord
+            var offset: UInt = 0
             
-            guard let propertiesWordArray = data[wordArray: UInt(MemoryLayout<Word>.size)] else { return nil }
-            supportedPropCodes = propertiesWordArray
+            guard let _unknownWord = data[word: offset] else { return nil }
+            unknownWord = _unknownWord
+            offset += UInt(MemoryLayout<Word>.size)
+            
+            var _supportedPropCodes: [Word] = []
+            
+            guard let aPropertiesWordArray = data[wordArray: offset] else { return nil }
+            _supportedPropCodes.append(contentsOf: aPropertiesWordArray)
+            offset += UInt(MemoryLayout<DWord>.size + (MemoryLayout<Word>.size * aPropertiesWordArray.count))
+            
+            guard let bPropertiesWordArray = data[wordArray: offset] else {
+                supportedPropCodes = _supportedPropCodes
+                return
+            }
+            
+            _supportedPropCodes.append(contentsOf: bPropertiesWordArray)
+            supportedPropCodes = _supportedPropCodes
         }
     }
 }

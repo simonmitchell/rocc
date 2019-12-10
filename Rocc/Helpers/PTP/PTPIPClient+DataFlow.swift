@@ -9,6 +9,8 @@
 import Foundation
 import os.log
 
+typealias DataResponse = (_ dataContainer: Result<PTPIPClient.DataContainer, Error>) -> Void
+
 extension PTPIPClient {
     
     struct DataContainer {
@@ -54,7 +56,7 @@ extension PTPIPClient {
             Logger.log(message: "Received unexpected end data packet for transactionId: \(packet.transactionId)", category: "PTPIPClient")
             return
         }
-        dataCallbacks[packet.transactionId]?(containerForData)
+        dataCallbacks[packet.transactionId]?(Result.success(containerForData))
         dataCallbacks[packet.transactionId] = nil
     }
 }

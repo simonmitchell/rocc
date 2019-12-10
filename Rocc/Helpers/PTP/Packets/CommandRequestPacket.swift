@@ -31,4 +31,25 @@ struct CommandRequestPacket: Packetable {
         self.name = .cmdRequest
         self.length = 0
     }
+    
+    private var commandCode: PTP.CommandCode? {
+        guard let commandCodeWord = data[word: 12] else { return nil }
+        return PTP.CommandCode(rawValue: commandCodeWord)
+    }
+    
+    var debugDescription: String {
+        return description
+    }
+    
+    var description: String {
+        return """
+        {
+            length: \(data.length)
+            code: \(name)
+            transactionId: \(data[dWord: UInt(Packet.headerLength + MemoryLayout<DWord>.size + MemoryLayout<Word>.size) ] ?? 0)
+            command: \(commandCode != nil ? "\(commandCode!)" : "null")
+            data: \(data.sliced(Packet.headerLength + (MemoryLayout<DWord>.size * 2) + MemoryLayout<Word>.size).toHex)
+        }
+        """
+    }
 }

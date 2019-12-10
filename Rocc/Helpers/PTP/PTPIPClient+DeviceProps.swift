@@ -15,12 +15,17 @@ extension PTPIPClient {
     func getDevicePropDescFor(propCode: PTP.DeviceProperty.Code,  callback: @escaping DevicePropertyDescriptionCompletion) {
         
         let packet = Packet.commandRequestPacket(code: .getDevicePropDesc, arguments: [DWord(propCode.rawValue)], transactionId: getNextTransactionId())
-        awaitDataFor(transactionId: packet.transactionId) { (data) in
-            guard let property = data.data.getDeviceProperty(at: 0) else {
-                callback(Result.failure(PTPIPClientError.invalidResponse))
-                return
+        awaitDataFor(transactionId: packet.transactionId) { (dataResult) in
+            switch dataResult {
+            case .success(let data):
+                guard let property = data.data.getDeviceProperty(at: 0) else {
+                    callback(Result.failure(PTPIPClientError.invalidResponse))
+                    return
+                }
+                callback(Result.success(property))
+            case .failure(let error):
+                callback(Result.failure(error))
             }
-            callback(Result.success(property))
         }
         sendCommandRequestPacket(packet, callback: nil)
     }

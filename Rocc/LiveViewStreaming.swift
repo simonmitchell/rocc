@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import os.log
 
 #if os(iOS)
 public typealias Image = UIImage
@@ -16,7 +17,7 @@ public typealias Image = NSImage
 
 /// A delegation protocol which is used to provide updates on frame information
 public protocol LiveViewStreamDelegate {
-    
+        
     /// Called when the stream receives a new image frame from the camera
     ///
     /// - Parameters:
@@ -128,6 +129,8 @@ public struct FrameInfo {
 /// them back to the callee through a delegate based approach
 public final class LiveViewStream: NSObject {
     
+    private let log = OSLog(subsystem: "com.yellow-brick-bear.rocc", category: "LiveViewStreaming")
+    
     /// The delegate which will have live stream updates passed to it
     public var delegate: LiveViewStreamDelegate?
     
@@ -168,6 +171,9 @@ public final class LiveViewStream: NSObject {
         }
         #endif
         
+        Logger.log(message: "Starting live view stream", category: "LiveViewStreaming")
+        os_log("Starting live view stream", log: log, type: .debug)
+        
         camera.performFunction(LiveView.start, payload: nil) { [weak self] (error, streamURL) in
             
             guard let strongSelf = self else { return }
@@ -175,14 +181,21 @@ public final class LiveViewStream: NSObject {
             guard let streamURL = streamURL else {
                 
                 guard let sonyError = error as? CameraError, case .alreadyRunningPollingAPI(_) = sonyError else {
+                    Logger.log(message: "Starting live view stream errored \((error ?? StreamingError.unknown).localizedDescription)", category: "LiveViewStreaming")
+                    os_log("Starting live view stream errored %@", log: strongSelf.log, type: .error, (error ?? StreamingError.unknown).localizedDescription)
                     strongSelf.delegate?.liveViewStream(strongSelf, didError: error ?? StreamingError.unknown)
                     return
                 }
+                
+                Logger.log(message: "Got already running polling API error, restarting live stream", category: "LiveViewStreaming")
+                os_log("Got already running polling API error, restarting live stream", log: strongSelf.log, type: .debug)
                 
                 strongSelf.camera.performFunction(LiveView.stop, payload: nil, callback: { [weak strongSelf] (error, response) in
                     
                     guard let _strongSelf = strongSelf else { return }
                     guard error == nil else {
+                        Logger.log(message: "Stopping live view stream errored \((error ?? StreamingError.unknown).localizedDescription)", category: "LiveViewStreaming")
+                        os_log("Stopping live view stream errored %@", log: _strongSelf.log, type: .error, (error ?? StreamingError.unknown).localizedDescription)
                         _strongSelf.delegate?.liveViewStream(_strongSelf, didError: error ?? StreamingError.unknown)
                         return
                     }
@@ -207,6 +220,9 @@ public final class LiveViewStream: NSObject {
     
     private func streamFrom(url: URL) {
         
+        Logger.log(message: "Beggining live view stream from \(url.absoluteString)", category: "LiveViewStreaming")
+        os_log("Beggining live view stream from %@", log: log, type: .debug, url.absoluteString)
+        
         isStreaming = true
         //TODO: CREATE AND SEND A DELEGATE QUEUE HERE
         streamingSession = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
@@ -219,6 +235,9 @@ public final class LiveViewStream: NSObject {
     
     /// Stops the stream
     public func stop() {
+        
+        Logger.log(message: "Stopping live view stream", category: "LiveViewStreaming")
+        os_log("Stopping live view stream", log: log, type: .debug)
         
         isStreaming = false
         streamingSession?.invalidateAndCancel()
@@ -395,6 +414,8 @@ public final class LiveViewStream: NSObject {
 extension LiveViewStream: URLSessionDataDelegate {
     
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+        Logger.log(message: "Received live view data:\n\(ByteBuffer(bytes: data.toBytes).toHex)", category: "LiveViewStreaming")
+        os_log("Received live view data", log: log, type: .debug)
         receivedData.append(data)
         attemptImageParse()
     }
