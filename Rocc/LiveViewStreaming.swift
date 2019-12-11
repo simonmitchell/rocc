@@ -443,13 +443,13 @@ public final class LiveViewStream: NSObject {
         // No point if data length < 2, also we may crash in that case...
         guard data.count > 2 else { return nil }
         
-        var offset: Int = 1
+        var offset: Int = 0
         var startImageOffset: Int = 0
         
         var payloads: [Payload] = []
         
         // Search for next ff xx
-        while offset < data.count {
+        while offset < data.count - 1 {
             
             // Find 0xff 0xx (ignoring multiple chained 0xff 0xff 0xff which is valid)
             guard data[offset] == 0xff, data[offset + 1] != 0xff else {
@@ -464,12 +464,12 @@ public final class LiveViewStream: NSObject {
                 offset += 1
                 // Start of image marker!
             case 0xd8:
-                startImageOffset = offset - 1
+                startImageOffset = offset
                 offset += 1
                 // End of image marker!
             case 0xd9:
                 let imageRange: Range<Int> = startImageOffset..<offset+2
-                let imageData = data[imageRange]
+                let imageData = Data(data[imageRange])
                 guard let image = Image(data: imageData) else {
                     offset += 1
                     continue
@@ -492,8 +492,9 @@ public final class LiveViewStream: NSObject {
             }
         }
         
-        payloads.forEach { (payload) in
-            let range = payload.dataRange.clamped(to: receivedData.startIndex..<receivedData.endIndex)
+        if let payloadsMinBound = payloads.first?.dataRange.startIndex, let payloadsMaxBound = payloads.last?.dataRange.endIndex {
+            let fullRange: Range<Int> = payloadsMinBound..<payloadsMaxBound
+            let range = fullRange.clamped(to: receivedData.startIndex..<receivedData.endIndex)
             receivedData.removeSubrange(range)
         }
         

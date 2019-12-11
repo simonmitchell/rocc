@@ -44,6 +44,8 @@
 		B1178702218775980006B72E /* FunctionNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1178700218775980006B72E /* FunctionNames.swift */; };
 		B11D8E7321B9300F00719019 /* SimulatedCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11D8E6D21B9300F00719019 /* SimulatedCamera.swift */; };
 		B11D8E7421B9300F00719019 /* SimulatedCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11D8E6D21B9300F00719019 /* SimulatedCamera.swift */; };
+		B1255AE023A0DE0C00A5A9B4 /* liveview-rx100m7-singleimage in Resources */ = {isa = PBXBuildFile; fileRef = B1255ADF23A0DE0C00A5A9B4 /* liveview-rx100m7-singleimage */; };
+		B1255AE923A0DF1C00A5A9B4 /* liveview-rx100m7-multipleimages in Resources */ = {isa = PBXBuildFile; fileRef = B1255AE823A0DF1C00A5A9B4 /* liveview-rx100m7-multipleimages */; };
 		B1316A572089C08F006BD136 /* Rocc.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1316A4D2089C08F006BD136 /* Rocc.framework */; };
 		B1316A5C2089C08F006BD136 /* RoccTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1316A5B2089C08F006BD136 /* RoccTests.swift */; };
 		B1316A5E2089C08F006BD136 /* Rocc.h in Headers */ = {isa = PBXBuildFile; fileRef = B1316A502089C08F006BD136 /* Rocc.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -346,6 +348,8 @@
 		B11786F82187753F0006B72E /* SonyCamera+Model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SonyCamera+Model.swift"; sourceTree = "<group>"; };
 		B1178700218775980006B72E /* FunctionNames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FunctionNames.swift; sourceTree = "<group>"; };
 		B11D8E6D21B9300F00719019 /* SimulatedCamera.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimulatedCamera.swift; sourceTree = "<group>"; };
+		B1255ADF23A0DE0C00A5A9B4 /* liveview-rx100m7-singleimage */ = {isa = PBXFileReference; lastKnownFileType = text; path = "liveview-rx100m7-singleimage"; sourceTree = "<group>"; };
+		B1255AE823A0DF1C00A5A9B4 /* liveview-rx100m7-multipleimages */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "liveview-rx100m7-multipleimages"; sourceTree = "<group>"; };
 		B1316A4D2089C08F006BD136 /* Rocc.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Rocc.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B1316A502089C08F006BD136 /* Rocc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Rocc.h; sourceTree = "<group>"; };
 		B1316A512089C08F006BD136 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -653,6 +657,8 @@
 			isa = PBXGroup;
 			children = (
 				B1B38046239EE9090088E254 /* LiveViewStreamingTests.swift */,
+				B1255ADF23A0DE0C00A5A9B4 /* liveview-rx100m7-singleimage */,
+				B1255AE823A0DF1C00A5A9B4 /* liveview-rx100m7-multipleimages */,
 			);
 			path = "Live View";
 			sourceTree = "<group>";
@@ -1078,6 +1084,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				B115EFC621ECFB4700667FB7 /* CmsDesc.xml in Resources */,
+				B1255AE923A0DF1C00A5A9B4 /* liveview-rx100m7-multipleimages in Resources */,
+				B1255AE023A0DE0C00A5A9B4 /* liveview-rx100m7-singleimage in Resources */,
 				B115EFC521ECFB4700667FB7 /* CdsDesc.xml in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
