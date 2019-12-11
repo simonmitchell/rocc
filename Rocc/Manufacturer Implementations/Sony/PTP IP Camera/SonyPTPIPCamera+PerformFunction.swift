@@ -297,8 +297,9 @@ extension SonyPTPIPDevice {
             //TODO: Implement
             callback(nil, nil)
         case .takePicture:
-            //TODO: Implement
-            callback(nil, nil)
+            takePicture { (error) in
+                callback(error, nil)
+            }
         case .startContinuousShooting:
             //TODO: Implement
             callback(nil, nil)
@@ -544,6 +545,58 @@ extension SonyPTPIPDevice {
             callback(nil, nil)
         case .startRecordMode:
             callback(CameraError.noSuchMethod("startRecordMode"), nil)
+        }
+    }
+    
+    func takePicture(completion: @escaping ((Error?) -> Void)) {
+        
+        ptpIPClient?.sendSetControlDeviceBValue(
+            PTP.DeviceProperty.Value(
+                code: .capture,
+                type: .uint8,
+                value: Word(2)
+            )
+        )
+        
+        performFunction(Focus.Mode.get, payload: nil) { [weak self] (focusModeError, focusMode) in
+            
+            guard let this = self else {
+                return
+            }
+            
+            guard let focusMode: Focus.Mode.Value = focusMode else {
+                completion(focusModeError)
+                return
+            }
+            
+            guard focusMode.isAutoFocus else {
+                this.cancelShutterPress(completion: completion)
+                return
+            }
+                        
+            DispatchQueue.global().asyncWhile({ (continue) in
+                
+            }, timeout: 1) {
+                
+            }
+            //TODO: Check that we're focussed before carrying on
+        }
+    }
+    
+    private func cancelShutterPress(completion: @escaping ((Error?) -> Void)) {
+        
+        ptpIPClient?.sendSetControlDeviceBValue(
+            PTP.DeviceProperty.Value(
+                code: .capture,
+                type: .uint8,
+                value: Word(1)
+            )
+        )
+        
+        DispatchQueue.global().asyncWhile({ (continue) in
+            
+        }, timeout: 35) {
+            
         }
     }
 }

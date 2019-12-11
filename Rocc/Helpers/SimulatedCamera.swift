@@ -226,7 +226,8 @@ public final class DummyCamera: Camera {
                 ShutterSpeed(numerator: 18, denominator: 1),
                 ShutterSpeed(numerator: 20, denominator: 1),
                 ShutterSpeed(numerator: 25, denominator: 1),
-                ShutterSpeed(numerator: 30, denominator: 1)
+                ShutterSpeed(numerator: 30, denominator: 1),
+                ShutterSpeed.bulb
             ] as? [T.SendType])
         case .setExposureCompensation:
             callback(true, nil, [-3.0, -2.66, -2.33, -2.0, -1.66, -1.33, -1.0, -0.66, -0.33, 0, 0.33, 0.66, 1.0, 1.33, 1.66, 2.0, 2.33, 2.66, 3.0] as? [T.SendType])
