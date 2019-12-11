@@ -44,6 +44,8 @@
 		B1178702218775980006B72E /* FunctionNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1178700218775980006B72E /* FunctionNames.swift */; };
 		B11D8E7321B9300F00719019 /* SimulatedCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11D8E6D21B9300F00719019 /* SimulatedCamera.swift */; };
 		B11D8E7421B9300F00719019 /* SimulatedCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11D8E6D21B9300F00719019 /* SimulatedCamera.swift */; };
+		B1255AE023A0DE0C00A5A9B4 /* liveview-rx100m7-singleimage in Resources */ = {isa = PBXBuildFile; fileRef = B1255ADF23A0DE0C00A5A9B4 /* liveview-rx100m7-singleimage */; };
+		B1255AE923A0DF1C00A5A9B4 /* liveview-rx100m7-multipleimages in Resources */ = {isa = PBXBuildFile; fileRef = B1255AE823A0DF1C00A5A9B4 /* liveview-rx100m7-multipleimages */; };
 		B1316A572089C08F006BD136 /* Rocc.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1316A4D2089C08F006BD136 /* Rocc.framework */; };
 		B1316A5C2089C08F006BD136 /* RoccTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1316A5B2089C08F006BD136 /* RoccTests.swift */; };
 		B1316A5E2089C08F006BD136 /* Rocc.h in Headers */ = {isa = PBXBuildFile; fileRef = B1316A502089C08F006BD136 /* Rocc.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -179,6 +181,7 @@
 		B1AF50A0208DC3B20029336B /* DeviceDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1316A712089C0F6006BD136 /* DeviceDiscovery.swift */; };
 		B1AF50A1208DC3B50029336B /* UDPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1316A732089C1D6006BD136 /* UDPClient.swift */; };
 		B1AF50A2208DC3B80029336B /* NetworkInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AF5029208A51D00029336B /* NetworkInterface.swift */; };
+		B1B38047239EE90A0088E254 /* LiveViewStreamingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B38046239EE9090088E254 /* LiveViewStreamingTests.swift */; };
 		B1B4342A20939EF500A81B9D /* FileSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B4342920939EF500A81B9D /* FileSystem.swift */; };
 		B1B43450209746B000A81B9D /* CameraFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B4344F209746B000A81B9D /* CameraFunctions.swift */; };
 		B1B43451209746B000A81B9D /* CameraFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B4344F209746B000A81B9D /* CameraFunctions.swift */; };
@@ -345,6 +348,8 @@
 		B11786F82187753F0006B72E /* SonyCamera+Model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SonyCamera+Model.swift"; sourceTree = "<group>"; };
 		B1178700218775980006B72E /* FunctionNames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FunctionNames.swift; sourceTree = "<group>"; };
 		B11D8E6D21B9300F00719019 /* SimulatedCamera.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimulatedCamera.swift; sourceTree = "<group>"; };
+		B1255ADF23A0DE0C00A5A9B4 /* liveview-rx100m7-singleimage */ = {isa = PBXFileReference; lastKnownFileType = text; path = "liveview-rx100m7-singleimage"; sourceTree = "<group>"; };
+		B1255AE823A0DF1C00A5A9B4 /* liveview-rx100m7-multipleimages */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "liveview-rx100m7-multipleimages"; sourceTree = "<group>"; };
 		B1316A4D2089C08F006BD136 /* Rocc.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Rocc.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B1316A502089C08F006BD136 /* Rocc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Rocc.h; sourceTree = "<group>"; };
 		B1316A512089C08F006BD136 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -409,6 +414,7 @@
 		B1AF5090208DC3A80029336B /* RoccMacTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RoccMacTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B1AF5095208DC3A80029336B /* RoccMacTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoccMacTests.swift; sourceTree = "<group>"; };
 		B1AF5097208DC3A80029336B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B1B38046239EE9090088E254 /* LiveViewStreamingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveViewStreamingTests.swift; sourceTree = "<group>"; };
 		B1B4342920939EF500A81B9D /* FileSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSystem.swift; sourceTree = "<group>"; };
 		B1B4344F209746B000A81B9D /* CameraFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraFunctions.swift; sourceTree = "<group>"; };
 		B1B43459209747C200A81B9D /* ISO.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ISO.swift; sourceTree = "<group>"; };
@@ -531,6 +537,7 @@
 		B1316A5A2089C08F006BD136 /* RoccTests */ = {
 			isa = PBXGroup;
 			children = (
+				B1B3803E239EE8F70088E254 /* Live View */,
 				B1AEE4E623755FCE00224152 /* PTP */,
 				B115EFC321ECFB4700667FB7 /* CdsDesc.xml */,
 				B115EFC421ECFB4700667FB7 /* CmsDesc.xml */,
@@ -644,6 +651,16 @@
 				B1AF5097208DC3A80029336B /* Info.plist */,
 			);
 			path = RoccMacTests;
+			sourceTree = "<group>";
+		};
+		B1B3803E239EE8F70088E254 /* Live View */ = {
+			isa = PBXGroup;
+			children = (
+				B1B38046239EE9090088E254 /* LiveViewStreamingTests.swift */,
+				B1255ADF23A0DE0C00A5A9B4 /* liveview-rx100m7-singleimage */,
+				B1255AE823A0DF1C00A5A9B4 /* liveview-rx100m7-multipleimages */,
+			);
+			path = "Live View";
 			sourceTree = "<group>";
 		};
 		B1B43457209746DA00A81B9D /* Manufacturer Implementations */ = {
@@ -1067,6 +1084,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				B115EFC621ECFB4700667FB7 /* CmsDesc.xml in Resources */,
+				B1255AE923A0DF1C00A5A9B4 /* liveview-rx100m7-multipleimages in Resources */,
+				B1255AE023A0DE0C00A5A9B4 /* liveview-rx100m7-singleimage in Resources */,
 				B115EFC521ECFB4700667FB7 /* CdsDesc.xml in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1237,6 +1256,7 @@
 				B1A25F2921ADEAAC00D9EE81 /* ShutterSpeedFormatterTests.swift in Sources */,
 				B115EFD421ECFBC300667FB7 /* UPnPParsers.swift in Sources */,
 				B154526421EE63DB00C59096 /* SOAPRequestBody.swift in Sources */,
+				B1B38047239EE90A0088E254 /* LiveViewStreamingTests.swift in Sources */,
 				B154535E21EFE3D100C59096 /* ChildRangeTests.swift in Sources */,
 				B1316A5C2089C08F006BD136 /* RoccTests.swift in Sources */,
 				B154535F21EFE3DC00C59096 /* Countable.swift in Sources */,
