@@ -218,11 +218,14 @@ public final class LiveViewStream: NSObject {
     
     private var dataTask: URLSessionDataTask?
     
+    var isPacketedStream: Bool = false
+        
     private func streamFrom(url: URL) {
         
         Logger.log(message: "Beggining live view stream from \(url.absoluteString)", category: "LiveViewStreaming")
         os_log("Beggining live view stream from %@", log: log, type: .debug, url.absoluteString)
         
+        isPacketedStream = false
         isStreaming = true
         //TODO: CREATE AND SEND A DELEGATE QUEUE HERE
         streamingSession = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
@@ -378,15 +381,11 @@ public final class LiveViewStream: NSObject {
         }
         
         var payloads = parsePayloads()
-        if payloads == nil {
-            Logger.log(message: "Couldn't parse documented Sony payloads, falling back to JPEG parsing", category: "LiveViewStreaming")
-            os_log("Couldn't parse documented Sony payloads, falling back to JPEG parsing", log: log, type: .debug)
+        // Only do JPEG fallback if we haven't manged to parse packeted payloads already in this streaming session
+        if payloads == nil && !isPacketedStream {
             payloads = parseJPEGs()
-        }
-        
-        if payloads != nil {
-            Logger.log(message: "Successfully parsed payloads, letting delegate know", category: "LiveViewStreaming")
-            os_log("Successfully parsed payloads, letting delegate know", log: log, type: .debug)
+        } else if !isPacketedStream {
+            isPacketedStream = true
         }
         
         payloads?.forEach({ (payload) in
@@ -505,10 +504,15 @@ public final class LiveViewStream: NSObject {
 extension LiveViewStream: URLSessionDataDelegate {
     
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-        Logger.log(message: "Received live view data of length:\(data.count)", category: "LiveViewStreaming")
-        os_log("Received live view data", log: log, type: .debug)
         receivedData.append(data)
         attemptImageParse()
+    }
+    
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        Logger.log(message: "Live view stream did error, restarting...", category: "LiveViewStreaming")
+        os_log("Live view stream did error, restarting...", log: log, type: .error)
+        receivedData = Data()
+        start()
     }
 }
 
