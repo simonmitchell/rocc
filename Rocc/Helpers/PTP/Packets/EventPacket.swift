@@ -32,6 +32,8 @@ struct EventPacket: Packetable {
             self.length = DWord(Packet.headerLength)
             self.code = .propertyChanged
             self.data = ByteBuffer()
+            self.transactionId = nil
+            self.variables = nil
             return
         }
         self.code = code
