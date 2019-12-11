@@ -398,6 +398,11 @@ extension LiveViewStream: URLSessionDataDelegate {
         receivedData.append(data)
         attemptImageParse()
     }
+    
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        receivedData = Data()
+        start()
+    }
 }
 
 /// An error enum for stream errors
