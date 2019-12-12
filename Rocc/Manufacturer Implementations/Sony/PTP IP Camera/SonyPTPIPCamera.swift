@@ -7,8 +7,11 @@
 //
 
 import Foundation
+import os.log
 
 internal final class SonyPTPIPDevice: SonyCamera {
+    
+    let log = OSLog(subsystem: "com.yellow-brick-bear.rocc", category: "SonyPTPIPCamera")
     
     var ipAddress: sockaddr_in? = nil
     
@@ -111,6 +114,8 @@ internal final class SonyPTPIPDevice: SonyCamera {
     var isConnected: Bool = false
     
     var deviceInfo: PTP.DeviceInfo?
+    
+    var lastEventPacket: EventPacket?
     
     var lastEvent: CameraEvent?
         
@@ -263,6 +268,7 @@ extension SonyPTPIPDevice: Camera {
             self?.sendStartSessionPacket(completion: completion)
         })
         ptpIPClient?.onEvent = { [weak self] (event) in
+            self?.lastEventPacket = event
             guard event.code == .propertyChanged else { return }
             self?.onEventAvailable?()
         }

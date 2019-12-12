@@ -21,6 +21,11 @@ extension DispatchQueue {
     
     typealias AsyncWhileCompletion = (Bool) -> Void
     
+    /// Allows for asynchronous behaviour in a while-loop manner.
+    /// - Parameters:
+    ///   - closure: The closure in which the `while` logic should be run. The next call of this happens when the closure passed as a single variable to this is called. If true is returned via that closure then the while loop "breaks"
+    ///   - timeout: A timeout time interval for the while loop as a fall back to exit it
+    ///   - done: A closure which is called when the final while loop completes, either via calling the closure with true, or when the timeout finishes
     func asyncWhile(_ closure: @escaping ((@escaping AsyncWhileCompletion) -> Void), timeout: TimeInterval, done: @escaping () -> Void) {
         
         // Jump onto this queue synchronously
