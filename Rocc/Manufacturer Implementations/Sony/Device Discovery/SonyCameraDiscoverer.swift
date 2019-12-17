@@ -160,17 +160,17 @@ internal final class SonyCameraDiscoverer: UDPDeviceDiscoverer {
         self.delegate = delegate
     }
     
-    override func parseDevice(from stringRepresentation: String, baseURL: URL, callback: @escaping (Bool) -> Void) {
-        parseXML(string: stringRepresentation, baseURL: baseURL, callback: callback)
+    override func parseDevice(from stringRepresentation: String, isCached: Bool, baseURL: URL, callback: @escaping (Bool) -> Void) {
+        parseXML(string: stringRepresentation, baseURL: baseURL, isCached: isCached, callback: callback)
     }
     
-    public func parseXML(string: String, baseURL: URL, callback: @escaping (Bool) -> Void) {
+    public func parseXML(string: String, baseURL: URL, isCached: Bool, callback: @escaping (Bool) -> Void) {
         
-        parseCameraXML(string: string, baseURL: baseURL, callback: callback)
-        parseTransferDeviceXML(string: string, baseURL: baseURL, callback: callback)
+        parseCameraXML(string: string, baseURL: baseURL, isCached: isCached, callback: callback)
+        parseTransferDeviceXML(string: string, baseURL: baseURL, isCached: isCached, callback: callback)
     }
     
-    private func parseCameraXML(string: String, baseURL: URL, callback: @escaping (Bool) -> Void) {
+    private func parseCameraXML(string: String, baseURL: URL, isCached: Bool, callback: @escaping (Bool) -> Void) {
         
         let parser = SonyCameraParser(xmlString: string)
         parser.parse { [weak self] (cameraDevice, error) in
@@ -187,7 +187,7 @@ internal final class SonyCameraDiscoverer: UDPDeviceDiscoverer {
             
             callback(true)
             guard let digitalImagingService = device.services?.first(where: { $0.type == .digitalImaging }) else {
-                strongSelf.sendDeviceToDelegate(device)
+                strongSelf.sendDeviceToDelegate(device, isCached: isCached)
                 return
             }
             
@@ -200,7 +200,7 @@ internal final class SonyCameraDiscoverer: UDPDeviceDiscoverer {
                 }
                 
                 guard let string = response?.string else {
-                    _strongSelf.sendDeviceToDelegate(device)
+                    _strongSelf.sendDeviceToDelegate(device, isCached: isCached)
                     return
                 }
                 
@@ -212,7 +212,7 @@ internal final class SonyCameraDiscoverer: UDPDeviceDiscoverer {
                     }
                     
                     device.update(with: deviceInfo)
-                    __strongSelf.sendDeviceToDelegate(device)
+                    __strongSelf.sendDeviceToDelegate(device, isCached: isCached)
                 })
             })
             
@@ -220,7 +220,7 @@ internal final class SonyCameraDiscoverer: UDPDeviceDiscoverer {
         }
     }
     
-    private func parseTransferDeviceXML(string: String, baseURL: URL, callback: @escaping (Bool) -> Void) {
+    private func parseTransferDeviceXML(string: String, baseURL: URL, isCached: Bool, callback: @escaping (Bool) -> Void) {
         
         let transferDeviceParser = SonyTransferDeviceParser(xmlString: string)
         transferDeviceParser.parse { [weak self] (transferDevice, error) in
@@ -249,7 +249,7 @@ internal final class SonyCameraDiscoverer: UDPDeviceDiscoverer {
                 }
                 
                 callback(true)
-                _strongSelf.sendDeviceToDelegate(_transferDevice)
+                _strongSelf.sendDeviceToDelegate(_transferDevice, isCached: isCached)
             })
         }
     }
