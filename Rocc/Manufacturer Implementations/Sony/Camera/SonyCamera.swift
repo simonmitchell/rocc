@@ -161,8 +161,8 @@ internal final class SonyCameraDevice {
         
         identifier = udn ?? NSUUID().uuidString
         
-        if let model = model {
-            modelEnum = Model(rawValue: model)
+        if let name = name {
+            modelEnum = Model(rawValue: name)
         } else {
             modelEnum = nil
         }

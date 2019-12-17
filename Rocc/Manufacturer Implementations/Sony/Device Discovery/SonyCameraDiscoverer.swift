@@ -19,14 +19,12 @@ extension SonyCameraDevice {
     func update(with deviceInfo: SonyDeviceInfo?) {
         
         // Keep name if modelEnum currently nil as user has renamed camera!
-        self.name = modelEnum == nil ? name : (deviceInfo?.model?.friendlyName ?? name)
-        self.modelEnum = deviceInfo?.model ?? modelEnum
-        if let modelEnum = deviceInfo?.model {
-            self.model = modelEnum.friendlyName
-        }
-        self.lensModelName = deviceInfo?.lensModelName
-        self.firmwareVersion = deviceInfo?.firmwareVersion
-        self.remoteAppVersion = deviceInfo?.installedPlayMemoriesApps.first(where :{ $0.name == "Smart Remote Control" })?.version
+        name = modelEnum == nil ? name : (deviceInfo?.model?.friendlyName ?? name)
+        modelEnum = deviceInfo?.model ?? modelEnum
+        model = modelEnum?.friendlyName ?? model
+        lensModelName = deviceInfo?.lensModelName
+        firmwareVersion = deviceInfo?.firmwareVersion
+        remoteAppVersion = deviceInfo?.installedPlayMemoriesApps.first(where :{ $0.name == "Smart Remote Control" })?.version
     }
 }
 
