@@ -81,7 +81,7 @@ extension File {
         let index = image % imageUrls.count
         let url = URL(string: imageUrls[index])
         
-        let original = File.Content.Original(fileName: "Test", fileType: "JPG", url: url)
+        let original = File.Content.Original(fileName: "test.jpeg", fileType: "JPG", url: url)
         
         let content = Content(originals: [original], largeURL: url, smallURL: url, thumbnailURL: url)
         
