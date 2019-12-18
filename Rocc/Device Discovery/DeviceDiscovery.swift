@@ -92,7 +92,7 @@ public final class CameraDiscoverer {
     private var discoveredCameras: [(camera: Camera, isCached: Bool)] = []
     
     /// A map of cameras by the SSID the local device was connected to when they were discovered
-    public var camerasBySSID: [String?: [Camera]] = [:]
+    public var camerasBySSID: [String?: [(camera: Camera, isCached: Bool)]] = [:]
     
     var discoverers: [DeviceDiscoverer] = []
     
@@ -145,8 +145,8 @@ extension CameraDiscoverer: DeviceDiscovererDelegate {
             // If we went from non-cached, to cached, let the delegate know!
             if previouslyDiscoveredCamera.element.isCached && !isCached {
                 discoveredCameras[previouslyDiscoveredCamera.offset] = (device, isCached)
-                if var camerasForSSID = camerasBySSID[Reachability.currentWiFiSSID], let indexInCamerasForSSID = camerasForSSID.firstIndex(where: { $0.identifier == device.identifier }) {
-                    camerasForSSID[indexInCamerasForSSID] = device
+                if var camerasForSSID = camerasBySSID[Reachability.currentWiFiSSID], let indexInCamerasForSSID = camerasForSSID.firstIndex(where: { $0.camera.identifier == device.identifier }) {
+                    camerasForSSID[indexInCamerasForSSID] = (device, isCached)
                     camerasBySSID[Reachability.currentWiFiSSID] = camerasForSSID
                 }
                 delegate?.cameraDiscoverer(self, discovered: device, isCached: false)
@@ -154,7 +154,7 @@ extension CameraDiscoverer: DeviceDiscovererDelegate {
             return
         }
         
-        camerasBySSID[Reachability.currentWiFiSSID, default: []].append(device)
+        camerasBySSID[Reachability.currentWiFiSSID, default: []].append((device, isCached))
         discoveredCameras.append((device, isCached))
         delegate?.cameraDiscoverer(self, discovered: device, isCached: isCached)
     }
