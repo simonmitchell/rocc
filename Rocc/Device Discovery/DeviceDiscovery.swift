@@ -89,7 +89,7 @@ public final class CameraDiscoverer {
     /// A delegate which will have methods called on it when cameras are discovered or an error occurs.
     public var delegate: CameraDiscovererDelegate?
     
-    private var discoveredCameras: [Camera] = []
+    private var discoveredCameras: [(camera: Camera, isCached: Bool)] = []
     
     /// A map of cameras by the SSID the local device was connected to when they were discovered
     public var camerasBySSID: [String?: [Camera]] = [:]
@@ -139,14 +139,23 @@ extension CameraDiscoverer: DeviceDiscovererDelegate {
     
     func deviceDiscoverer<T>(_ discoverer: T, discovered device: Camera, isCached: Bool) where T : DeviceDiscoverer {
         
-        guard !discoveredCameras.contains(where: {
-            $0.identifier == device.identifier
-        }) else {
+        if let previouslyDiscoveredCamera = discoveredCameras.enumerated().first(where: {
+            $0.element.camera.identifier == device.identifier
+        }) {
+            // If we went from non-cached, to cached, let the delegate know!
+            if previouslyDiscoveredCamera.element.isCached && !isCached {
+                discoveredCameras[previouslyDiscoveredCamera.offset] = (device, isCached)
+                if var camerasForSSID = camerasBySSID[Reachability.currentWiFiSSID], let indexInCamerasForSSID = camerasForSSID.firstIndex(where: { $0.identifier == device.identifier }) {
+                    camerasForSSID[indexInCamerasForSSID] = device
+                    camerasBySSID[Reachability.currentWiFiSSID] = camerasForSSID
+                }
+                delegate?.cameraDiscoverer(self, discovered: device, isCached: false)
+            }
             return
         }
         
         camerasBySSID[Reachability.currentWiFiSSID, default: []].append(device)
-        discoveredCameras.append(device)
+        discoveredCameras.append((device, isCached))
         delegate?.cameraDiscoverer(self, discovered: device, isCached: isCached)
     }
     
