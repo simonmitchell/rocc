@@ -401,6 +401,7 @@ extension LiveViewStream: URLSessionDataDelegate {
     
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         receivedData = Data()
+        guard error != nil else { return }
         start()
     }
 }
