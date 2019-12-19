@@ -106,11 +106,11 @@
 		B182B8FE2381E22A0054539E /* SonyPTPIPCamera+FunctionAvailability.swift in Sources */ = {isa = PBXBuildFile; fileRef = B182B8FC2381E22A0054539E /* SonyPTPIPCamera+FunctionAvailability.swift */; };
 		B182B9002381E2510054539E /* SonyPTPIPCamera+FunctionSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B182B8FF2381E2510054539E /* SonyPTPIPCamera+FunctionSupport.swift */; };
 		B182B9012381E2510054539E /* SonyPTPIPCamera+FunctionSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B182B8FF2381E2510054539E /* SonyPTPIPCamera+FunctionSupport.swift */; };
-		B185A4EE2394FCB400B87BC7 /* PainInTheArsePacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = B185A4ED2394FCB400B87BC7 /* PainInTheArsePacket.swift */; };
-		B185A4EF2394FCB400B87BC7 /* PainInTheArsePacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = B185A4ED2394FCB400B87BC7 /* PainInTheArsePacket.swift */; };
 		B182B9242383520B0054539E /* DispatchQueue+AsyncWhile.swift in Sources */ = {isa = PBXBuildFile; fileRef = B182B9232383520B0054539E /* DispatchQueue+AsyncWhile.swift */; };
 		B182B9252383520B0054539E /* DispatchQueue+AsyncWhile.swift in Sources */ = {isa = PBXBuildFile; fileRef = B182B9232383520B0054539E /* DispatchQueue+AsyncWhile.swift */; };
 		B182B92E23836C0B0054539E /* AsyncWhileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B182B92D23836C0B0054539E /* AsyncWhileTests.swift */; };
+		B185A4EE2394FCB400B87BC7 /* PainInTheArsePacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = B185A4ED2394FCB400B87BC7 /* PainInTheArsePacket.swift */; };
+		B185A4EF2394FCB400B87BC7 /* PainInTheArsePacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = B185A4ED2394FCB400B87BC7 /* PainInTheArsePacket.swift */; };
 		B1990A8020C3FA1D0090A2F6 /* DeviceConnectivityNotifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1990A7F20C3FA1D0090A2F6 /* DeviceConnectivityNotifier.swift */; };
 		B1990A8120C3FA1D0090A2F6 /* DeviceConnectivityNotifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1990A7F20C3FA1D0090A2F6 /* DeviceConnectivityNotifier.swift */; };
 		B1990A8320C3FDAA0090A2F6 /* Reachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1990A8220C3FDAA0090A2F6 /* Reachability.swift */; };
@@ -390,9 +390,9 @@
 		B182B8F22381E1CD0054539E /* SonyPTPIPCamera+PerformFunction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SonyPTPIPCamera+PerformFunction.swift"; sourceTree = "<group>"; };
 		B182B8FC2381E22A0054539E /* SonyPTPIPCamera+FunctionAvailability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SonyPTPIPCamera+FunctionAvailability.swift"; sourceTree = "<group>"; };
 		B182B8FF2381E2510054539E /* SonyPTPIPCamera+FunctionSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SonyPTPIPCamera+FunctionSupport.swift"; sourceTree = "<group>"; };
-		B185A4ED2394FCB400B87BC7 /* PainInTheArsePacket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PainInTheArsePacket.swift; sourceTree = "<group>"; };
 		B182B9232383520B0054539E /* DispatchQueue+AsyncWhile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DispatchQueue+AsyncWhile.swift"; sourceTree = "<group>"; };
 		B182B92D23836C0B0054539E /* AsyncWhileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncWhileTests.swift; sourceTree = "<group>"; };
+		B185A4ED2394FCB400B87BC7 /* PainInTheArsePacket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PainInTheArsePacket.swift; sourceTree = "<group>"; };
 		B1990A7F20C3FA1D0090A2F6 /* DeviceConnectivityNotifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceConnectivityNotifier.swift; sourceTree = "<group>"; };
 		B1990A8220C3FDAA0090A2F6 /* Reachability.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Reachability.swift; sourceTree = "<group>"; };
 		B1990A8520C408C20090A2F6 /* Ping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ping.swift; sourceTree = "<group>"; };

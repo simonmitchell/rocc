@@ -4071,7 +4071,7 @@ internal class CameraClient: ServiceClient {
     
     private func getEvent(methodName: String, polling: Bool, _ completion: @escaping EventCompletion) {
         
-        let body = SonyRequestBody(method: "getEvent", params: [polling], id: 1, version: versions?.last ?? "1.0")
+        let body = SonyRequestBody(method: methodName, params: [polling], id: 1, version: versions?.last ?? "1.0")
         
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
