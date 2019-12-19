@@ -33,7 +33,8 @@ protocol DeviceDiscovererDelegate {
     /// - Parameters:
     ///   - discoverer: The discoverer object that discovered a device.
     ///   - discovered: The device that it discovered.
-    func deviceDiscoverer<T: DeviceDiscoverer>(_ discoverer: T, discovered device: Camera)
+    ///   - isCached: Whether the device was loaded from a cached xml discovery file.
+    func deviceDiscoverer<T: DeviceDiscoverer>(_ discoverer: T, discovered device: Camera, isCached: Bool)
 }
 
 /// A protocol to be implemented by device discovery implementations
@@ -73,10 +74,13 @@ public protocol CameraDiscovererDelegate {
     
     /// Called when a camera device is discovered
     ///
+    /// - Note: if `isCached == true` you should be cautious auto-connecting to the camera (Especially if it's a transfer device) as cameras in transfer mode can advertise multiple connectivity methods and the correct one may not be returned until it's passed to you with `isCached == false`.
+    ///
     /// - Parameters:
     ///   - discoverer: The discoverer object that discovered a device.
     ///   - discovered: The device that it discovered.
-    func cameraDiscoverer(_ discoverer: CameraDiscoverer, discovered device: Camera)
+    ///   - isCached: Whether the camera was loaded from a cached xml file url.
+    func cameraDiscoverer(_ discoverer: CameraDiscoverer, discovered device: Camera, isCached: Bool)
 }
 
 /// A class which enables the discovery of cameras
@@ -133,11 +137,7 @@ public final class CameraDiscoverer {
 
 extension CameraDiscoverer: DeviceDiscovererDelegate {
     
-    func deviceDiscoverer<T>(_ discoverer: T, didError error: Error) where T : DeviceDiscoverer {
-        delegate?.cameraDiscoverer(self, didError: error)
-    }
-    
-    func deviceDiscoverer<T>(_ discoverer: T, discovered device: Camera) where T : DeviceDiscoverer {
+    func deviceDiscoverer<T>(_ discoverer: T, discovered device: Camera, isCached: Bool) where T : DeviceDiscoverer {
         
         guard !discoveredCameras.contains(where: {
             $0.identifier == device.identifier
@@ -147,6 +147,11 @@ extension CameraDiscoverer: DeviceDiscovererDelegate {
         
         camerasBySSID[Reachability.currentWiFiSSID, default: []].append(device)
         discoveredCameras.append(device)
-        delegate?.cameraDiscoverer(self, discovered: device)
+        delegate?.cameraDiscoverer(self, discovered: device, isCached: isCached)
+    }
+    
+    
+    func deviceDiscoverer<T>(_ discoverer: T, didError error: Error) where T : DeviceDiscoverer {
+        delegate?.cameraDiscoverer(self, didError: error)
     }
 }
