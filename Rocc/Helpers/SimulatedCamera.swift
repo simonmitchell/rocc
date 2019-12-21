@@ -81,7 +81,7 @@ extension File {
         let url = URL(string: imageUrls[index])
         
         let original = File.Content.Original(fileName: "test.jpeg", fileType: "JPG", url: url)
-        let rawOriginal = File.Content.Original(fileName: "rest.ARW", fileType: "ARW", url: URL(string: "http://www.rawsamples.ch/raws/sony/RAW_SONY_ILCE-7M2.ARW"))
+        let rawOriginal = File.Content.Original(fileName: "rest.ARW", fileType: "ARW", url: URL(string: "https://www.rawsamples.ch/raws/sony/RAW_SONY_ILCE-7M2.ARW"))
         
         let content = Content(originals: [rawOriginal, original], largeURL: url, smallURL: url, thumbnailURL: url)
         
