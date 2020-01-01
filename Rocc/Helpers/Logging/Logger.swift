@@ -67,6 +67,10 @@ public final class Logger {
     
     private func log(_ message: String, category: String) {
         
+        #if DEBUG
+            print("[\(category)] \(message)")
+        #endif
+        
         guard let fileURL = fileURL, let logQueue = logQueue else { return }
         
         logQueue.sync {

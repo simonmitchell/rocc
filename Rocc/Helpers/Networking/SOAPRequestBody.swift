@@ -105,8 +105,6 @@ internal final class SOAPResponseParser: NSObject, XMLParserDelegate {
         
         currentElement = elementName
         scope.append(elementName)
-        
-        os_log("Parser did start element: %@\nCurrent scope:%@", log: log, type: .debug, elementName, scope)
     }
     
     func parser(_ parser: XMLParser, foundCharacters string: String) {
@@ -122,7 +120,6 @@ internal final class SOAPResponseParser: NSObject, XMLParserDelegate {
         defer {
             currentElement = scope.removeLast()
             foundCharacters = ""
-            os_log("Parser did end element: %@\nCurrent scope:%@", log: log, type: .debug, elementName, scope)
         }
         
         // We are inside the device info object
