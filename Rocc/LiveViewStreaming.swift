@@ -337,7 +337,7 @@ public final class LiveViewStream: NSObject {
             
             // If we have a start byte, discard everything before it
             if receivedData.contains(0xFF) {
-                receivedData = receivedData.split(separator: 0xFF, maxSplits: 1, omittingEmptySubsequences: false).last ?? Data()
+                receivedData = Data(receivedData.split(separator: 0xFF, maxSplits: 1, omittingEmptySubsequences: false).last ?? Data())
             } else {
                 receivedData = Data()
             }

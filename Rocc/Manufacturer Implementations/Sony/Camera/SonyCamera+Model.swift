@@ -48,6 +48,7 @@ extension SonyCameraDevice {
         case cyberShot_RX100M3 = "DSC-RX100M3"
         case cyberShot_RX100M4 = "DSC-RX100M4"
         case cyberShot_RX100M5 = "DSC-RX100M5"
+        case cyberShot_RX100M6 = "DSC-RX100M6"
         case FDR_X1000V = "FDR-X1000V"
         case FDR_X3000 = "FDR-X3000"
         case HDR_AS100V = "HDR-AS100V"
@@ -104,6 +105,7 @@ extension SonyCameraDevice {
             case .cyberShot_RX100M3: return "Cyber-Shot RX100 III"
             case .cyberShot_RX100M4: return "Cyber-Shot RX100 IV"
             case .cyberShot_RX100M5: return "Cyber-Shot RX100 V"
+            case .cyberShot_RX100M6: return "Cybter-Shot RX100 VI"
             case .cyberShot_RX0: return "RX0"
             case .cyberShot_RX0M2: return "RX0 II"
             case .FDR_X1000V: return "FDR-X1000V"
@@ -322,7 +324,7 @@ extension SonyCameraDevice {
         }
         
         static var cyberShotSeries: [Model] {
-            return [.cyberShot_HX50, .cyberShot_HX50V, .cyberShot_HX60, .cyberShot_HX60V, .cyberShot_HX80, .cyberShot_HX90, .cyberShot_HX90V, .cyberShot_HX400, .cyberShot_HX400V, .cyberShot_WX500, .cyberShot_RX10M2, .cyberShot_RX10M3, .cyberShot_RX100M2, .cyberShot_RX100M3, .cyberShot_RX100M4, .cyberShot_RX100M5, .cyberShot_RX0, .cyberShot_RX0M2]
+            return [.cyberShot_HX50, .cyberShot_HX50V, .cyberShot_HX60, .cyberShot_HX60V, .cyberShot_HX80, .cyberShot_HX90, .cyberShot_HX90V, .cyberShot_HX400, .cyberShot_HX400V, .cyberShot_WX500, .cyberShot_RX10M2, .cyberShot_RX10M3, .cyberShot_RX100M2, .cyberShot_RX100M3, .cyberShot_RX100M4, .cyberShot_RX100M5, .cyberShot_RX100M6, .cyberShot_RX0, .cyberShot_RX0M2]
         }
         
         static var fdrSeries: [Model] {
@@ -383,7 +385,9 @@ extension SonyCameraDevice {
                 .a7riii,
                 .a9,
                 .cyberShot_RX0,
-                .cyberShot_RX0M2
+                .cyberShot_RX0M2,
+                .cyberShot_RX100M5,
+                .cyberShot_RX100M6
             ]
             return modelsWhichRequireHalfPressToCapture.contains(self)
         }

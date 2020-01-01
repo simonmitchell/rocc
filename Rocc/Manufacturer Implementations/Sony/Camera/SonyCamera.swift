@@ -1803,7 +1803,7 @@ extension SonyCameraDevice: Camera {
                         // Take picture immediately after half press has completed, two scenarios here:
                         // 1. User is in MF, this takePicture should succeed and take the photo
                         // 2. User is in AF, this takePicture could fail (which we ignore), and then we wait for focus change
-                        takePicture(true, { [weak _this] success in
+                        takePicture(false, { success in
                             
                             // If the take picture failed, then we'll await the focus change from `Shutter.halfPress`
                             guard !success else {
@@ -1811,15 +1811,7 @@ extension SonyCameraDevice: Camera {
                                 return
                             }
                             
-                            Logger.shared.log("Take picture failed, awaiting focus change", category: "SonyCamera", level: .debug)
-                            
-                            // Await event letting us know the camera has finished focussing
-                            _this?.onFocusChange({ (status) -> Bool in
-                                guard let _status = status, _status != .focusing else { return false }
-                                Logger.shared.log("Camera achieved focus, taking picture", category: "SonyCamera", level: .debug)
-                                takePicture(false, nil)
-                                return true
-                            })
+                            Logger.shared.log("Take picture failed, nothing we can do...", category: "SonyCamera", level: .debug)
                         })
                     })
                 }
