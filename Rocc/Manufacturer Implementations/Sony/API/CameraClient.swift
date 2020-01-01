@@ -714,6 +714,18 @@ internal class CameraClient: ServiceClient {
     
     typealias GenericCompletion = (_ error: Error?) -> Void
     
+    var eventMethodName: String? {
+        guard let availableApiList = availableApiList else {
+            return nil
+        }
+        for eventName in ["getEvent", "receiveEvent"] {
+            if availableApiList.contains(eventName) {
+                return eventName
+            }
+        }
+        return nil
+    }
+    
     internal convenience init?(apiInfo: SonyCameraDevice.ApiDeviceInfo) {
         guard let cameraService = apiInfo.services.first(where: { $0.type == "camera" }) else { return nil }
         self.init(service: cameraService)
@@ -3854,7 +3866,22 @@ internal class CameraClient: ServiceClient {
     
     func getEvent(polling: Bool, _ completion: @escaping EventCompletion) {
         
-        let body = SonyRequestBody(method: "getEvent", params: [polling], id: 1, version: versions?.last ?? "1.0")
+        guard let eventMethodName = eventMethodName else {
+            
+            getAvailableApiList { [weak self] (result) in
+                // Fallback to getEvent as more commonly used!
+                self?.getEvent(methodName: self?.eventMethodName ?? "getEvent", polling: polling, completion)
+            }
+            
+            return
+        }
+        
+        getEvent(methodName: eventMethodName, polling: polling, completion)
+    }
+    
+    private func getEvent(methodName: String, polling: Bool, _ completion: @escaping EventCompletion) {
+        
+        let body = SonyRequestBody(method: methodName, params: [polling], id: 1, version: versions?.last ?? "1.0")
         
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             

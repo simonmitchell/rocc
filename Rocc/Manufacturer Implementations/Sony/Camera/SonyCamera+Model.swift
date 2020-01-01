@@ -30,6 +30,8 @@ extension SonyCameraDevice {
         case a6400 = "ILCE-6400"
         case a6500 = "ILCE-6500"
         case a6600 = "ILCE-6600"
+        case cyberShot_HX50 = "DSC-HX50"
+        case cyberShot_HX50V = "DSC-HX50V"
         case cyberShot_HX60 = "DSC-HX60"
         case cyberShot_HX60V = "DSC-HX60V"
         case cyberShot_HX80 = "DSC-HX80"
@@ -42,6 +44,7 @@ extension SonyCameraDevice {
         case cyberShot_RX0M2 = "DSC-RX0M2"
         case cyberShot_RX10M2 = "DSC-RX1RM2"
         case cyberShot_RX10M3 = "DSC-RX10M3"
+        case cyberShot_RX100M2 = "DSC-RX100M2"
         case cyberShot_RX100M3 = "DSC-RX100M3"
         case cyberShot_RX100M4 = "DSC-RX100M4"
         case cyberShot_RX100M5 = "DSC-RX100M5"
@@ -85,6 +88,8 @@ extension SonyCameraDevice {
             case .a6400: return "ɑ6400"
             case .a6500: return "ɑ6500"
             case .a6600: return "ɑ6600"
+            case .cyberShot_HX50: return "Cyber-Shot HX50"
+            case .cyberShot_HX50V: return "Cyber-Shot HX50V"
             case .cyberShot_HX60: return "Cyber-Shot HX60"
             case .cyberShot_HX60V: return "Cyber-Shot HX60V"
             case .cyberShot_HX80: return "Cyber-Shot HX80"
@@ -95,6 +100,7 @@ extension SonyCameraDevice {
             case .cyberShot_WX500: return "Cyber-Shot WX500"
             case .cyberShot_RX10M2: return "Cyber-Shot RX1 R II"
             case .cyberShot_RX10M3: return "Cyber-Shot RX10 III"
+            case .cyberShot_RX100M2: return "Cyber-Shot RX100 II"
             case .cyberShot_RX100M3: return "Cyber-Shot RX100 III"
             case .cyberShot_RX100M4: return "Cyber-Shot RX100 IV"
             case .cyberShot_RX100M5: return "Cyber-Shot RX100 V"
@@ -119,6 +125,10 @@ extension SonyCameraDevice {
             case .QX100: return "QX100"
             case .QX30: return "QX30"
             }
+        }
+        
+        internal var usesLegacyAPI: Bool {
+            return [.cyberShot_RX100M2, .cyberShot_HX50V, .cyberShot_HX50].contains(self)
         }
         
         internal static func supporting(function: _CameraFunction) -> [Model] {
@@ -312,7 +322,7 @@ extension SonyCameraDevice {
         }
         
         static var cyberShotSeries: [Model] {
-            return [.cyberShot_HX60, .cyberShot_HX60V, .cyberShot_HX80, .cyberShot_HX90, .cyberShot_HX90V, .cyberShot_HX400, .cyberShot_HX400V, .cyberShot_WX500, .cyberShot_RX10M2, .cyberShot_RX10M3, .cyberShot_RX100M3, .cyberShot_RX100M4, .cyberShot_RX100M5, .cyberShot_RX0, .cyberShot_RX0M2]
+            return [.cyberShot_HX50, .cyberShot_HX50V, .cyberShot_HX60, .cyberShot_HX60V, .cyberShot_HX80, .cyberShot_HX90, .cyberShot_HX90V, .cyberShot_HX400, .cyberShot_HX400V, .cyberShot_WX500, .cyberShot_RX10M2, .cyberShot_RX10M3, .cyberShot_RX100M2, .cyberShot_RX100M3, .cyberShot_RX100M4, .cyberShot_RX100M5, .cyberShot_RX0, .cyberShot_RX0M2]
         }
         
         static var fdrSeries: [Model] {
