@@ -147,6 +147,7 @@ internal final class SonyPTPIPDevice: SonyCamera {
     private func getDeviceInfo(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
         
         let packet = Packet.commandRequestPacket(code: .getDeviceInfo, arguments: nil, transactionId: ptpIPClient?.getNextTransactionId() ?? 1)
+        
         ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { [weak self] (dataResult) in
             
             switch dataResult {
@@ -156,17 +157,25 @@ internal final class SonyPTPIPDevice: SonyCamera {
                     return
                 }
                 self?.deviceInfo = deviceInfo
-                // Only get SDIO Ext Device Info if it's supported!
-                guard deviceInfo.supportedOperations.contains(.sdioGetExtDeviceInfo) else {
-                    completion(nil, false)
-                    return
-                }
-                self?.getSdioExtDeviceInfo(completion: completion)
             case .failure(let error):
                 completion(error, false)
             }
         })
-        ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
+        
+        ptpIPClient?.sendCommandRequestPacket(packet, callback: { [weak self] (response) in
+            guard let self = self else { return }
+            guard let deviceInfo = self.deviceInfo else { return }
+            guard response.code == .okay else {
+                completion(nil, false)
+                return
+            }
+            // Only get SDIO Ext Device Info if it's supported!
+            guard deviceInfo.supportedOperations.contains(.sdioGetExtDeviceInfo) else {
+                completion(nil, false)
+                return
+            }
+            self.getSdioExtDeviceInfo(completion: completion)
+        })
     }
         
     private func performSdioConnect(completion: @escaping (Error?) -> Void, number: DWord, transactionId: DWord) {
@@ -174,9 +183,15 @@ internal final class SonyPTPIPDevice: SonyCamera {
         //TODO: Try and find out what the arguments are for this!
         let packet = Packet.commandRequestPacket(code: .sdioConnect, arguments: [number, 0x0000, 0x0000], transactionId: transactionId)
         ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { (dataContainer) in
+            // Not sure what to do with the data in here yet (If anything)
+        })
+        ptpIPClient?.sendCommandRequestPacket(packet, callback: { (response) in
+            guard response.code == .okay else {
+                completion(PTPError.commandRequestFailed)
+                return
+            }
             completion(nil)
         })
-        ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
     }
     
     private func getSdioExtDeviceInfo(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
@@ -201,24 +216,28 @@ internal final class SonyPTPIPDevice: SonyCamera {
                         case .success(let dataContainer):
                             
                             guard let self = self else { return }
-                            
                             guard let extDeviceInfo = PTP.SDIOExtDeviceInfo(data: dataContainer.data) else {
                                 completion(PTPError.fetchSdioExtDeviceInfoFailed, false)
                                 return
                             }
                             self.deviceInfo?.update(with: extDeviceInfo)
-                            self.performSdioConnect(
-                                completion: { [weak self] _ in
-                                    self?.performInitialEventFetch(completion: completion)
-                                },
-                                number: 3,
-                                transactionId: self.ptpIPClient?.getNextTransactionId() ?? 5
-                            )
                         case .failure(let error):
                             completion(error, false)
                         }
                     })
-                    self.ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
+                    self.ptpIPClient?.sendCommandRequestPacket(packet, callback: { (response) in
+                        guard response.code == .okay else {
+                            completion(PTPError.commandRequestFailed, false)
+                            return
+                        }
+                        self.performSdioConnect(
+                            completion: { [weak self] _ in
+                                self?.performInitialEventFetch(completion: completion)
+                            },
+                            number: 3,
+                            transactionId: self.ptpIPClient?.getNextTransactionId() ?? 5
+                        )
+                    })
                 },
                 number: 2,
                 transactionId: self.ptpIPClient?.getNextTransactionId() ?? 3
