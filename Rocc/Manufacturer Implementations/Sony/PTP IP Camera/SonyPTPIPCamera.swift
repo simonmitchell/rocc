@@ -133,9 +133,8 @@ internal final class SonyPTPIPDevice: SonyCamera {
     
     private func sendStartSessionPacket(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
         
-        // First argument here is the session ID. We don't need a transaction ID because this is the "first"
-        // command we send and so we can use the default 0 value the function provides.
-        let packet = Packet.commandRequestPacket(code: .openSession, arguments: [0x00000001])
+        // First argument here is the session ID.
+        let packet = Packet.commandRequestPacket(code: .openSession, arguments: [0x00000001], transactionId: ptpIPClient?.getNextTransactionId() ?? 0)
         ptpIPClient?.sendCommandRequestPacket(packet, callback: { [weak self] (response) in
             guard response.code == .okay else {
                 completion(PTPError.commandRequestFailed, false)
