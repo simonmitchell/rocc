@@ -349,6 +349,11 @@ final class PTPIPClient: NSObject {
         commandRequestCallbacks[transactionId]?.callback(packet)
         commandRequestCallbacks[transactionId] = nil
         
+        if !packet.code.isError, let containerForData = dataContainers[transactionId] {
+            dataCallbacks[transactionId]?(Result.success(containerForData))
+            dataCallbacks[transactionId] = nil
+        }
+        
         guard packet.code.isError else { return }
         
         dataCallbacks[transactionId]?(Result.failure(packet.code))

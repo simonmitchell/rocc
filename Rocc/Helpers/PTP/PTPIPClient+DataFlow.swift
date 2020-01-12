@@ -51,13 +51,11 @@ extension PTPIPClient {
     }
     
     func handleEndDataPacket(_ packet: EndDataPacket) {
-        guard let containerForData = dataContainers[packet.transactionId] else {
-            os_log("Received unexpected end data packet for transactionId: %{public}@", log: ptpClientLog, type: .error, "\(packet.transactionId)")
-            Logger.log(message: "Received unexpected end data packet for transactionId: \(packet.transactionId)", category: "PTPIPClient")
+        guard dataContainers[packet.transactionId] == nil else {
             return
         }
-        dataCallbacks[packet.transactionId]?(Result.success(containerForData))
-        dataCallbacks[packet.transactionId] = nil
+        os_log("Received unexpected end data packet for transactionId: %{public}@", log: ptpClientLog, type: .error, "\(packet.transactionId)")
+        Logger.log(message: "Received unexpected end data packet for transactionId: \(packet.transactionId)", category: "PTPIPClient")
     }
 }
 

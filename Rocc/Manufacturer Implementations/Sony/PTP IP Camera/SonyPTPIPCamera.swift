@@ -157,34 +157,24 @@ internal final class SonyPTPIPDevice: SonyCamera {
                     return
                 }
                 self?.deviceInfo = deviceInfo
+                // Only get SDIO Ext Device Info if it's supported!
+                guard deviceInfo.supportedOperations.contains(.sdioGetExtDeviceInfo) else {
+                    completion(nil, false)
+                    return
+                }
+                self?.getSdioExtDeviceInfo(completion: completion)
             case .failure(let error):
                 completion(error, false)
             }
         })
         
-        ptpIPClient?.sendCommandRequestPacket(packet, callback: { [weak self] (response) in
-            guard let self = self else { return }
-            guard let deviceInfo = self.deviceInfo else { return }
-            guard response.code == .okay else {
-                completion(nil, false)
-                return
-            }
-            // Only get SDIO Ext Device Info if it's supported!
-            guard deviceInfo.supportedOperations.contains(.sdioGetExtDeviceInfo) else {
-                completion(nil, false)
-                return
-            }
-            self.getSdioExtDeviceInfo(completion: completion)
-        })
+        ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
     }
         
     private func performSdioConnect(completion: @escaping (Error?) -> Void, number: DWord, transactionId: DWord) {
         
         //TODO: Try and find out what the arguments are for this!
         let packet = Packet.commandRequestPacket(code: .sdioConnect, arguments: [number, 0x0000, 0x0000], transactionId: transactionId)
-        ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { (dataContainer) in
-            // Not sure what to do with the data in here yet (If anything)
-        })
         ptpIPClient?.sendCommandRequestPacket(packet, callback: { (response) in
             guard response.code == .okay else {
                 completion(PTPError.commandRequestFailed)
