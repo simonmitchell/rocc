@@ -367,7 +367,10 @@ extension SonyPTPIPDevice {
                     code: .autoFocus,
                     type: .uint16,
                     value: function.function == .halfPressShutter ? Word(2) : Word(1)
-                )
+                ), callback: { response in
+                    //TODO: Handle errors!
+                    callback(nil, nil)
+                }
             )
         case .setTouchAFPosition:
             //TODO: Implement
@@ -556,63 +559,79 @@ extension SonyPTPIPDevice {
         
         ptpIPClient?.sendSetControlDeviceBValue(
             PTP.DeviceProperty.Value(
-                code: .capture,
-                type: .uint8,
+                code: .autoFocus,
+                type: .uint16,
                 value: Word(2)
-            )
+            ),
+            callback: { [weak self] (_) in
+                self?.capture(completion: completion)
+            }
         )
+    }
+    
+    private func capture(completion: @escaping ((Error?) -> Void)) {
         
-        performFunction(Focus.Mode.get, payload: nil) { [weak self] (_, focusMode) in
-            
-            guard let self = self else {
-                return
-            }
-            
-            guard focusMode?.isAutoFocus == true else {
-                self.cancelShutterPress(completion: completion)
-                return
-            }
-            
-            Logger.log(message: "Focus mode is AF variant awaiting focus...", category: "SonyPTPIPCamera")
-            os_log("Focus mode is AF variant awaiting focus...", log: self.log, type: .debug)
-            
-            var newObject: DWord?
-                        
-            DispatchQueue.global().asyncWhile({ [weak self] (continueClosure) in
+        ptpIPClient?.sendSetControlDeviceBValue(
+            PTP.DeviceProperty.Value(
+                code: .capture,
+                type: .uint16,
+                value: Word(2)
+            ),
+            callback: { (_) in
                 
-                guard let self = self else { return }
+                self.performFunction(Focus.Mode.get, payload: nil) { [weak self] (_, focusMode) in
                 
-                if let lastEvent = self.lastEventPacket {
-                    
-                    // If code is property changed, and first variable == "Focus Found"
-                    if lastEvent.code == .propertyChanged, lastEvent.variables?.first == 0xD213 {
-                        Logger.log(message: "Got property changed event and was \"Focus Found\", continuing with capture process", category: "SonyPTPIPCamera")
-                        os_log("Got property changed event and was \"Focus Found\", continuing with capture process", log: self.log, type: .debug)
-                        continueClosure(true)
-                        return
-                    } else if lastEvent.code == .objectAdded {
-                        Logger.log(message: "Got property changed event and was \"Object Added\", continuing with capture process", category: "SonyPTPIPCamera")
-                        os_log("Got property changed event and was \"Object Added\", continuing with capture process", log: self.log, type: .debug)
-                        newObject = lastEvent.variables?.first
-                        continueClosure(true)
+                    guard let self = self else {
                         return
                     }
+                    
+                    guard focusMode?.isAutoFocus == true else {
+                        self.cancelShutterPress(completion: completion)
+                        return
+                    }
+                    
+                    Logger.log(message: "Focus mode is AF variant awaiting focus...", category: "SonyPTPIPCamera")
+                    os_log("Focus mode is AF variant awaiting focus...", log: self.log, type: .debug)
+                    
+                    var newObject: DWord?
+                                
+                    DispatchQueue.global().asyncWhile({ [weak self] (continueClosure) in
+                        
+                        guard let self = self else { return }
+                        
+                        if let lastEvent = self.lastEventPacket {
+                            
+                            // If code is property changed, and first variable == "Focus Found"
+                            if lastEvent.code == .propertyChanged, lastEvent.variables?.first == 0xD213 {
+                                Logger.log(message: "Got property changed event and was \"Focus Found\", continuing with capture process", category: "SonyPTPIPCamera")
+                                os_log("Got property changed event and was \"Focus Found\", continuing with capture process", log: self.log, type: .debug)
+                                continueClosure(true)
+                                return
+                            } else if lastEvent.code == .objectAdded {
+                                Logger.log(message: "Got property changed event and was \"Object Added\", continuing with capture process", category: "SonyPTPIPCamera")
+                                os_log("Got property changed event and was \"Object Added\", continuing with capture process", log: self.log, type: .debug)
+                                newObject = lastEvent.variables?.first
+                                continueClosure(true)
+                                return
+                            }
+                        }
+                        
+                        Logger.log(message: "Falling back to manual event check for focus found", category: "SonyPTPIPCamera")
+                        os_log("Falling back to manual event check for focus found", log: self.log, type: .debug)
+                        
+                        // In case we miss the event
+                        self.performFunction(Event.get, payload: nil) { (error, event) in
+                            Logger.log(message: "Got camera event, focussed: \(event?.focusStatus == .focused)", category: "SonyPTPIPCamera")
+                            os_log("Got camera event, focussed: %@", log: self.log, type: .debug, event?.focusStatus == .focused ? "true" : "false")
+                            continueClosure(event?.focusStatus == .focused)
+                        }
+                        
+                    }, timeout: 1) { [weak self] in
+                        self?.cancelShutterPress(completion: completion)
+                    }
                 }
-                
-                Logger.log(message: "Falling back to manual event check for focus found", category: "SonyPTPIPCamera")
-                os_log("Falling back to manual event check for focus found", log: self.log, type: .debug)
-                
-                // In case we miss the event
-                self.performFunction(Event.get, payload: nil) { (error, event) in
-                    Logger.log(message: "Got camera event, focussed: \(event?.focusStatus == .focused)", category: "SonyPTPIPCamera")
-                    os_log("Got camera event, focussed: %@", log: self.log, type: .debug, event?.focusStatus == .focused ? "true" : "false")
-                    continueClosure(event?.focusStatus == .focused)
-                }
-                
-            }, timeout: 1) { [weak self] in
-                self?.cancelShutterPress(completion: completion)
             }
-        }
+        )
     }
     
     private func cancelShutterPress(completion: @escaping ((Error?) -> Void)) {
@@ -623,18 +642,19 @@ extension SonyPTPIPDevice {
         ptpIPClient?.sendSetControlDeviceBValue(
             PTP.DeviceProperty.Value(
                 code: .capture,
-                type: .uint8,
+                type: .uint16,
                 value: Word(1)
-            )
+            ),
+            callback: { response in
+                completion(nil)
+                
+                //TODO: Implement getting object ID and saving image to a url for preview!
+        //        DispatchQueue.global().asyncWhile({ (continue) in
+        //
+        //        }, timeout: 35) {
+        //
+        //        }
+            }
         )
-        
-        completion(nil)
-        
-        //TODO: Implement getting object ID and saving image to a url for preview!
-//        DispatchQueue.global().asyncWhile({ (continue) in
-//
-//        }, timeout: 35) {
-//
-//        }
     }
 }

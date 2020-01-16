@@ -37,8 +37,19 @@ struct DataPacket: Packetable {
     
     init(transactionId: DWord) {
         self.transactionId = transactionId
-        name = .startDataPacket
+        name = .dataPacket
         data = ByteBuffer()
         length = 0
+    }
+    
+    var description: String {
+        return """
+        {
+            length: \(length)
+            code: \(name)
+            transactionId: \(transactionId)
+            data: \(data.toHex)
+        }
+        """
     }
 }

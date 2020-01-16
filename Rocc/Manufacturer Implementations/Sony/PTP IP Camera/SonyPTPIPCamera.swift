@@ -181,7 +181,7 @@ internal final class SonyPTPIPDevice: SonyCamera {
                 return
             }
             completion(nil)
-        })
+        }, callCallbackForAnyResponse: true)
     }
     
     private func getSdioExtDeviceInfo(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
@@ -220,12 +220,14 @@ internal final class SonyPTPIPDevice: SonyCamera {
                             completion(PTPError.commandRequestFailed, false)
                             return
                         }
+                        // Sony app seems to jump current transaction ID back to 2 here, so we'll do the same
+                        self.ptpIPClient?.resetTransactionId(to: 1)
                         self.performSdioConnect(
                             completion: { [weak self] _ in
                                 self?.performInitialEventFetch(completion: completion)
                             },
                             number: 3,
-                            transactionId: self.ptpIPClient?.getNextTransactionId() ?? 5
+                            transactionId: self.ptpIPClient?.getNextTransactionId() ?? 2
                         )
                     })
                 },
@@ -237,22 +239,16 @@ internal final class SonyPTPIPDevice: SonyCamera {
     
     private func performInitialEventFetch(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
         
-        performFunction(Event.get, payload: nil, callback: { [weak self] (error, event) in
+        self.ptpIPClient?.sendCommandRequestPacket(Packet.commandRequestPacket(
+            code: .unknownHandshakeRequest,
+            arguments: nil,
+            transactionId: self.ptpIPClient?.getNextTransactionId() ?? 7
+        ), callback: { (response) in
             
-            self?.lastEvent = event
-            
-            guard let self = self else {
+            self.performFunction(Event.get, payload: nil, callback: { [weak self] (error, event) in
+                
+                self?.lastEvent = event
                 // Can ignore errors as we don't really require this event for the connection process to complete!
-                completion(nil, false)
-                return
-            }
-            
-            self.ptpIPClient?.sendCommandRequestPacket(Packet.commandRequestPacket(
-                code: .unknownHandshakeRequest,
-                arguments: nil,
-                transactionId: self.ptpIPClient?.getNextTransactionId() ?? 7
-            ), callback: { (response) in
-                // For now we'll ignore errors as we have no idea what this even does!
                 completion(nil, false)
             })
         })

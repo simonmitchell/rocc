@@ -70,6 +70,10 @@ final class PTPIPClient: NSObject {
         guid = String(guid.suffix(16))
     }
     
+    func resetTransactionId(to: DWord) {
+        currentTransactionId = to
+    }
+    
     func getNextTransactionId() -> DWord {
         
         defer {
@@ -100,6 +104,7 @@ final class PTPIPClient: NSObject {
         
         disconnect()
         
+        awaitingFurtherDataCommandResponsePacket = nil
         connectCallback = callback
         
         Logger.log(message: "Creating streams to host \(host):\(port)", category: "PTPIPClient")
@@ -191,6 +196,8 @@ final class PTPIPClient: NSObject {
             guard response == packet.length else {
                 break
             }
+            Logger.log(message: "Sending event packet to device: \(packet.debugDescription)", category: "PTPIPClient")
+            os_log("Sending event packet to device: %@", log: ptpClientLog, type: .debug, "\(packet.debugDescription)")
             pendingEventPackets.remove(at: index)
         }
     }
@@ -202,6 +209,8 @@ final class PTPIPClient: NSObject {
             guard response == packet.length else {
                 break
             }
+            Logger.log(message: "Sending control packet to device: \(packet.debugDescription)", category: "PTPIPClient")
+            os_log("Sending control packet to device: %@", log: ptpClientLog, type: .debug, "\(packet.debugDescription)")
             pendingControlPackets.remove(at: index)
         }
     }
@@ -262,10 +271,11 @@ final class PTPIPClient: NSObject {
     
     func sendSetControlDeviceAValue(_ value: PTP.DeviceProperty.Value) {
         
-        let opRequestPacket = Packet.commandRequestPacket(code: .setControlDeviceA, arguments: [UInt32(value.code.rawValue)], transactionId: getNextTransactionId())
+        let transactionID = getNextTransactionId()
+        let opRequestPacket = Packet.commandRequestPacket(code: .setControlDeviceA, arguments: [DWord(value.code.rawValue)], transactionId: transactionID, dataPhaseInfo: 2)
         var data = ByteBuffer()
         data.appendValue(value.value, ofType: value.type)
-        let dataPackets = Packet.dataSendPackets(data: data, transactionId: getNextTransactionId())
+        let dataPackets = Packet.dataSendPackets(data: data, transactionId: transactionID)
         
         //TODO: Do we have to wait for callback?
         sendCommandRequestPacket(opRequestPacket, callback: nil)
@@ -274,15 +284,16 @@ final class PTPIPClient: NSObject {
         }
     }
     
-    func sendSetControlDeviceBValue(_ value: PTP.DeviceProperty.Value) {
+    func sendSetControlDeviceBValue(_ value: PTP.DeviceProperty.Value, callback: CommandRequestPacketResponse?) {
         
-        let opRequestPacket = Packet.commandRequestPacket(code: .setControlDeviceB, arguments: [UInt32(value.code.rawValue)], transactionId: getNextTransactionId())
+        let transactionID = getNextTransactionId()
+        let opRequestPacket = Packet.commandRequestPacket(code: .setControlDeviceB, arguments: [DWord(value.code.rawValue)], transactionId: transactionID, dataPhaseInfo: 2)
         var data = ByteBuffer()
         data.appendValue(value.value, ofType: value.type)
-        let dataPackets = Packet.dataSendPackets(data: data, transactionId: getNextTransactionId())
+        let dataPackets = Packet.dataSendPackets(data: data, transactionId: transactionID)
         
         //TODO: Do we have to wait for callback?
-        sendCommandRequestPacket(opRequestPacket, callback: nil)
+        sendCommandRequestPacket(opRequestPacket, callback: callback, callCallbackForAnyResponse: true)
         dataPackets.forEach { (dataPacket) in
             sendControlPacket(dataPacket)
         }
@@ -292,8 +303,10 @@ final class PTPIPClient: NSObject {
     
     fileprivate func handle(packet: Packetable) {
         
-        Logger.log(message: "Received packet from device: \(packet.debugDescription)", category: "PTPIPClient")
-        os_log("Received packet from device: %@", log: ptpClientLog, type: .debug, "\(packet.debugDescription)")
+        if packet as? CommandResponsePacket == nil || !(packet as! CommandResponsePacket).awaitingFurtherData {
+            Logger.log(message: "Received packet from device: \(packet.debugDescription)", category: "PTPIPClient")
+            os_log("Received packet from device: %@", log: ptpClientLog, type: .debug, "\(packet.debugDescription)")
+        }
         
         switch packet {
         case let initCommandAckPacket as InitCommandAckPacket:
@@ -313,13 +326,17 @@ final class PTPIPClient: NSObject {
         case let endDataPacket as EndDataPacket:
             handleEndDataPacket(endDataPacket)
         case let eventPacket as EventPacket:
-            onEvent?(eventPacket)
+            onEvent?(eventPacket)            
         default:
             switch packet.name {
             case .initEventAck:
                 // We're done with setting up sockets here, any further handshake should be done by the caller of `connect`
                 connectCallback?(nil)
                 connectCallback = nil
+            case .ping:
+                // Perform a pong!
+                let pongPacket = Packet.pongPacket()
+                sendControlPacket(pongPacket)
             default:
                 break
             }
@@ -335,7 +352,16 @@ final class PTPIPClient: NSObject {
     
     //MARK: Commands
     
+    private var awaitingFurtherDataCommandResponsePacket: CommandResponsePacket?
+    
     fileprivate func handleCommandResponsePacket(_ packet: CommandResponsePacket) {
+        
+        // Need to catch this, as sometimes cameras send invalid command responses, but sometimes they just
+        // come through in multiple bundles, so we wait and augment them with further data
+        guard !packet.awaitingFurtherData else {
+            awaitingFurtherDataCommandResponsePacket = packet
+            return
+        }
         
         guard let transactionId = packet.transactionId else {
             commandRequestCallbacks = commandRequestCallbacks.filter { (_, value) -> Bool in
@@ -406,6 +432,24 @@ final class PTPIPClient: NSObject {
             os_log("Read event available bytes:\n\n%@", log: ptpClientLog, type: .debug, eventLoopByteBuffer.toHex)
             packets = eventLoopByteBuffer.parsePackets()
         case controlReadStream:
+            
+            // If we have a command response packet awaiting further data
+            if var awaitingCommandResponsePacket = awaitingFurtherDataCommandResponsePacket {
+                // Create a new packet by appending new data
+                if var fullPacket = awaitingCommandResponsePacket.addingAwaitedData(mainLoopByteBuffer) {
+                    awaitingFurtherDataCommandResponsePacket = nil
+                    // Make sure set to false, otherwise we end up in an infinite loop
+                    fullPacket.awaitingFurtherData = false
+                    handle(packet: fullPacket)
+                } else {
+                    // If we don't get a new packet, just mark the current one as not awaiting data, and send it!
+                    awaitingCommandResponsePacket.awaitingFurtherData = false
+                    handle(packet: awaitingCommandResponsePacket)
+                }
+                
+                awaitingFurtherDataCommandResponsePacket = nil
+            }
+            
             Logger.log(message: "Read control available bytes:\n\n\(mainLoopByteBuffer.toHex)", category: "PTPIPClient")
             os_log("Read control available bytes:\n\n%@", log: ptpClientLog, type: .debug, mainLoopByteBuffer.toHex)
             packets = mainLoopByteBuffer.parsePackets()

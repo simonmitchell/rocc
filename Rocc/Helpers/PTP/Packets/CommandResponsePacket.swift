@@ -117,9 +117,29 @@ struct CommandResponsePacket: Packetable {
                 
     var data: ByteBuffer = ByteBuffer()
     
+    var awaitingFurtherData: Bool = false
+    
+    private var originalData: ByteBuffer = ByteBuffer()
+    
+    private var pendingData: ByteBuffer {
+        var data = ByteBuffer()
+        data.append(bytes: .init(repeating: 0, count: Packet.headerLength))
+        data.set(header: .cmdResponse)
+        data.append(bytes: originalData.bytes.compactMap({ $0 }))
+        return data
+    }
+    
     let code: Code
     
     let transactionId: DWord?
+    
+    func addingAwaitedData(_ data: ByteBuffer) -> CommandResponsePacket? {
+        var fullData = pendingData
+        fullData.append(bytes: data.bytes.compactMap({ $0 }))
+        // Override the length that set(header:) sets to make sure we don't loose data when calling parsePackets
+        fullData[dWord: 0] = 14
+        return fullData.parsePackets()?.first(where: { $0 is CommandResponsePacket }) as? CommandResponsePacket
+    }
     
     init?(length: DWord, name: Packet.Name, data: ByteBuffer) {
         
@@ -131,6 +151,8 @@ struct CommandResponsePacket: Packetable {
             self.code = .okay
             self.length = 8
             transactionId = nil
+            awaitingFurtherData = length > Packet.headerLength
+            originalData = data
             return
         }
         guard let code = Code(rawValue: responseWord) else {
@@ -138,6 +160,8 @@ struct CommandResponsePacket: Packetable {
             self.code = .okay
             self.length = 8
             transactionId = nil
+            awaitingFurtherData = length > Packet.headerLength
+            originalData = data
             return
         }
         
@@ -147,7 +171,7 @@ struct CommandResponsePacket: Packetable {
         // Use `length` here as otherwise we may end up stealing data from other packets!
         self.data = data.sliced(6, Int(length) - Packet.headerLength)
     }
-    
+        
     var debugDescription: String {
         return description
     }
