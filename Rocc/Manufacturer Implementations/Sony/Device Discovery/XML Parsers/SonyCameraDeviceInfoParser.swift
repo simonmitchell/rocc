@@ -70,8 +70,6 @@ class SonyCameraDeviceInfoParser: NSObject, XMLParserDelegate {
         if elementName == "X_PlayMemoriesCameraApps_App" {
             currentApp = [:]
         }
-        
-        os_log("Parser did start element: %@\nCurrent scope:%@", log: log, type: .debug, elementName, scope)
     }
     
     func parser(_ parser: XMLParser, foundCharacters string: String) {
@@ -87,7 +85,6 @@ class SonyCameraDeviceInfoParser: NSObject, XMLParserDelegate {
         defer {
             currentElement = scope.removeLast()
             foundCharacters = ""
-            os_log("Parser did end element: %@\nCurrent scope:%@", log: log, type: .debug, elementName, scope)
         }
         
         switch elementName {

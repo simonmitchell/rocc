@@ -83,9 +83,7 @@ final class SonyTransferDeviceParser: NSObject, XMLParserDelegate {
             currentWebApiService = [:]
         default:
             break
-        }
-        
-        os_log("Parser did start element: %@\nCurrent scope:%@", log: log, type: .debug, elementName, scope)
+        }        
     }
     
     func parser(_ parser: XMLParser, foundCharacters string: String) {
@@ -101,7 +99,6 @@ final class SonyTransferDeviceParser: NSObject, XMLParserDelegate {
         defer {
             currentElement = scope.removeLast()
             foundCharacters = ""
-            os_log("Parser did end element: %@\nCurrent scope:%@", log: log, type: .debug, elementName, scope)
         }
         
         switch elementName {
