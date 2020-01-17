@@ -28,13 +28,7 @@ struct EventPacket: Packetable {
         self.name = name
         
         guard let codeWord = data[word: 0], let code = PTP.EventCode(rawValue: codeWord) else {
-            // Some manufacturers *coughs* Sony, send malformed packets... we handle this by hard-coding the height, and assume the code was property changed!
-            self.length = DWord(Packet.headerLength)
-            self.code = .propertyChanged
-            self.data = ByteBuffer()
-            self.transactionId = nil
-            self.variables = nil
-            return
+            return nil
         }
         self.code = code
         

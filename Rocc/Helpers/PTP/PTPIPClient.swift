@@ -154,7 +154,7 @@ final class PTPIPClient: NSObject {
         connectCallback = nil
     }
     
-    private func sendInitCommandAck() {
+    private func sendInitCommandRequest() {
         
         let guidData = guid.data(using: .utf8)
         let connectPacket = Packet.initCommandPacket(guid: guidData?.toBytes ?? [], name: UIDevice.current.name)
@@ -433,15 +433,25 @@ final class PTPIPClient: NSObject {
             packets = eventLoopByteBuffer.parsePackets()
         case controlReadStream:
             
+            Logger.log(message: "Read control available bytes:\n\n\(mainLoopByteBuffer.toHex)", category: "PTPIPClient")
+            os_log("Read control available bytes:\n\n%@", log: ptpClientLog, type: .debug, mainLoopByteBuffer.toHex)
+            
             // If we have a command response packet awaiting further data
             if var awaitingCommandResponsePacket = awaitingFurtherDataCommandResponsePacket {
                 // Create a new packet by appending new data
-                if var fullPacket = awaitingCommandResponsePacket.addingAwaitedData(mainLoopByteBuffer) {
+                if let fullPacket = awaitingCommandResponsePacket.addingAwaitedData(mainLoopByteBuffer) {
+                    
                     awaitingFurtherDataCommandResponsePacket = nil
                     // Make sure set to false, otherwise we end up in an infinite loop
-                    fullPacket.awaitingFurtherData = false
-                    handle(packet: fullPacket)
+                    var packet = fullPacket.packet
+                    packet.awaitingFurtherData = false
+                    handle(packet: packet)
+                    // Remove the continued data
+                    let lengthToRemove = packet.length - awaitingCommandResponsePacket.length
+                    mainLoopByteBuffer.slice(Int(lengthToRemove))
+                    
                 } else {
+                    
                     // If we don't get a new packet, just mark the current one as not awaiting data, and send it!
                     awaitingCommandResponsePacket.awaitingFurtherData = false
                     handle(packet: awaitingCommandResponsePacket)
@@ -450,8 +460,6 @@ final class PTPIPClient: NSObject {
                 awaitingFurtherDataCommandResponsePacket = nil
             }
             
-            Logger.log(message: "Read control available bytes:\n\n\(mainLoopByteBuffer.toHex)", category: "PTPIPClient")
-            os_log("Read control available bytes:\n\n%@", log: ptpClientLog, type: .debug, mainLoopByteBuffer.toHex)
             packets = mainLoopByteBuffer.parsePackets()
         default:
             break
@@ -508,7 +516,7 @@ extension PTPIPClient: StreamDelegate {
                 guard openStreams.count == 2 else { return }
                 self.onEventStreamsOpened?()
             case controlWriteStream:
-                self.sendInitCommandAck()
+                self.sendInitCommandRequest()
             default:
                 break
             }

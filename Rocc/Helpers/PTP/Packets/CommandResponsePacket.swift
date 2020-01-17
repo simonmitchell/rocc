@@ -133,12 +133,12 @@ struct CommandResponsePacket: Packetable {
     
     let transactionId: DWord?
     
-    func addingAwaitedData(_ data: ByteBuffer) -> CommandResponsePacket? {
+    func addingAwaitedData(_ data: ByteBuffer) -> (packet: CommandResponsePacket, length: DWord)?  {
         var fullData = pendingData
         fullData.append(bytes: data.bytes.compactMap({ $0 }))
         // Override the length that set(header:) sets to make sure we don't loose data when calling parsePackets
         fullData[dWord: 0] = 14
-        return fullData.parsePackets()?.first(where: { $0 is CommandResponsePacket }) as? CommandResponsePacket
+        return fullData.parsePacket(offset: 0) as? (CommandResponsePacket, DWord)
     }
     
     init?(length: DWord, name: Packet.Name, data: ByteBuffer) {

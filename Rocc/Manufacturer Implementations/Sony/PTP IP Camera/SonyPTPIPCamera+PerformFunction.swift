@@ -577,61 +577,80 @@ extension SonyPTPIPDevice {
                 type: .uint16,
                 value: Word(2)
             ),
-            callback: { (_) in
+            callback: { [weak self] (_) in
                 
-                self.performFunction(Focus.Mode.get, payload: nil) { [weak self] (_, focusMode) in
+                guard let self = self else { return }
                 
-                    guard let self = self else {
-                        return
-                    }
+                guard let focusMode = self.lastEvent?.focusMode?.current else {
                     
-                    guard focusMode?.isAutoFocus == true else {
-                        self.cancelShutterPress(completion: completion)
-                        return
-                    }
+                    self.performFunction(Focus.Mode.get, payload: nil) { [weak self] (_, focusMode) in
                     
-                    Logger.log(message: "Focus mode is AF variant awaiting focus...", category: "SonyPTPIPCamera")
-                    os_log("Focus mode is AF variant awaiting focus...", log: self.log, type: .debug)
-                    
-                    var newObject: DWord?
-                                
-                    DispatchQueue.global().asyncWhile({ [weak self] (continueClosure) in
-                        
-                        guard let self = self else { return }
-                        
-                        if let lastEvent = self.lastEventPacket {
-                            
-                            // If code is property changed, and first variable == "Focus Found"
-                            if lastEvent.code == .propertyChanged, lastEvent.variables?.first == 0xD213 {
-                                Logger.log(message: "Got property changed event and was \"Focus Found\", continuing with capture process", category: "SonyPTPIPCamera")
-                                os_log("Got property changed event and was \"Focus Found\", continuing with capture process", log: self.log, type: .debug)
-                                continueClosure(true)
-                                return
-                            } else if lastEvent.code == .objectAdded {
-                                Logger.log(message: "Got property changed event and was \"Object Added\", continuing with capture process", category: "SonyPTPIPCamera")
-                                os_log("Got property changed event and was \"Object Added\", continuing with capture process", log: self.log, type: .debug)
-                                newObject = lastEvent.variables?.first
-                                continueClosure(true)
-                                return
-                            }
+                        guard let self = self else {
+                            return
                         }
                         
-                        Logger.log(message: "Falling back to manual event check for focus found", category: "SonyPTPIPCamera")
-                        os_log("Falling back to manual event check for focus found", log: self.log, type: .debug)
-                        
-                        // In case we miss the event
-                        self.performFunction(Event.get, payload: nil) { (error, event) in
-                            Logger.log(message: "Got camera event, focussed: \(event?.focusStatus == .focused)", category: "SonyPTPIPCamera")
-                            os_log("Got camera event, focussed: %@", log: self.log, type: .debug, event?.focusStatus == .focused ? "true" : "false")
-                            continueClosure(event?.focusStatus == .focused)
+                        guard focusMode?.isAutoFocus == true else {
+                            self.cancelShutterPress(completion: completion)
+                            return
                         }
                         
-                    }, timeout: 1) { [weak self] in
-                        self?.cancelShutterPress(completion: completion)
+                        self.awaitFocus(completion: completion)
                     }
+                    
+                    return
                 }
+                
+                guard focusMode.isAutoFocus else {
+                    self.cancelShutterPress(completion: completion)
+                    return
+                }
+                
+                self.awaitFocus(completion: completion)
             }
         )
+    }
+    
+    private func awaitFocus(completion: @escaping ((Error?) -> Void)) {
+        
+        Logger.log(message: "Focus mode is AF variant awaiting focus...", category: "SonyPTPIPCamera")
+        os_log("Focus mode is AF variant awaiting focus...", log: self.log, type: .debug)
+        
+        var newObject: DWord?
+                    
+        DispatchQueue.global().asyncWhile({ [weak self] (continueClosure) in
+            
+            guard let self = self else { return }
+            
+            if let lastEvent = self.lastEventPacket {
+                
+                // If code is property changed, and first variable == "Focus Found"
+                if lastEvent.code == .propertyChanged, lastEvent.variables?.first == 0xD213 {
+                    Logger.log(message: "Got property changed event and was \"Focus Found\", continuing with capture process", category: "SonyPTPIPCamera")
+                    os_log("Got property changed event and was \"Focus Found\", continuing with capture process", log: self.log, type: .debug)
+                    continueClosure(true)
+                    return
+                } else if lastEvent.code == .objectAdded {
+                    Logger.log(message: "Got property changed event and was \"Object Added\", continuing with capture process", category: "SonyPTPIPCamera")
+                    os_log("Got property changed event and was \"Object Added\", continuing with capture process", log: self.log, type: .debug)
+                    newObject = lastEvent.variables?.first
+                    continueClosure(true)
+                    return
+                }
+            }
+            
+            Logger.log(message: "Falling back to manual event check for focus found", category: "SonyPTPIPCamera")
+            os_log("Falling back to manual event check for focus found", log: self.log, type: .debug)
+            
+            // In case we miss the event
+            self.performFunction(Event.get, payload: nil) { (error, event) in
+                Logger.log(message: "Got camera event, focussed: \(event?.focusStatus == .focused)", category: "SonyPTPIPCamera")
+                os_log("Got camera event, focussed: %@", log: self.log, type: .debug, event?.focusStatus == .focused ? "true" : "false")
+                continueClosure(event?.focusStatus == .focused)
+            }
+            
+        }, timeout: 1) { [weak self] in
+            self?.cancelShutterPress(completion: completion)
+        }
     }
     
     private func cancelShutterPress(completion: @escaping ((Error?) -> Void)) {
@@ -645,9 +664,19 @@ extension SonyPTPIPDevice {
                 type: .uint16,
                 value: Word(1)
             ),
-            callback: { response in
-                completion(nil)
+            callback: { [weak self] response in
                 
+                self?.ptpIPClient?.sendSetControlDeviceBValue(
+                    PTP.DeviceProperty.Value(
+                        code: .autoFocus,
+                        type: .uint16,
+                        value: Word(1)
+                    ),
+                    callback: { (_) in
+                        completion(nil)
+                    }
+                )
+                                
                 //TODO: Implement getting object ID and saving image to a url for preview!
         //        DispatchQueue.global().asyncWhile({ (continue) in
         //

@@ -67,7 +67,6 @@ public final class CameraEventNotifier {
         case .continuous:
             fetchEvent(true)
         case .cameraDriven:
-            fetchEvent(true)
             camera.onEventAvailable = { [weak self] in
                 guard let self = self else { return }
                 Logger.log(message: "Camera indicated event available", category: "CameraEventNotifier")
