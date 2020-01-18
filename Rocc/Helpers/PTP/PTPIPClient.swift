@@ -336,7 +336,7 @@ final class PTPIPClient: NSObject {
             case .ping:
                 // Perform a pong!
                 let pongPacket = Packet.pongPacket()
-                sendControlPacket(pongPacket)
+                sendEventPacket(pongPacket)
             default:
                 break
             }
