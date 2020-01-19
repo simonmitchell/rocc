@@ -35,12 +35,6 @@ extension ShutterSpeed: SonyPTPPropValueConvertable {
         
         self.denominator = Double(denominator)
         self.numerator = Double(numerator)
-        
-        guard denominator == 0, numerator == 0 else {
-            return
-        }
-        
-        isBulb = true
     }
     
     var sonyPTPValue: PTPDevicePropertyDataType {
