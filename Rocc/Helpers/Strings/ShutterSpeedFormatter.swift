@@ -42,7 +42,7 @@ public struct ShutterSpeed {
     
     /// Returns whether the given shutter speed is a BULB shutter speed
     public var isBulb: Bool {
-        return denominator == -1.0 || numerator == -1.0
+        return (denominator == -1.0 || numerator == -1.0) || (denominator == 0 && numerator == 0)
     }
 }
 

@@ -628,10 +628,10 @@ extension CameraEvent {
                 
             case .remainingShots:
                 
-                guard let uint64 = deviceProperty.currentValue as? QWord else { return }
+                guard let shots = deviceProperty.currentValue as? DWord else { return }
                 
                 storageInformation = [
-                    StorageInformation(description: nil, spaceForImages: Int(uint64), recordTarget: true, recordableTime: nil, id: nil)
+                    StorageInformation(description: nil, spaceForImages: Int(shots), recordTarget: true, recordableTime: nil, id: nil)
                 ]
                 break
                 
