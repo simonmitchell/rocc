@@ -170,7 +170,7 @@ extension CameraEvent {
         liveViewInfo = nil
         zoomPosition = nil
         postViewPictureURLs = []
-        storageInformation = []
+        var storageInformation: [StorageInformation]? = nil
         beepMode = nil
         function = nil
         functionResult = false
@@ -626,6 +626,15 @@ extension CameraEvent {
                     supported: allSupportedSizes
                 )
                 
+            case .remainingShots:
+                
+                guard let uint64 = deviceProperty.currentValue as? QWord else { return }
+                
+                storageInformation = [
+                    StorageInformation(description: nil, spaceForImages: Int(uint64), recordTarget: true, recordableTime: nil, id: nil)
+                ]
+                break
+                
             case .whiteBalance:
                 
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
@@ -709,6 +718,7 @@ extension CameraEvent {
             }
         }
         
+        self.storageInformation = storageInformation
         self.shutterSpeed = shutterSpeed
         self.iso = _iso
         self.availableFunctions = availableFunctions

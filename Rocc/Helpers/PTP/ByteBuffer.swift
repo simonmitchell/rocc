@@ -61,6 +61,10 @@ struct ByteBuffer {
         setLittleEndian(offset: UInt(bytes.count), value: Int(value), nBytes: 4)
     }
     
+    mutating func append(qWord value: QWord) {
+        setLittleEndian(offset: UInt(bytes.count), value: Int(value), nBytes: 8)
+    }
+    
     mutating func append(word value: Word) {
         setLittleEndian(offset: UInt(bytes.count), value: Int(value), nBytes: 2)
     }

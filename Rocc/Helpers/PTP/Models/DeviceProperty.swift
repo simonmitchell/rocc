@@ -135,6 +135,8 @@ extension PTP.DeviceProperty.Code {
             return [.halfPressShutter, .cancelHalfPressShutter]
         case .capture:
             return [.takePicture]
+        case .remainingShots:
+            return nil
         }
     }
     
@@ -261,6 +263,8 @@ extension PTP.DeviceProperty.Code {
         case .autoFocus:
             return nil
         case .capture:
+            return nil
+        case .remainingShots:
             return nil
         }
     }
@@ -394,6 +398,21 @@ extension UInt32: PTPDevicePropertyDataType {
     }
 }
 
+extension UInt64: PTPDevicePropertyDataType {
+    
+    static var dataType: PTP.DeviceProperty.DataType {
+        return .uint64
+    }
+    
+    var sizeOf: Int {
+        return MemoryLayout<UInt64>.size
+    }
+    
+    var toInt: Int? {
+        return Int(self)
+    }
+}
+
 extension String: PTPDevicePropertyDataType {
     
     static var dataType: PTP.DeviceProperty.DataType {
@@ -401,7 +420,7 @@ extension String: PTPDevicePropertyDataType {
     }
     
     var sizeOf: Int {
-        return count * 2
+        return isEmpty ? 1 : count * 2
     }
     
     var toInt: Int? {
@@ -449,7 +468,9 @@ extension PTPRangeDeviceProperty {
         
         self.init()
                 
-        guard let header: PTP.DeviceProperty.Header = data.getDevicePropHeader() else { return nil }
+        guard let header: PTP.DeviceProperty.Header = data.getDevicePropHeader() else {
+            return nil
+        }
         var offset: UInt = header.length
         type = header.dataType
         code = header.code
@@ -458,15 +479,21 @@ extension PTPRangeDeviceProperty {
         getSetAvailable = header.getSetAvailable
         getSetSupported = header.getSetSupported
         
-        guard let _min: PTPDevicePropertyDataType = data.getValue(of: type, at: offset) else { return nil }
+        guard let _min: PTPDevicePropertyDataType = data.getValue(of: type, at: offset) else {
+            return nil
+        }
         min = _min
         offset += UInt(min.sizeOf)
         
-        guard let _max: PTPDevicePropertyDataType = data.getValue(of: type, at: offset) else { return nil }
+        guard let _max: PTPDevicePropertyDataType = data.getValue(of: type, at: offset) else {
+            return nil
+        }
         max = _max
         offset += UInt(max.sizeOf)
         
-        guard let _step: PTPDevicePropertyDataType = data.getValue(of: type, at: offset) else { return nil }
+        guard let _step: PTPDevicePropertyDataType = data.getValue(of: type, at: offset) else {
+            return nil
+        }
         step = _step
         offset += UInt(step.sizeOf)
         
@@ -535,7 +562,9 @@ extension PTPEnumDeviceProperty {
         
         self.init()
                 
-        guard let header: PTP.DeviceProperty.Header = data.getDevicePropHeader() else { return nil }
+        guard let header: PTP.DeviceProperty.Header = data.getDevicePropHeader() else {
+            return nil
+        }
         var offset: UInt = header.length
         type = header.dataType
         code = header.code
@@ -544,14 +573,60 @@ extension PTPEnumDeviceProperty {
         getSetSupported = header.getSetSupported
         getSetAvailable = header.getSetAvailable
         
-        guard let available: (values: [PTPDevicePropertyDataType], length: UInt) = data.getArrayValues(of: type, at: offset) else { return nil }
+        guard let available: (values: [PTPDevicePropertyDataType], length: UInt) = data.getArrayValues(of: type, at: offset) else {
+            return nil
+        }
         offset += available.length
         self.available = available.values
         
-        guard let supported: (values: [PTPDevicePropertyDataType], length: UInt) = data.getArrayValues(of: type, at: offset) else { return nil }
+        guard let supported: (values: [PTPDevicePropertyDataType], length: UInt) = data.getArrayValues(of: type, at: offset) else {
+            return nil
+        }
         offset += supported.length
         self.supported = supported.values
         
+        length = offset
+    }
+}
+
+// MARK: - String Properties -
+
+protocol PTPStringDeviceProperty: PTPDeviceProperty {
+    
+}
+
+extension PTPStringDeviceProperty {
+    
+    func toData() -> ByteBuffer {
+        
+        var buffer = ByteBuffer()
+        buffer.append(word: code.rawValue)
+        buffer.append(word: type.rawValue)
+        buffer.append(byte: getSetSupported.rawValue)
+        buffer.append(byte: getSetAvailable.rawValue)
+        
+        buffer.appendValue(factoryValue, ofType: type)
+        buffer.appendValue(currentValue, ofType: type)
+        
+        buffer.append(byte: 0x00)
+        
+        return buffer
+    }
+        
+    init?(data: ByteBuffer) {
+        
+        self.init()
+                
+        guard let header: PTP.DeviceProperty.Header = data.getDevicePropHeader() else {
+            return nil
+        }
+        var offset: UInt = header.length
+        type = header.dataType
+        code = header.code
+        currentValue = header.current
+        factoryValue = header.factory
+        getSetSupported = header.getSetSupported
+        getSetAvailable = header.getSetAvailable
         length = offset
     }
 }
@@ -578,6 +653,33 @@ extension PTP {
                 self.code = code
                 self.type = type
                 self.value = value
+            }
+        }
+        
+        struct String: PTPStringDeviceProperty {
+            
+            var type: DataType
+            
+            var code: Code
+            
+            var currentValue: PTPDevicePropertyDataType
+            
+            var factoryValue: PTPDevicePropertyDataType
+            
+            var getSetAvailable: PTP.DeviceProperty.GetSetAvailable
+            
+            var getSetSupported: PTP.DeviceProperty.GetSetSupported
+            
+            var length: UInt
+            
+            init() {
+                type = .string
+                code = .undefined
+                currentValue = UInt8(0)
+                factoryValue = UInt8(0)
+                getSetSupported = .unknown
+                getSetAvailable = .unknown
+                length = 0
             }
         }
         
@@ -679,6 +781,7 @@ extension PTP {
             case int16 = 0x3
             case uint16 = 0x4
             case uint32 = 0x6
+            case uint64 = 0x8
             case string = 0xffff
         }
                 
@@ -736,6 +839,7 @@ extension PTP {
             case capture = 0xD2C2
             case movie = 0xD2C8
             case stillImage = 0xD2C7
+            case remainingShots = 0xd249
         }
     }
 }
