@@ -102,6 +102,10 @@ extension UPnPFolder: Countable {
 
 extension SonyTransferDevice: Camera {
     
+    var lastEvent: CameraEvent? {
+        return nil
+    }
+    
     var eventPollingMode: PollingMode {
         return .none
     }

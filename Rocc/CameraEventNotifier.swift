@@ -79,6 +79,9 @@ public final class CameraEventNotifier {
                 self?.fetchEvent()
             })
         }
+
+        guard let lastEvent = camera.lastEvent else { return }
+        self.delegate?.eventNotifier(self, receivedEvent: lastEvent)
     }
     
     func fetchEvent(_ isInitial: Bool = false) {

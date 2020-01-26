@@ -30,12 +30,12 @@ struct InitCommandAckPacket: Packetable {
         guard let sessionId = data[dWord: 0] else { return nil }
         self.sessionId = sessionId
         
-        let guidData = data.sliced(4, 16 + 4)
+        let guidData = data.sliced(MemoryLayout<DWord>.size, 16 + MemoryLayout<DWord>.size)
         guard guidData.length == 16 else { return nil }
         
         self.guid = guidData.bytes.compactMap({ $0 })
         
         // For some reason the device name isn't sent with a UInt8 beginning byte of it's length.
-        deviceName = data[wStringWithoutCount: 16 + 4]
+        deviceName = data[wStringWithoutCount: UInt(16 + MemoryLayout<DWord>.size)]
     }
 }

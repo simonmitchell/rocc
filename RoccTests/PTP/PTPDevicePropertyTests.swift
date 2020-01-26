@@ -28,7 +28,7 @@ class PTPDevicePropertyTests: XCTestCase {
         }
         
         XCTAssertEqual(header.dataType, .uint16)
-        XCTAssertFalse(header.isRange)
+        XCTAssertFalse(header.structure == .range)
         XCTAssertEqual(header.code, .whiteBalance)
         XCTAssertEqual(header.length, 11)
         XCTAssertEqual(header.getSetAvailable, .getSet)
@@ -40,9 +40,18 @@ class PTPDevicePropertyTests: XCTestCase {
         XCTAssertNil(headerData.getDevicePropHeader())
     }
     
-    func testUnknownPropertyTypeFailsParsing() {
+    func testUnknownPropertyTypePassessParsing() {
         let headerData = ByteBuffer(hexString: "01 10 04 00 01 01 00 00 01 00 02")
-        XCTAssertNil(headerData.getDevicePropHeader())
+        guard let header = headerData.getDevicePropHeader() else {
+            XCTFail("Failed to parse device property header")
+            return
+        }
+        XCTAssertEqual(header.dataType, .uint16)
+        XCTAssertFalse(header.structure == .range)
+        XCTAssertEqual(header.code, .undefined)
+        XCTAssertEqual(header.length, 11)
+        XCTAssertEqual(header.getSetAvailable, .getSet)
+        XCTAssertEqual(header.getSetSupported, .getSet)
     }
     
     func testUnknownDataTypeFailsParsing() {

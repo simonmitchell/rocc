@@ -98,6 +98,10 @@ extension File {
 
 public final class DummyCamera: Camera {
     
+    public var lastEvent: CameraEvent? {
+        return nil
+    }
+    
     public var onEventAvailable: (() -> Void)?
     
     public func handleEvent(event: CameraEvent) {

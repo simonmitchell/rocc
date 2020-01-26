@@ -39,6 +39,10 @@ internal final class SonyAPICameraDevice: SonyCamera {
     
     fileprivate var lastShootMode: ShootingMode?
     
+    var lastEvent: CameraEvent? {
+        return nil
+    }
+    
     struct ApiDeviceInfo {
         
         struct Service {

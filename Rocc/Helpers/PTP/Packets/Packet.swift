@@ -79,12 +79,13 @@ struct Packet: Packetable {
         guard data.length >= 8 else {
             return nil
         }
+        
+        var offset: UInt = 0
        
-        guard let length = data[dWord: 0] else {
+        guard let length: DWord = data.read(offset: &offset) else {
             return nil
         }
-       
-        guard let typeInt = data[dWord: 4] else {
+        guard let typeInt: DWord = data.read(offset: &offset) else {
             return nil
         }
         guard let type = Name(rawValue: typeInt) else {
@@ -135,9 +136,8 @@ struct Packet: Packetable {
         }
         
         packet.data.append(wString: String(name.prefix(maxNameLength)))
-        //TODO: This should be a version number, in this case hard-coded to 1.0
-        packet.data.append(word: 0)
-        packet.data.append(word: 1)
+        packet.data.append(Word(0))
+        packet.data.append(Word(1))
         packet.data.set(header: .initCommandRequest)
                         
         return packet
@@ -163,11 +163,11 @@ struct Packet: Packetable {
         var packet = CommandRequestPacket(transactionId: transactionId)
         packet.name = .cmdRequest
         packet.data[dWord: UInt(Packet.headerLength)] = dataPhaseInfo
-        packet.data.append(word: commandCode.rawValue)
-        packet.data.append(dWord: transactionId)
+        packet.data.append(commandCode.rawValue)
+        packet.data.append(transactionId)
         
         arguments?.forEach({ (arg) in
-            packet.data.append(dWord: arg)
+            packet.data.append(arg)
         })
         
         packet.data.set(header: .cmdRequest)
@@ -209,8 +209,8 @@ struct Packet: Packetable {
         
         var packet = StartDataPacket(transactionId: transactionId, dataLength: size)
         packet.data[dWord: UInt(headerLength)] = transactionId
-        packet.data.append(dWord: size) //TODO: This should be a single QWord
-        packet.data.append(dWord: 0) //Fake to simulate 16 bytes
+        packet.data.append(size) //TODO: This should be a single QWord
+        packet.data.append(DWord(0)) //Fake to simulate 16 bytes
         packet.data.set(header: .startDataPacket)
         
         return packet

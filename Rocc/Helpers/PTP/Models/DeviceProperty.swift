@@ -479,23 +479,20 @@ extension PTPRangeDeviceProperty {
         getSetAvailable = header.getSetAvailable
         getSetSupported = header.getSetSupported
         
-        guard let _min: PTPDevicePropertyDataType = data.getValue(of: type, at: offset) else {
+        guard let _min: PTPDevicePropertyDataType = data.readValue(of: type, at: &offset) else {
             return nil
         }
         min = _min
-        offset += UInt(min.sizeOf)
         
-        guard let _max: PTPDevicePropertyDataType = data.getValue(of: type, at: offset) else {
+        guard let _max: PTPDevicePropertyDataType = data.readValue(of: type, at: &offset) else {
             return nil
         }
         max = _max
-        offset += UInt(max.sizeOf)
         
-        guard let _step: PTPDevicePropertyDataType = data.getValue(of: type, at: offset) else {
+        guard let _step: PTPDevicePropertyDataType = data.readValue(of: type, at: &offset) else {
             return nil
         }
         step = _step
-        offset += UInt(step.sizeOf)
         
         length = offset
     }
@@ -503,15 +500,15 @@ extension PTPRangeDeviceProperty {
     func toData() -> ByteBuffer {
         
         var buffer = ByteBuffer()
-        buffer.append(word: code.rawValue)
-        buffer.append(word: type.rawValue)
-        buffer.append(byte: getSetSupported.rawValue)
-        buffer.append(byte: getSetAvailable.rawValue)
+        buffer.append(code.rawValue)
+        buffer.append(type.rawValue)
+        buffer.append(getSetSupported.rawValue)
+        buffer.append(getSetAvailable.rawValue)
         
         buffer.appendValue(factoryValue, ofType: type)
         buffer.appendValue(currentValue, ofType: type)
 
-        buffer.append(byte: 0x01)
+        buffer.append(Byte(0x01))
         
         buffer.appendValue(min, ofType: type)
         buffer.appendValue(max, ofType: type)
@@ -535,22 +532,22 @@ extension PTPEnumDeviceProperty {
     func toData() -> ByteBuffer {
         
         var buffer = ByteBuffer()
-        buffer.append(word: code.rawValue)
-        buffer.append(word: type.rawValue)
-        buffer.append(byte: getSetSupported.rawValue)
-        buffer.append(byte: getSetAvailable.rawValue)
+        buffer.append(code.rawValue)
+        buffer.append(type.rawValue)
+        buffer.append(getSetSupported.rawValue)
+        buffer.append(getSetAvailable.rawValue)
         
         buffer.appendValue(factoryValue, ofType: type)
         buffer.appendValue(currentValue, ofType: type)
         
-        buffer.append(byte: 0x02)
+        buffer.append(Byte(0x02))
         
-        buffer.append(word: Word(available.count))
+        buffer.append(Word(available.count))
         available.forEach { (value) in
             buffer.appendValue(value, ofType: type)
         }
         
-        buffer.append(word: Word(supported.count))
+        buffer.append(Word(supported.count))
         supported.forEach { (value) in
             buffer.appendValue(value, ofType: type)
         }
@@ -573,17 +570,15 @@ extension PTPEnumDeviceProperty {
         getSetSupported = header.getSetSupported
         getSetAvailable = header.getSetAvailable
         
-        guard let available: (values: [PTPDevicePropertyDataType], length: UInt) = data.getArrayValues(of: type, at: offset) else {
+        guard let available = data.readArrayOfValues(of: type, at: &offset) else {
             return nil
         }
-        offset += available.length
-        self.available = available.values
+        self.available = available
         
-        guard let supported: (values: [PTPDevicePropertyDataType], length: UInt) = data.getArrayValues(of: type, at: offset) else {
+        guard let supported = data.readArrayOfValues(of: type, at: &offset) else {
             return nil
         }
-        offset += supported.length
-        self.supported = supported.values
+        self.supported = supported
         
         length = offset
     }
@@ -600,15 +595,15 @@ extension PTPStringDeviceProperty {
     func toData() -> ByteBuffer {
         
         var buffer = ByteBuffer()
-        buffer.append(word: code.rawValue)
-        buffer.append(word: type.rawValue)
-        buffer.append(byte: getSetSupported.rawValue)
-        buffer.append(byte: getSetAvailable.rawValue)
+        buffer.append(code.rawValue)
+        buffer.append(type.rawValue)
+        buffer.append(getSetSupported.rawValue)
+        buffer.append(getSetAvailable.rawValue)
         
         buffer.appendValue(factoryValue, ofType: type)
         buffer.appendValue(currentValue, ofType: type)
         
-        buffer.append(byte: 0x00)
+        buffer.append(0x00)
         
         return buffer
     }
@@ -620,14 +615,13 @@ extension PTPStringDeviceProperty {
         guard let header: PTP.DeviceProperty.Header = data.getDevicePropHeader() else {
             return nil
         }
-        var offset: UInt = header.length
         type = header.dataType
         code = header.code
         currentValue = header.current
         factoryValue = header.factory
         getSetSupported = header.getSetSupported
         getSetAvailable = header.getSetAvailable
-        length = offset
+        length = header.length
     }
 }
 

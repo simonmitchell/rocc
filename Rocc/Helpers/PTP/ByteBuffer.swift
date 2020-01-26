@@ -14,6 +14,7 @@ typealias DWord = UInt32
 typealias QWord = UInt64
 
 extension Data {
+    
     /// Converts a `Data` object to it's `UInt8` byte array equivalent
     var toBytes: [Byte] {
         let byteCount = count / MemoryLayout<UInt8>.size
@@ -22,6 +23,11 @@ extension Data {
         // copy bytes into array
         copyBytes(to: &byteArray, count: byteCount)
         return byteArray
+    }
+    
+    init(_ byteBuffer: ByteBuffer) {
+        let bytes = byteBuffer.bytes.compactMap({ $0 })
+        self.init(bytes: bytes, count: bytes.count)
     }
 }
 
@@ -57,28 +63,13 @@ struct ByteBuffer {
         bytes.append(contentsOf: data.toBytes)
     }
     
-    mutating func append(dWord value: DWord) {
-        setLittleEndian(offset: UInt(bytes.count), value: Int(value), nBytes: 4)
-    }
-    
-    mutating func append(qWord value: QWord) {
-        setLittleEndian(offset: UInt(bytes.count), value: Int(value), nBytes: 8)
-    }
-    
-    mutating func append(word value: Word) {
-        setLittleEndian(offset: UInt(bytes.count), value: Int(value), nBytes: 2)
-    }
-    
-    mutating func append(int8 value: Int8) {
-        setLittleEndian(offset: UInt(bytes.count), value: Int(value), nBytes: 1)
-    }
-    
-    mutating func append(int16 value: Int16) {
-        setLittleEndian(offset: UInt(bytes.count), value: Int(value), nBytes: 2)
-    }
-    
-    mutating func append(byte value: Byte) {
-        bytes.append(value)
+    mutating func append<T: FixedWidthInteger>(_ value: T) {
+        // Special case for byte
+        if let byte = value as? Byte {
+            bytes.append(byte)
+        } else {
+            setLittleEndian(offset: UInt(bytes.count), value: Int(value), nBytes: UInt(MemoryLayout<T>.size))
+        }
     }
     
     mutating func append(bytes value: [Byte]) {
@@ -89,43 +80,27 @@ struct ByteBuffer {
         // As described in "PIMA 15740:2000", characters are encoded in PTP as
         // ISO10646 2-byte characters.
         guard let utf16 = character.unicodeScalars.first?.utf16.first else { return }
-        append(word: utf16)
+        append(utf16)
     }
     
     mutating func append(wString string: String, includingLength: Bool = false) {
         
         if includingLength {
             let lengthWithNull = string.count + 1;
-            append(byte: Byte(lengthWithNull));
+            append(Byte(lengthWithNull));
         }
         string.forEach { (character) in
             append(wChar: character)
         }
-        append(word: 0);
+        append(0);
     }
     
     mutating func clear() {
         bytes = []
     }
     
-    private mutating func set(qWord value: QWord, at offset: UInt) {
-        setLittleEndian(offset: offset, value: Int(value), nBytes: 8)
-    }
-    
-    private mutating func set(dWord value: DWord, at offset: UInt) {
-        setLittleEndian(offset: offset, value: Int(value), nBytes: 4)
-    }
-    
-    private mutating func set(word value: Word, at offset: UInt) {
-        setLittleEndian(offset: offset, value: Int(value), nBytes: 2)
-    }
-    
-    private mutating func set(int16 value: Int16, at offset: UInt) {
-        setLittleEndian(offset: offset, value: Int(value), nBytes: 2)
-    }
-    
-    private mutating func set(int8 value: Int8, at offset: UInt) {
-        setLittleEndian(offset: offset, value: Int(value), nBytes: 1)
+    private mutating func set<T: FixedWidthInteger>(_ value: T, at offset: UInt) {
+        setLittleEndian(offset: offset, value: Int(value), nBytes: UInt(MemoryLayout<T>.size))
     }
     
     func sliced(_ offset: Int, _ end: Int? = nil) -> ByteBuffer {
@@ -221,16 +196,114 @@ struct ByteBuffer {
 
 extension ByteBuffer {
     
+    func read<T: UnsignedInteger>(offset: inout UInt) -> T? {
+        guard let littleEndian = getLittleEndian(offset: offset, nBytes: UInt(MemoryLayout<T>.size)) else { return nil }
+        offset += UInt(MemoryLayout<T>.size)
+        return T(littleEndian)
+    }
+    
+    func read<T: SignedInteger>(offset: inout UInt) -> T? {
+        guard let littleEndian = getLittleEndian(offset: offset, nBytes: UInt(MemoryLayout<T>.size)) else { return nil }
+        var returnValue: T?
+        switch T() {
+        case _ as Int8:
+            if littleEndian > UInt8.max || littleEndian < UInt8.min {
+                returnValue = Int8(littleEndian) as? T
+            } else {
+                returnValue = Int8(bitPattern: UInt8(littleEndian)) as? T
+            }
+        case _ as Int16:
+            if littleEndian > UInt16.max || littleEndian < UInt16.min {
+                returnValue = Int16(littleEndian) as? T
+            } else {
+                returnValue = Int16(bitPattern: UInt16(littleEndian)) as? T
+            }
+        case _ as Int32:
+            if littleEndian > UInt32.max || littleEndian < UInt32.min {
+                returnValue = Int32(littleEndian) as? T
+            } else {
+                returnValue = Int32(bitPattern: UInt32(littleEndian)) as? T
+            }
+        case _ as Int64:
+            if littleEndian > UInt64.max || littleEndian < UInt64.min {
+                returnValue = Int64(littleEndian) as? T
+            } else {
+                returnValue = Int64(bitPattern: UInt64(littleEndian)) as? T
+            }
+        default:
+            return nil
+        }
+        guard let _returnValue = returnValue else { return nil }
+        offset += UInt(MemoryLayout<T>.size)
+        return _returnValue
+    }
+    
+    func read(offset: inout UInt, withCount: Bool = true) -> String? {
+        
+        if withCount {
+            
+            guard let length: Byte = read(offset: &offset) else { return nil }
+            var string: String = ""
+            for i in 0..<UInt(length) {
+                guard let character = self[wChar: offset + UInt(MemoryLayout<Word>.size) * i], character != "\u{0000}" else {
+                    if string.count > 0 {
+                        offset += UInt(string.count * MemoryLayout<Word>.size) + UInt(MemoryLayout<Word>.size)
+                    }
+                    return string.count > 0 ? string : nil
+                }
+                string.append(character)
+            }
+            
+            if string.count > 0 {
+                offset += UInt(string.count * MemoryLayout<Word>.size) + UInt(MemoryLayout<Word>.size)
+            }
+            
+            return string.count > 0 ? string : nil
+            
+        } else {
+            
+            var string: String = ""
+            var i = offset
+            while i < bytes.count {
+                guard let character = self[wChar: i], character != "\u{0000}" else {
+                    if string.count > 0 {
+                        offset += UInt(string.count * MemoryLayout<Word>.size) + UInt(MemoryLayout<Word>.size)
+                    }
+                    return string.count > 0 ? string : nil
+                }
+                string.append(character)
+                i += UInt(MemoryLayout<Word>.size)
+            }
+            
+            if string.count > 0 {
+                offset += UInt(string.count * MemoryLayout<Word>.size) + UInt(MemoryLayout<Word>.size)
+            }
+            
+            return string.count > 0 ? string : nil
+        }
+    }
+    
+    func read(offset: inout UInt) -> [Word]? {
+        guard let length: DWord = read(offset: &offset) else { return nil }
+        var arrayElements: [Word] = []
+        for _ in 0..<UInt(length) {
+            guard let word: Word = self.read(offset: &offset) else { continue }
+            arrayElements.append(word)
+        }
+        return arrayElements
+    }
+}
+
+extension ByteBuffer {
+    
     subscript (int8 index: UInt) -> Int8? {
         get {
-            guard let littleEndian = getLittleEndian(offset: index, nBytes: 1) else {
-                return nil
-            }
-            return Int8(bitPattern: UInt8(littleEndian))
+            var _index = index
+            return read(offset: &_index)
         }
         set {
             guard let newValue = newValue else { return }
-            set(int8: newValue, at: index)
+            set(newValue, at: index)
         }
     }
     
@@ -245,68 +318,74 @@ extension ByteBuffer {
     
     subscript (word index: UInt) -> Word? {
         get {
-            guard let littleEndian = getLittleEndian(offset: index, nBytes: 2) else {
-                return nil
-            }
-            return Word(littleEndian)
+            var _index = index
+            return read(offset: &_index)
         }
         set {
             guard let newValue = newValue else { return }
-            set(word: newValue, at: index)
+            set(newValue, at: index)
         }
     }
     
     subscript (int16 index: UInt) -> Int16? {
         get {
-            guard let littleEndian = getLittleEndian(offset: index, nBytes: 2) else {
-                return nil
-            }
-            return Int16(bitPattern: UInt16(littleEndian))
+            var _index = index
+            return read(offset: &_index)
         }
         set {
             guard let newValue = newValue else { return }
-            set(int16: newValue, at: index)
+            set(newValue, at: index)
         }
     }
     
     subscript (dWord index: UInt) -> DWord? {
         get {
-            guard let littleEndian = getLittleEndian(offset: index, nBytes: 4) else {
-                return nil
-            }
-            return DWord(littleEndian)
+            var _index = index
+            return read(offset: &_index)
         }
         set {
             guard let newValue = newValue else { return }
-            set(dWord: newValue, at: index)
+            set(newValue, at: index)
+        }
+    }
+    
+    subscript (int32 index: UInt) -> Int32? {
+        get {
+            var _index = index
+            return read(offset: &_index)
+        }
+        set {
+            guard let newValue = newValue else { return }
+            set(newValue, at: index)
         }
     }
     
     subscript (qWord index: UInt) -> QWord? {
         get {
-            guard let littleEndian = getLittleEndian(offset: index, nBytes: 8) else {
-                return nil
-            }
-            return QWord(littleEndian)
+            var _index = index
+            return read(offset: &_index)
         }
         set {
             guard let newValue = newValue else { return }
-            set(qWord: newValue, at: index)
+            set(newValue, at: index)
+        }
+    }
+    
+    subscript (int64 index: UInt) -> Int64? {
+        get {
+            var _index = index
+            return read(offset: &_index)
+        }
+        set {
+            guard let newValue = newValue else { return }
+            set(newValue, at: index)
         }
     }
     
     subscript (wStringWithoutCount index: UInt) -> String? {
         get {
-            var string: String = ""
-            var i = index
-            while i < bytes.count {
-                guard let character = self[wChar: i], character != "\u{0000}" else {
-                    return string.count > 0 ? string : nil
-                }
-                string.append(character)
-                i += UInt(MemoryLayout<Word>.size)
-            }
-            return string.count > 0 ? string : nil
+            var offset = index
+            return read(offset: &offset)
         }
         set {
             print("Setting of wString by subscript is not yet supported!")
@@ -315,15 +394,8 @@ extension ByteBuffer {
     
     subscript (wString index: UInt) -> String? {
         get {
-            guard let length = self[index] else { return nil }
-            var string: String = ""
-            for i in 0..<UInt(length) {
-                guard let character = self[wChar: index + UInt(MemoryLayout<Byte>.size) + UInt(MemoryLayout<Word>.size) * i], character != "\u{0000}" else {
-                    return string.count > 0 ? string : nil
-                }
-                string.append(character)
-            }
-            return string.count > 0 ? string : nil
+            var offset = index
+            return read(offset: &offset, withCount: false)
         }
         set {
             print("Setting of wString (with length byte) by subscript is not yet supported!")
@@ -343,13 +415,8 @@ extension ByteBuffer {
     
     subscript (wordArray index: UInt) -> [Word]? {
         get {
-            guard let length = self[dWord: index] else { return nil }
-            var arrayElements: [Word] = []
-            for i in 0..<UInt(length) {
-                guard let word = self[word: index + UInt(MemoryLayout<DWord>.size) + (UInt(MemoryLayout<Word>.size) * i)] else { continue }
-                arrayElements.append(word)
-            }
-            return arrayElements
+            var offset = index
+            return read(offset: &offset)
         }
         set {
             print("Setting of word array by subscript is not yet supported!")

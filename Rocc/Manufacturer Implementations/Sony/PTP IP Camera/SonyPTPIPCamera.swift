@@ -118,6 +118,8 @@ internal final class SonyPTPIPDevice: SonyCamera {
     var lastEventPacket: EventPacket?
     
     var lastEvent: CameraEvent?
+    
+    var imageURLs: [URL] = []
         
     override func update(with deviceInfo: SonyDeviceInfo?) {
         name = modelEnum == nil ? name : (deviceInfo?.model?.friendlyName ?? name)
@@ -192,7 +194,6 @@ internal final class SonyPTPIPDevice: SonyCamera {
         
         performSdioConnect(completion: { [weak self] (error) in
             guard let self = self else { return }
-            //TODO: Handle errors
             self.performSdioConnect(
                 completion: { [weak self] (secondaryError) in
                     
@@ -254,11 +255,60 @@ internal final class SonyPTPIPDevice: SonyCamera {
         })
     }
     
+    func getDevicePropDescFor(propCode: PTP.DeviceProperty.Code,  callback: @escaping PTPIPClient.DevicePropertyDescriptionCompletion) {
+        
+        guard let ptpIPClient = ptpIPClient else { return }
+        
+        if deviceInfo?.supportedOperations.contains(.getAllDevicePropData) ?? false {
+            
+            ptpIPClient.getAllDevicePropDesc(callback: { (result) in
+                switch result {
+                case .success(let properties):
+                    guard let property = properties.first(where: { $0.code == propCode }) else {
+                        callback(Result.failure(PTPError.propCodeNotFound))
+                        return
+                    }
+                    callback(Result.success(property))
+                case .failure(let error):
+                    callback(Result.failure(error))
+                }
+            })
+            
+        } else if deviceInfo?.supportedOperations.contains(.sonyGetDevicePropDesc) ?? false {
+            
+            let packet = Packet.commandRequestPacket(code: .sonyGetDevicePropDesc, arguments: [DWord(propCode.rawValue)], transactionId: ptpIPClient.getNextTransactionId())
+            ptpIPClient.awaitDataFor(transactionId: packet.transactionId) { (dataResult) in
+                switch dataResult {
+                case .success(let data):
+                    guard let property = data.data.getDeviceProperty(at: 0) else {
+                        callback(Result.failure(PTPIPClientError.invalidResponse))
+                        return
+                    }
+                    callback(Result.success(property))
+                case .failure(let error):
+                    callback(Result.failure(error))
+                }
+            }
+            ptpIPClient.sendCommandRequestPacket(packet, callback: nil)
+            
+        } else if deviceInfo?.supportedOperations.contains(.getDevicePropDesc) ?? false {
+            
+            ptpIPClient.getDevicePropDescFor(propCode: propCode, callback: callback)
+            
+        } else {
+            
+            callback(Result.failure(PTPError.operationNotSupported))
+        }
+    }
+    
     enum PTPError: Error {
         case commandRequestFailed
         case fetchDeviceInfoFailed
         case fetchSdioExtDeviceInfoFailed
         case deviceInfoNotAvailable
+        case objectNotFound
+        case propCodeNotFound
+        case operationNotSupported
     }
 }
 

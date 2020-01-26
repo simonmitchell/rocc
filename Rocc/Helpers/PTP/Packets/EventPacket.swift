@@ -43,14 +43,13 @@ struct EventPacket: Packetable {
         
         var offset: UInt = 0
         
-        guard let transactionId = self.data[dWord: 0] else {
+        guard let transactionId: DWord = self.data.read(offset: &offset) else {
             self.transactionId = nil
             variables = nil
             return
         }
         
         self.transactionId = transactionId
-        offset += UInt(MemoryLayout<DWord>.size)
         
         guard self.data.length > 4 else {
             variables = nil
@@ -59,7 +58,7 @@ struct EventPacket: Packetable {
         
         var variables: [DWord] = []
         while offset < self.data.length {
-            if let variable = self.data[dWord: offset] {
+            if let variable: DWord = self.data.read(offset: &offset) {
                 variables.append(variable)
             }
             offset += UInt(MemoryLayout<DWord>.size)

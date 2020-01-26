@@ -191,6 +191,9 @@ public protocol Camera: class {
     ///
     /// - Parameter event: The event that occured
     func handleEvent(event: CameraEvent)
+    
+    /// The last event which occured
+    var lastEvent: CameraEvent? { get }
 }
 
 /// An error for local issues before the API request has been made to the camera
