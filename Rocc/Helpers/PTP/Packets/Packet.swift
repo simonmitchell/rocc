@@ -79,12 +79,13 @@ struct Packet: Packetable {
         guard data.length >= 8 else {
             return nil
         }
+        
+        var offset: UInt = 0
        
-        guard let length = data[dWord: 0] else {
+        guard let length: DWord = data.read(offset: &offset) else {
             return nil
         }
-       
-        guard let typeInt = data[dWord: 4] else {
+        guard let typeInt: DWord = data.read(offset: &offset) else {
             return nil
         }
         guard let type = Name(rawValue: typeInt) else {
@@ -112,6 +113,11 @@ struct Packet: Packetable {
         unparsedData = ByteBuffer()
     }
     
+    init(name: Packet.Name) {
+        self.name = name
+        unparsedData = ByteBuffer()
+    }
+    
     /// Creates the initial packet to setup the command loop for PTP-IP
     ///
     /// Quote from the "White Paper of CIPA DC-005-2005": "[...] the Initiator
@@ -130,9 +136,8 @@ struct Packet: Packetable {
         }
         
         packet.data.append(wString: String(name.prefix(maxNameLength)))
-        //TODO: This should be a version number, in this case hard-coded to 1.0
-        packet.data.append(word: 0)
-        packet.data.append(word: 1)
+        packet.data.append(Word(0))
+        packet.data.append(Word(1))
         packet.data.set(header: .initCommandRequest)
                         
         return packet
@@ -146,16 +151,23 @@ struct Packet: Packetable {
         return packet
     }
     
+    static func pongPacket() -> Packet {
+        var packet = Packet()
+        packet.data = ByteBuffer(bytes: [nil, nil, nil, nil, nil, nil, nil, nil])
+        packet.data.set(header: .pong)
+        return packet
+    }
+    
     static func commandRequestPacket(code commandCode: PTP.CommandCode, arguments: [DWord]?, transactionId: DWord = 0, dataPhaseInfo: DWord = 1) -> CommandRequestPacket {
         
         var packet = CommandRequestPacket(transactionId: transactionId)
         packet.name = .cmdRequest
         packet.data[dWord: UInt(Packet.headerLength)] = dataPhaseInfo
-        packet.data.append(word: commandCode.rawValue)
-        packet.data.append(dWord: transactionId)
+        packet.data.append(commandCode.rawValue)
+        packet.data.append(transactionId)
         
         arguments?.forEach({ (arg) in
-            packet.data.append(dWord: arg)
+            packet.data.append(arg)
         })
         
         packet.data.set(header: .cmdRequest)
@@ -166,12 +178,21 @@ struct Packet: Packetable {
     static func dataSendPackets(data: ByteBuffer, transactionId: DWord = 0) -> [Packetable] {
         
         let size = data.length
-
+        
         let _startDataPacket = startDataPacket(size: DWord(size), transactionId: transactionId)
-        let _dataPacket = dataPacket(data: data, transactionId: transactionId)
-        let _endDataPacket = endDataPacket(transactionId: transactionId)
+        
+        // If we have small amounts of data send it with end data packet
+        if data.length < 128 {
+            return [
+                _startDataPacket,
+                endDataPacket(data: data, transactionId: transactionId)
+            ]
+        } else {
+            let _dataPacket = dataPacket(data: data, transactionId: transactionId)
+            let _endDataPacket = endDataPacket(data: nil, transactionId: transactionId)
 
-        return [_startDataPacket, _dataPacket, _endDataPacket]
+            return [_startDataPacket, _dataPacket, _endDataPacket]
+        }
     }
     
     static func dataPacket(data: ByteBuffer, transactionId: DWord = 0) -> DataPacket {
@@ -188,17 +209,20 @@ struct Packet: Packetable {
         
         var packet = StartDataPacket(transactionId: transactionId, dataLength: size)
         packet.data[dWord: UInt(headerLength)] = transactionId
-        packet.data.append(dWord: size) //TODO: This should be a single QWord
-        packet.data.append(dWord: 0) //Fake to simulate 16 bytes
+        packet.data.append(size) //TODO: This should be a single QWord
+        packet.data.append(DWord(0)) //Fake to simulate 16 bytes
         packet.data.set(header: .startDataPacket)
         
         return packet
     }
     
-    static func endDataPacket(transactionId: DWord = 0) -> Packet {
+    static func endDataPacket(data: ByteBuffer?, transactionId: DWord = 0) -> Packet {
         
-        var packet = Packet()
+        var packet = Packet(name: .endDataPacket)
         packet.data[dWord: UInt(headerLength)] = transactionId
+        if let data = data {
+            packet.data.append(bytes: data.bytes.compactMap({ $0 }))
+        }
         packet.data.set(header: .endDataPacket)
         
         return packet

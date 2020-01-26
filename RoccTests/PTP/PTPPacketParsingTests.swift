@@ -43,7 +43,7 @@ class PTPPacketParsingTests: XCTestCase {
             XCTFail("Failed to allocate malformed packet as command response")
             return
         }
-        XCTAssertNil(cmdResponsePacket.code)
+        XCTAssertTrue(cmdResponsePacket.awaitingFurtherData)
     }
     
     func testMalformedCommandResponsePacketDoesntBreakSubsequentPacket() {
@@ -54,7 +54,7 @@ class PTPPacketParsingTests: XCTestCase {
         XCTAssertEqual(packets?.count, 2)
         
         if let cmdResponsePacket = packets?.first as? CommandResponsePacket {
-            XCTAssertNil(cmdResponsePacket.code)
+            XCTAssertTrue(cmdResponsePacket.awaitingFurtherData)
         } else {
             XCTFail("Failed to allocate malformed packet as command response")
         }
@@ -65,13 +65,6 @@ class PTPPacketParsingTests: XCTestCase {
         }
         XCTAssertEqual(dataStartPacket.transactionId, 4)
         XCTAssertEqual(dataStartPacket.dataLength, 4)
-    }
-    
-    func testMalformedEventPacketDoesntBreakInitCommandRequest() {
-        
-        var byteBuffer = ByteBuffer(hexString: "12 00 00 00 08 00 00 00 1f 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00 00 01 00 00 00")
-        let packets = byteBuffer.parsePackets()
-        XCTAssertEqual(packets?.count, 2)
     }
     
     func testPrependedBrokenDataDoesntStopPacketParsing() {
@@ -198,8 +191,8 @@ class PTPPacketParsingTests: XCTestCase {
         
         let packets = byteBuffer.parsePackets()
         
-        XCTAssertEqual(byteBuffer.length, 0)
-        XCTAssertEqual(packets?.count, 21)
+        XCTAssertEqual(byteBuffer.length, 324)
+        XCTAssertEqual(packets?.count, 16)
     }
     
     func testUnknownBrokenSonyPacketDoesntBreakEventPackets() {
@@ -215,7 +208,7 @@ class PTPPacketParsingTests: XCTestCase {
         let packets = byteBuffer.parsePackets()
         
         XCTAssertEqual(byteBuffer.length, 0)
-        XCTAssertEqual(packets?.count, 2)
+        XCTAssertEqual(packets?.count, 3)
     }
     
     func testUnknownBrokenSonyPacketDoesntSwallowNextPacketsData() {

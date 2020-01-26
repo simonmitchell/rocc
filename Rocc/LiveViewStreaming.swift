@@ -512,6 +512,7 @@ extension LiveViewStream: URLSessionDataDelegate {
         Logger.log(message: "Live view stream did error, restarting...", category: "LiveViewStreaming")
         os_log("Live view stream did error, restarting...", log: log, type: .error)
         receivedData = Data()
+        guard error != nil else { return }
         start()
     }
 }

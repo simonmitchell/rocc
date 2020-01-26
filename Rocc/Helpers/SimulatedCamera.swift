@@ -81,14 +81,15 @@ extension File {
         let index = image % imageUrls.count
         let url = URL(string: imageUrls[index])
         
-        let original = File.Content.Original(fileName: "Test", fileType: "RAW", url: url)
+        let original = File.Content.Original(fileName: "test.jpeg", fileType: "JPG", url: url)
+        let rawOriginal = File.Content.Original(fileName: "rest.ARW", fileType: "ARW", url: URL(string: "http://www.rawsamples.ch/raws/sony/RAW_SONY_ILCE-7M2.ARW"))
         
-        let content = Content(originals: [original], largeURL: url, smallURL: url, thumbnailURL: url)
+        let content = Content(originals: [rawOriginal, original], largeURL: url, smallURL: url, thumbnailURL: url)
         
         let file = File(
             content: content,
             created: date,
-            uri: imageUrls[index]
+            uri: imageUrls[index] + "\(image)"
         )
         
         return file
@@ -96,6 +97,10 @@ extension File {
 }
 
 public final class DummyCamera: Camera {
+    
+    public var lastEvent: CameraEvent? {
+        return nil
+    }
     
     public var onEventAvailable: (() -> Void)?
     
@@ -226,7 +231,8 @@ public final class DummyCamera: Camera {
                 ShutterSpeed(numerator: 18, denominator: 1),
                 ShutterSpeed(numerator: 20, denominator: 1),
                 ShutterSpeed(numerator: 25, denominator: 1),
-                ShutterSpeed(numerator: 30, denominator: 1)
+                ShutterSpeed(numerator: 30, denominator: 1),
+                ShutterSpeed.bulb
             ] as? [T.SendType])
         case .setExposureCompensation:
             callback(true, nil, [-3.0, -2.66, -2.33, -2.0, -1.66, -1.33, -1.0, -0.66, -0.33, 0, 0.33, 0.66, 1.0, 1.33, 1.66, 2.0, 2.33, 2.66, 3.0] as? [T.SendType])
@@ -359,10 +365,11 @@ public final class DummyCamera: Camera {
             }
             
             var files: [File] = []
-            var date = Date(timeIntervalSinceNow: -100)
-            for i in 0..<request.count {
+            let twoDays: TimeInterval = 2*60.0*60.0
+            var date = Date(timeIntervalSinceNow: -(twoDays * TimeInterval(request.startIndex)))
+            for i in request.startIndex..<request.count + request.startIndex {
                 files.append(File.dummy(date: date, image: i))
-                date = Date(timeInterval: -Double.rand(60.0, 2*60*60.0, precision: 1), since: date)
+                date = Date(timeInterval: -Double.rand(60.0, twoDays, precision: 1), since: date)
             }
             callback(nil, FileResponse(fullyLoaded: false, files: files) as? T.ReturnType)
             

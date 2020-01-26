@@ -199,9 +199,7 @@ internal final class UPnPDeviceParser: NSObject, XMLParserDelegate {
         guard scope.last == elementName else { return }
         
         foundCharacters = foundCharacters.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        os_log("Parser did start element: %@\nCurrent scope:%@", log: log, type: .debug, elementName, scope)
-        
+                
         defer {
             currentElement = scope.removeLast()
             foundCharacters = ""
@@ -344,9 +342,7 @@ internal final class UPnPFolderParser: NSObject, XMLParserDelegate {
         
         currentElement = elementName
         scope.append(elementName)
-        
-        os_log("Parser did start element: %@\nCurrent scope:%@", log: log, type: .debug, elementName, scope)
-        
+                
         switch elementName {
         case "container":
             currentFolder = attributeDict
@@ -368,7 +364,6 @@ internal final class UPnPFolderParser: NSObject, XMLParserDelegate {
         defer {
             currentElement = scope.removeLast()
             foundCharacters = ""
-            os_log("Parser did end element: %@\nCurrent scope:%@", log: log, type: .debug, elementName, scope)
         }
         
         switch elementName {
@@ -592,9 +587,7 @@ internal final class UPnPFileParser: NSObject, XMLParserDelegate {
         
         currentElement = elementName
         scope.append(elementName)
-        
-        os_log("Parser did start element: %@\nCurrent scope:%@", log: log, type: .debug, elementName, scope)
-        
+                
         switch elementName {
         case "item":
             currentFile = attributeDict
@@ -619,7 +612,6 @@ internal final class UPnPFileParser: NSObject, XMLParserDelegate {
         defer {
             currentElement = scope.removeLast()
             foundCharacters = ""
-            os_log("Parser did end element: %@\nCurrent scope:%@", log: log, type: .debug, elementName, scope)
         }
         
         switch elementName {

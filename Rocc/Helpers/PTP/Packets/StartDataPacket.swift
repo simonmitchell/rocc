@@ -27,10 +27,12 @@ struct StartDataPacket: Packetable {
         
         self.data = data
         
-        guard let transactionId = data[dWord: 0] else { return nil }
+        var offset: UInt = 0
+        
+        guard let transactionId: DWord = data.read(offset: &offset) else { return nil }
         self.transactionId = transactionId
         
-        guard let dataLength = data[dWord: 4] else { return nil }
+        guard let dataLength: DWord = data.read(offset: &offset) else { return nil }
         self.dataLength = dataLength
     }
     

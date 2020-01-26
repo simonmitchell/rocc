@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import os.log
 
 extension SonyPTPIPDevice {
     
@@ -14,26 +15,29 @@ extension SonyPTPIPDevice {
         
         switch function.function {
         case .getEvent:
-            let packet = Packet.commandRequestPacket(code: .getAllDevicePropData, arguments: [0], transactionId: ptpIPClient?.getNextTransactionId() ?? 0)
-            ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { (dataResult) in
+            
+            guard !imageURLs.isEmpty, var lastEvent = lastEvent else {
                 
-                switch dataResult {
-                case .success(let data):
-                    guard let numberOfProperties = data.data[qWord: 0] else { return }
-                    var offset: UInt = UInt(MemoryLayout<QWord>.size)
-                    var properties: [PTPDeviceProperty] = []
-                    for _ in 0..<numberOfProperties {
-                        guard let property = data.data.getDeviceProperty(at: offset) else { break }
-                        properties.append(property)
-                        offset += property.length
+                ptpIPClient?.getAllDevicePropDesc(callback: { [weak self] (result) in
+                    guard let self = self else { return }
+                    switch result {
+                    case .success(let properties):
+                        var event = CameraEvent(sonyDeviceProperties: properties)
+                        event.postViewPictureURLs = [self.imageURLs]
+                        self.imageURLs = []
+                        callback(nil, event as? T.ReturnType)
+                    case .failure(let error):
+                        callback(error, nil)
                     }
-                    let event = CameraEvent(sonyDeviceProperties: properties)
-                    callback(nil, event as? T.ReturnType)
-                case .failure(let error):
-                    callback(error, nil)
-                }
-            })
-            ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
+                })
+                
+                return
+            }
+            
+            lastEvent.postViewPictureURLs = [imageURLs]
+            imageURLs = []
+            callback(nil, lastEvent as? T.ReturnType)
+            
         case .setShootMode:
             guard let value = payload as? ShootingMode else {
                 callback(FunctionError.invalidPayload, nil)
@@ -41,7 +45,7 @@ extension SonyPTPIPDevice {
             }
             //TODO: Implement when we have better grasp of available shoot modes
         case .getShootMode:
-            ptpIPClient?.getDevicePropDescFor(propCode: .stillCaptureMode, callback: { (result) in
+            getDevicePropDescFor(propCode: .stillCaptureMode, callback: { (result) in
                 switch result {
                 case .success(let property):
                     let event = CameraEvent(sonyDeviceProperties: [property])
@@ -62,7 +66,7 @@ extension SonyPTPIPDevice {
                 PTP.DeviceProperty.Value(value)
             )
         case .getISO:
-            ptpIPClient?.getDevicePropDescFor(propCode: .ISO, callback: { (result) in
+            getDevicePropDescFor(propCode: .ISO, callback: { (result) in
                 switch result {
                 case .success(let property):
                     let event = CameraEvent(sonyDeviceProperties: [property])
@@ -72,7 +76,7 @@ extension SonyPTPIPDevice {
                 }
             })
         case .getShutterSpeed:
-            ptpIPClient?.getDevicePropDescFor(propCode: .shutterSpeed, callback: { (result) in
+            getDevicePropDescFor(propCode: .shutterSpeed, callback: { (result) in
                 switch result {
                 case .success(let property):
                     let event = CameraEvent(sonyDeviceProperties: [property])
@@ -82,7 +86,7 @@ extension SonyPTPIPDevice {
                 }
             })
         case .getAperture:
-            ptpIPClient?.getDevicePropDescFor(propCode: .fNumber, callback: { (result) in
+            getDevicePropDescFor(propCode: .fNumber, callback: { (result) in
                 switch result {
                 case .success(let property):
                     let event = CameraEvent(sonyDeviceProperties: [property])
@@ -92,7 +96,7 @@ extension SonyPTPIPDevice {
                 }
             })
         case .getExposureCompensation:
-            ptpIPClient?.getDevicePropDescFor(propCode: .exposureBiasCompensation, callback: { (result) in
+            getDevicePropDescFor(propCode: .exposureBiasCompensation, callback: { (result) in
                 switch result {
                 case .success(let property):
                     let event = CameraEvent(sonyDeviceProperties: [property])
@@ -102,7 +106,7 @@ extension SonyPTPIPDevice {
                 }
             })
         case .getFocusMode:
-            ptpIPClient?.getDevicePropDescFor(propCode: .focusMode, callback: { (result) in
+            getDevicePropDescFor(propCode: .focusMode, callback: { (result) in
                 switch result {
                 case .success(let property):
                     let event = CameraEvent(sonyDeviceProperties: [property])
@@ -112,7 +116,7 @@ extension SonyPTPIPDevice {
                 }
             })
         case .getExposureMode:
-            ptpIPClient?.getDevicePropDescFor(propCode: .exposureProgramMode, callback: { (result) in
+            getDevicePropDescFor(propCode: .exposureProgramMode, callback: { (result) in
                 switch result {
                 case .success(let property):
                     let event = CameraEvent(sonyDeviceProperties: [property])
@@ -122,7 +126,7 @@ extension SonyPTPIPDevice {
                 }
             })
         case .getFlashMode:
-            ptpIPClient?.getDevicePropDescFor(propCode: .flashMode, callback: { (result) in
+            getDevicePropDescFor(propCode: .flashMode, callback: { (result) in
                 switch result {
                 case .success(let property):
                     let event = CameraEvent(sonyDeviceProperties: [property])
@@ -185,7 +189,7 @@ extension SonyPTPIPDevice {
         case .getStillSize:
             
             // Still size requires still size and ratio codes to be fetched!
-            ptpIPClient?.getDevicePropDescFor(propCode: .imageSizeSony, callback: { [weak self] (imageSizeResult) in
+            getDevicePropDescFor(propCode: .imageSizeSony, callback: { [weak self] (imageSizeResult) in
                 
                 guard let this = self else {
                     callback(nil, nil)
@@ -194,7 +198,7 @@ extension SonyPTPIPDevice {
                 
                 switch imageSizeResult {
                 case .success(let imageSizeProperty):
-                    this.ptpIPClient?.getDevicePropDescFor(propCode: .aspectRatio, callback: { (aspectResult) in
+                    this.getDevicePropDescFor(propCode: .aspectRatio, callback: { (aspectResult) in
                         switch aspectResult {
                         case .success(let aspectProperty):
                             let event = CameraEvent(sonyDeviceProperties: [imageSizeProperty, aspectProperty])
@@ -233,7 +237,7 @@ extension SonyPTPIPDevice {
             )
         case .getSelfTimerDuration:
             
-            ptpIPClient?.getDevicePropDescFor(propCode: .stillCaptureMode, callback: { (result) in
+            getDevicePropDescFor(propCode: .stillCaptureMode, callback: { (result) in
                 switch result {
                 case .success(let property):
                     let event = CameraEvent(sonyDeviceProperties: [property])
@@ -264,7 +268,7 @@ extension SonyPTPIPDevice {
         case .getWhiteBalance:
             
             // White balance requires white balance and colorTemp codes to be fetched!
-            ptpIPClient?.getDevicePropDescFor(propCode: .whiteBalance, callback: { [weak self] (wbResult) in
+            getDevicePropDescFor(propCode: .whiteBalance, callback: { [weak self] (wbResult) in
                 
                 guard let this = self else {
                     callback(nil, nil)
@@ -273,7 +277,7 @@ extension SonyPTPIPDevice {
                 
                 switch wbResult {
                 case .success(let wbProperty):
-                    this.ptpIPClient?.getDevicePropDescFor(propCode: .colorTemp, callback: { (ctResult) in
+                    this.getDevicePropDescFor(propCode: .colorTemp, callback: { (ctResult) in
                         switch ctResult {
                         case .success(let ctProperty):
                             let event = CameraEvent(sonyDeviceProperties: [wbProperty, ctProperty])
@@ -297,8 +301,14 @@ extension SonyPTPIPDevice {
             //TODO: Implement
             callback(nil, nil)
         case .takePicture:
-            //TODO: Implement
-            callback(nil, nil)
+            takePicture { (result) in
+                switch result {
+                case .success(let url):
+                    callback(nil, url as? T.ReturnType)
+                case .failure(let error):
+                    callback(error, nil)
+                }
+            }
         case .startContinuousShooting:
             //TODO: Implement
             callback(nil, nil)
@@ -365,7 +375,10 @@ extension SonyPTPIPDevice {
                     code: .autoFocus,
                     type: .uint16,
                     value: function.function == .halfPressShutter ? Word(2) : Word(1)
-                )
+                ), callback: { response in
+                    //TODO: Handle errors!
+                    callback(nil, nil)
+                }
             )
         case .setTouchAFPosition:
             //TODO: Implement

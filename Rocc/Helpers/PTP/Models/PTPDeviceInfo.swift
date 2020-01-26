@@ -49,75 +49,61 @@ extension PTP {
             
             var offset: UInt = 0
             
-            guard let _version = data[word: offset] else { return nil }
+            guard let _version: Word = data.read(offset: &offset) else { return nil }
             version = _version
-            offset += UInt(MemoryLayout<Word>.size)
             
-            guard let _vendorExtensionId = data[dWord: offset] else { return nil }
+            guard let _vendorExtensionId: DWord = data.read(offset: &offset) else { return nil }
             vendorExtensionId = _vendorExtensionId
-            offset += UInt(MemoryLayout<DWord>.size)
             
-            guard let _vendorExtensionVersion = data[word: offset] else { return nil }
+            guard let _vendorExtensionVersion: Word = data.read(offset: &offset) else { return nil }
             vendorExtensionVersion = _vendorExtensionVersion
-            offset += UInt(MemoryLayout<Word>.size)
             
-            guard let _vendorExtensionDescription = data[wString:  offset] else { return nil }
+            guard let _vendorExtensionDescription: String = data.read(offset: &offset) else { return nil }
             vendorExtensionDescription = _vendorExtensionDescription
-            offset += UInt(MemoryLayout<Byte>.size) + UInt(_vendorExtensionDescription.count * MemoryLayout<Word>.size) + UInt(MemoryLayout<Word>.size)
             
-            guard let _functionalMode = data[word: offset] else { return nil }
+            guard let _functionalMode: Word = data.read(offset: &offset) else { return nil }
             functionalMode = _functionalMode
-            offset += UInt(MemoryLayout<Word>.size)
             
-            guard let supportedOperationWords = data[wordArray: offset] else { return nil }
+            guard let supportedOperationWords: [Word] = data.read(offset: &offset) else { return nil }
             supportedOperations = supportedOperationWords.compactMap({ CommandCode(rawValue: $0) })
-            offset += UInt(MemoryLayout<DWord>.size) + UInt(supportedOperationWords.count * MemoryLayout<Word>.size)
             
-            guard let supportedEventWords = data[wordArray: offset] else { return nil }
+            guard let supportedEventWords: [Word] = data.read(offset: &offset) else { return nil }
             supportedEventCodes = supportedEventWords.compactMap({ EventCode(rawValue: $0) })
-            offset += UInt(MemoryLayout<DWord>.size) + UInt(supportedEventWords.count * MemoryLayout<Word>.size)
             
-            guard let _supportedDeviceProperties = data[wordArray: offset] else { return nil }
+            guard let _supportedDeviceProperties: [Word] = data.read(offset: &offset) else { return nil }
             supportedDeviceProperties = _supportedDeviceProperties.compactMap({ DeviceProperty.Code(rawValue: $0) })
-            offset += UInt(MemoryLayout<DWord>.size) + UInt(_supportedDeviceProperties.count * MemoryLayout<Word>.size)
             
-            guard let _supportedCaptureFormats = data[wordArray: offset] else { return nil }
+            guard let _supportedCaptureFormats: [Word] = data.read(offset: &offset) else { return nil }
             supportedCaptureFormats = _supportedCaptureFormats
-            offset += UInt(MemoryLayout<DWord>.size) + UInt(supportedCaptureFormats.count * MemoryLayout<Word>.size)
             
-            guard let _supportedImageFormats = data[wordArray: offset] else { return nil }
+            guard let _supportedImageFormats: [Word] = data.read(offset: &offset) else { return nil }
             supportedImageFormats = _supportedImageFormats.compactMap({ FileFormat(rawValue: $0) })
-            offset += UInt(MemoryLayout<DWord>.size) + UInt(_supportedImageFormats.count * MemoryLayout<Word>.size)
             
-            guard let _manufacturer = data[wString: offset] else { return nil }
+            guard let _manufacturer: String = data.read(offset: &offset) else { return nil }
             manufacturer = _manufacturer
-            offset += UInt(MemoryLayout<Byte>.size) + UInt(_manufacturer.count * MemoryLayout<Word>.size) + UInt(MemoryLayout<Word>.size)
             
             // Above logic is a bit funny... we don't want to carry on if we can't parse the next element
             // because the PTP structure is very highly order-oriented
             
-            guard let _model = data[wString: offset] else {
+            guard let _model: String = data.read(offset: &offset) else {
                 model = nil
                 deviceVersion = nil
                 serialNumber = nil
                 return
             }
-            offset += UInt(MemoryLayout<Byte>.size) + UInt(_model.count * MemoryLayout<Word>.size) + UInt(MemoryLayout<Word>.size)
             model = _model
             
-            guard let _deviceVersion = data[wString: offset] else {
+            guard let _deviceVersion: String = data.read(offset: &offset) else {
                 deviceVersion = nil
                 serialNumber = nil
                 return
             }
-            offset += UInt(MemoryLayout<Byte>.size) + UInt(_deviceVersion.count * MemoryLayout<Word>.size) + UInt(MemoryLayout<Word>.size)
             deviceVersion = _deviceVersion
             
-            guard let _serialNumber = data[wString: offset] else {
+            guard let _serialNumber: String = data.read(offset: &offset) else {
                 serialNumber = nil
                 return
             }
-            offset += UInt(MemoryLayout<Byte>.size) + UInt(_deviceVersion.count * MemoryLayout<Word>.size) + UInt(MemoryLayout<Word>.size)
             serialNumber = _serialNumber
         }
     }

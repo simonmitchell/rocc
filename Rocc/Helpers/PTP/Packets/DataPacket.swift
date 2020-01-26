@@ -32,13 +32,24 @@ struct DataPacket: Packetable {
         self.transactionId = transactionId
         
         // Use `length` here as otherwise we may end up stealing data from other packets!
-        self.data = data.sliced(4, Int(length) - Packet.headerLength)
+        self.data = data.sliced(MemoryLayout<DWord>.size, Int(length) - Packet.headerLength)
     }
     
     init(transactionId: DWord) {
         self.transactionId = transactionId
-        name = .startDataPacket
+        name = .dataPacket
         data = ByteBuffer()
         length = 0
+    }
+    
+    var description: String {
+        return """
+        {
+            length: \(length)
+            code: \(name)
+            transactionId: \(transactionId)
+            data: \(data.toHex)
+        }
+        """
     }
 }

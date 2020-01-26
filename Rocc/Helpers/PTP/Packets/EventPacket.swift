@@ -17,23 +17,54 @@ struct EventPacket: Packetable {
     var data: ByteBuffer
     
     let code: PTP.EventCode
-        
+    
+    let transactionId: DWord?
+    
+    let variables: [DWord]?
+    
     init?(length: DWord, name: Packet.Name, data: ByteBuffer) {
         
         self.length = length
         self.name = name
-                
+        
         guard let codeWord = data[word: 0], let code = PTP.EventCode(rawValue: codeWord) else {
-            // Some manufacturers *coughs* Sony, send malformed packets... we handle this by hard-coding the height, and assume the code was property changed!
-            self.length = DWord(Packet.headerLength)
-            self.code = .propertyChanged
-            self.data = ByteBuffer()
-            return
+            return nil
         }
         self.code = code
         
         // Use `length` here as otherwise we may end up stealing data from other packets!
         self.data = data.sliced(MemoryLayout<Word>.size, Int(length) - Packet.headerLength)
+        
+        guard self.data.length > 0 else {
+            transactionId = nil
+            variables = nil
+            return
+        }
+        
+        var offset: UInt = 0
+        
+        guard let transactionId: DWord = self.data.read(offset: &offset) else {
+            self.transactionId = nil
+            variables = nil
+            return
+        }
+        
+        self.transactionId = transactionId
+        
+        guard self.data.length > 4 else {
+            variables = nil
+            return
+        }
+        
+        var variables: [DWord] = []
+        while offset < self.data.length {
+            if let variable: DWord = self.data.read(offset: &offset) {
+                variables.append(variable)
+            }
+            offset += UInt(MemoryLayout<DWord>.size)
+        }
+        
+        self.variables = variables
     }
     
     var debugDescription: String {
@@ -41,13 +72,13 @@ struct EventPacket: Packetable {
     }
     
     var description: String {
-           return """
-           {
-               length: \(length)
-               code: \(name)
-               event: \(code)
-               data: \(data.toHex)
-           }
-           """
-       }
+        return """
+        {
+            length: \(length)
+            code: \(name)
+            event: \(code)
+            data: \(data.toHex)
+        }
+        """
+    }
 }

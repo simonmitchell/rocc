@@ -151,7 +151,7 @@ public struct CameraEvent {
     public let supportedFunctions: [_CameraFunction]?
     
     /// URLs for postView images that the camera has taken.
-    public let postViewPictureURLs: [[URL]]?
+    public var postViewPictureURLs: [[URL]]?
     
     /// Storage information for each of the camera's storage capabilities.
     public let storageInformation: [StorageInformation]?

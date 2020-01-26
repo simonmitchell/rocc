@@ -7,8 +7,11 @@
 //
 
 import Foundation
+import os.log
 
 internal final class SonyPTPIPDevice: SonyCamera {
+    
+    let log = OSLog(subsystem: "com.yellow-brick-bear.rocc", category: "SonyPTPIPCamera")
     
     var ipAddress: sockaddr_in? = nil
     
@@ -112,7 +115,11 @@ internal final class SonyPTPIPDevice: SonyCamera {
     
     var deviceInfo: PTP.DeviceInfo?
     
+    var lastEventPacket: EventPacket?
+    
     var lastEvent: CameraEvent?
+    
+    var imageURLs: [URL] = []
         
     override func update(with deviceInfo: SonyDeviceInfo?) {
         name = modelEnum == nil ? name : (deviceInfo?.model?.friendlyName ?? name)
@@ -128,9 +135,8 @@ internal final class SonyPTPIPDevice: SonyCamera {
     
     private func sendStartSessionPacket(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
         
-        // First argument here is the session ID. We don't need a transaction ID because this is the "first"
-        // command we send and so we can use the default 0 value the function provides.
-        let packet = Packet.commandRequestPacket(code: .openSession, arguments: [0x00000001])
+        // First argument here is the session ID.
+        let packet = Packet.commandRequestPacket(code: .openSession, arguments: [0x00000001], transactionId: ptpIPClient?.getNextTransactionId() ?? 0)
         ptpIPClient?.sendCommandRequestPacket(packet, callback: { [weak self] (response) in
             guard response.code == .okay else {
                 completion(PTPError.commandRequestFailed, false)
@@ -143,6 +149,7 @@ internal final class SonyPTPIPDevice: SonyCamera {
     private func getDeviceInfo(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
         
         let packet = Packet.commandRequestPacket(code: .getDeviceInfo, arguments: nil, transactionId: ptpIPClient?.getNextTransactionId() ?? 1)
+        
         ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { [weak self] (dataResult) in
             
             switch dataResult {
@@ -162,6 +169,7 @@ internal final class SonyPTPIPDevice: SonyCamera {
                 completion(error, false)
             }
         })
+        
         ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
     }
         
@@ -169,10 +177,13 @@ internal final class SonyPTPIPDevice: SonyCamera {
         
         //TODO: Try and find out what the arguments are for this!
         let packet = Packet.commandRequestPacket(code: .sdioConnect, arguments: [number, 0x0000, 0x0000], transactionId: transactionId)
-        ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { (dataContainer) in
+        ptpIPClient?.sendCommandRequestPacket(packet, callback: { (response) in
+            guard response.code == .okay else {
+                completion(PTPError.commandRequestFailed)
+                return
+            }
             completion(nil)
-        })
-        ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
+        }, callCallbackForAnyResponse: true)
     }
     
     private func getSdioExtDeviceInfo(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
@@ -183,7 +194,6 @@ internal final class SonyPTPIPDevice: SonyCamera {
         
         performSdioConnect(completion: { [weak self] (error) in
             guard let self = self else { return }
-            //TODO: Handle errors
             self.performSdioConnect(
                 completion: { [weak self] (secondaryError) in
                     
@@ -197,24 +207,30 @@ internal final class SonyPTPIPDevice: SonyCamera {
                         case .success(let dataContainer):
                             
                             guard let self = self else { return }
-                            
                             guard let extDeviceInfo = PTP.SDIOExtDeviceInfo(data: dataContainer.data) else {
                                 completion(PTPError.fetchSdioExtDeviceInfoFailed, false)
                                 return
                             }
                             self.deviceInfo?.update(with: extDeviceInfo)
-                            self.performSdioConnect(
-                                completion: { [weak self] _ in
-                                    self?.performInitialEventFetch(completion: completion)
-                                },
-                                number: 3,
-                                transactionId: self.ptpIPClient?.getNextTransactionId() ?? 5
-                            )
                         case .failure(let error):
                             completion(error, false)
                         }
                     })
-                    self.ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
+                    self.ptpIPClient?.sendCommandRequestPacket(packet, callback: { (response) in
+                        guard response.code == .okay else {
+                            completion(PTPError.commandRequestFailed, false)
+                            return
+                        }
+                        // Sony app seems to jump current transaction ID back to 2 here, so we'll do the same
+                        self.ptpIPClient?.resetTransactionId(to: 1)
+                        self.performSdioConnect(
+                            completion: { [weak self] _ in
+                                self?.performInitialEventFetch(completion: completion)
+                            },
+                            number: 3,
+                            transactionId: self.ptpIPClient?.getNextTransactionId() ?? 2
+                        )
+                    })
                 },
                 number: 2,
                 transactionId: self.ptpIPClient?.getNextTransactionId() ?? 3
@@ -224,25 +240,65 @@ internal final class SonyPTPIPDevice: SonyCamera {
     
     private func performInitialEventFetch(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
         
-        performFunction(Event.get, payload: nil, callback: { [weak self] (error, event) in
+        self.ptpIPClient?.sendCommandRequestPacket(Packet.commandRequestPacket(
+            code: .unknownHandshakeRequest,
+            arguments: nil,
+            transactionId: self.ptpIPClient?.getNextTransactionId() ?? 7
+        ), callback: { (response) in
             
-            self?.lastEvent = event
-            
-            guard let self = self else {
+            self.performFunction(Event.get, payload: nil, callback: { [weak self] (error, event) in
+                
+                self?.lastEvent = event
                 // Can ignore errors as we don't really require this event for the connection process to complete!
-                completion(nil, false)
-                return
-            }
-            
-            self.ptpIPClient?.sendCommandRequestPacket(Packet.commandRequestPacket(
-                code: .unknownHandshakeRequest,
-                arguments: nil,
-                transactionId: self.ptpIPClient?.getNextTransactionId() ?? 7
-            ), callback: { (response) in
-                // For now we'll ignore errors as we have no idea what this even does!
                 completion(nil, false)
             })
         })
+    }
+    
+    func getDevicePropDescFor(propCode: PTP.DeviceProperty.Code,  callback: @escaping PTPIPClient.DevicePropertyDescriptionCompletion) {
+        
+        guard let ptpIPClient = ptpIPClient else { return }
+        
+        if deviceInfo?.supportedOperations.contains(.getAllDevicePropData) ?? false {
+            
+            ptpIPClient.getAllDevicePropDesc(callback: { (result) in
+                switch result {
+                case .success(let properties):
+                    guard let property = properties.first(where: { $0.code == propCode }) else {
+                        callback(Result.failure(PTPError.propCodeNotFound))
+                        return
+                    }
+                    callback(Result.success(property))
+                case .failure(let error):
+                    callback(Result.failure(error))
+                }
+            })
+            
+        } else if deviceInfo?.supportedOperations.contains(.sonyGetDevicePropDesc) ?? false {
+            
+            let packet = Packet.commandRequestPacket(code: .sonyGetDevicePropDesc, arguments: [DWord(propCode.rawValue)], transactionId: ptpIPClient.getNextTransactionId())
+            ptpIPClient.awaitDataFor(transactionId: packet.transactionId) { (dataResult) in
+                switch dataResult {
+                case .success(let data):
+                    guard let property = data.data.getDeviceProperty(at: 0) else {
+                        callback(Result.failure(PTPIPClientError.invalidResponse))
+                        return
+                    }
+                    callback(Result.success(property))
+                case .failure(let error):
+                    callback(Result.failure(error))
+                }
+            }
+            ptpIPClient.sendCommandRequestPacket(packet, callback: nil)
+            
+        } else if deviceInfo?.supportedOperations.contains(.getDevicePropDesc) ?? false {
+            
+            ptpIPClient.getDevicePropDescFor(propCode: propCode, callback: callback)
+            
+        } else {
+            
+            callback(Result.failure(PTPError.operationNotSupported))
+        }
     }
     
     enum PTPError: Error {
@@ -250,6 +306,9 @@ internal final class SonyPTPIPDevice: SonyCamera {
         case fetchDeviceInfoFailed
         case fetchSdioExtDeviceInfoFailed
         case deviceInfoNotAvailable
+        case objectNotFound
+        case propCodeNotFound
+        case operationNotSupported
     }
 }
 
@@ -263,6 +322,7 @@ extension SonyPTPIPDevice: Camera {
             self?.sendStartSessionPacket(completion: completion)
         })
         ptpIPClient?.onEvent = { [weak self] (event) in
+            self?.lastEventPacket = event
             guard event.code == .propertyChanged else { return }
             self?.onEventAvailable?()
         }

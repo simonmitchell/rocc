@@ -25,7 +25,7 @@ extension ShutterSpeed: SonyPTPPropValueConvertable {
         }
         
         var buffer = ByteBuffer()
-        buffer.append(dWord: DWord(binaryInt))
+        buffer.append(DWord(binaryInt))
         guard let denominator = buffer[word: 0] else {
             return nil
         }
@@ -39,8 +39,8 @@ extension ShutterSpeed: SonyPTPPropValueConvertable {
     
     var sonyPTPValue: PTPDevicePropertyDataType {
         var data = ByteBuffer()
-        data.append(word: Word(denominator))
-        data.append(word: Word(numerator))
+        data.append(Word(denominator))
+        data.append(Word(numerator))
         return data[dWord: 0] ?? DWord(value)
     }
 }

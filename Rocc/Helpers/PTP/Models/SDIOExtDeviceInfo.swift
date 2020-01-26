@@ -21,17 +21,15 @@ extension PTP {
             
             var offset: UInt = 0
             
-            guard let _unknownWord = data[word: offset] else { return nil }
+            guard let _unknownWord: Word = data.read(offset: &offset) else { return nil }
             unknownWord = _unknownWord
-            offset += UInt(MemoryLayout<Word>.size)
             
             var _supportedPropCodes: [Word] = []
             
-            guard let aPropertiesWordArray = data[wordArray: offset] else { return nil }
+            guard let aPropertiesWordArray: [Word] = data.read(offset: &offset) else { return nil }
             _supportedPropCodes.append(contentsOf: aPropertiesWordArray)
-            offset += UInt(MemoryLayout<DWord>.size + (MemoryLayout<Word>.size * aPropertiesWordArray.count))
             
-            guard let bPropertiesWordArray = data[wordArray: offset] else {
+            guard let bPropertiesWordArray: [Word] = data.read(offset: &offset) else {
                 supportedPropCodes = _supportedPropCodes
                 return
             }

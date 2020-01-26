@@ -10,6 +10,12 @@ import Foundation
 
 extension PTP.DeviceProperty {
     
+    enum Structure: Byte {
+        case string
+        case range
+        case enumeration
+    }
+    
     struct Header {
         
         let code: PTP.DeviceProperty.Code
@@ -24,7 +30,7 @@ extension PTP.DeviceProperty {
         
         let current: PTPDevicePropertyDataType
         
-        let isRange: Bool
+        let structure: Structure
         
         let length: UInt
     }
@@ -36,30 +42,36 @@ extension ByteBuffer {
         
         var offset: UInt = offset
         
-        guard let codeWord = self[word: offset] else {
+        guard let codeWord: Word = read(offset: &offset) else {
             return nil
         }
         let code = PTP.DeviceProperty.Code(rawValue: codeWord) ?? .undefined
-        offset += UInt(MemoryLayout<Word>.size)
         
-        guard let typeWord = self[word: offset], let type = PTP.DeviceProperty.DataType(rawValue: typeWord) else {
+        guard let typeWord: Word = read(offset: &offset), let type = PTP.DeviceProperty.DataType(rawValue: typeWord) else {
             return nil
         }
-        offset += UInt(MemoryLayout<Word>.size)
         
-        guard let getSetSupportedByte = self[offset] else { return nil }
+        guard let getSetSupportedByte: Byte = read(offset: &offset) else {
+            return nil
+        }
         let getSetSupported = PTP.DeviceProperty.GetSetSupported(rawValue: getSetSupportedByte) ?? .unknown
-        offset += UInt(MemoryLayout<Byte>.size)
         
-        guard let getSetAvailableByte = self[offset] else { return nil }
+        guard let getSetAvailableByte: Byte = read(offset: &offset) else {
+            return nil
+        }
         let getSetAvailable = PTP.DeviceProperty.GetSetAvailable(rawValue: getSetAvailableByte) ?? .unknown
-        offset += UInt(MemoryLayout<Byte>.size)
         
-        guard let factoryValue: PTPDevicePropertyDataType = getValue(of: type, at: offset) else { return nil }
-        offset += UInt(factoryValue.sizeOf)
+        guard let factoryValue: PTPDevicePropertyDataType = readValue(of: type, at: &offset) else {
+            return nil
+        }
         
-        guard let currentValue: PTPDevicePropertyDataType = getValue(of: type, at: offset) else { return nil }
-        offset += UInt(currentValue.sizeOf)
+        guard let currentValue: PTPDevicePropertyDataType = readValue(of: type, at: &offset) else {
+            return nil
+        }
+        
+        guard let structureByte: Byte = read(offset: &offset), let structure = PTP.DeviceProperty.Structure(rawValue: structureByte) else {
+            return nil
+        }
         
         return PTP.DeviceProperty.Header(
             code: code,
@@ -68,25 +80,27 @@ extension ByteBuffer {
             getSetSupported: getSetSupported,
             factory: factoryValue,
             current: currentValue,
-            isRange: self[offset] == 0x01,
-            length: offset + UInt(MemoryLayout<Byte>.size)
+            structure: structure,
+            length: offset
         )
     }
         
-    func getValue(of type: PTP.DeviceProperty.DataType, at offset: UInt) -> PTPDevicePropertyDataType? {
+    func readValue(of type: PTP.DeviceProperty.DataType, at offset: inout UInt) -> PTPDevicePropertyDataType? {
         switch type {
         case .int8:
-            return self[int8: offset]
+            return read(offset: &offset) as Int8?
         case .uint8:
-            return self[offset]
+            return read(offset: &offset) as Byte?
         case .int16:
-            return self[int16: offset]
+            return read(offset: &offset) as Int16?
         case .uint16:
-            return self[word: offset]
+            return read(offset: &offset) as Word?
         case .uint32:
-            return self[dWord: offset]
+            return read(offset: &offset) as DWord?
+        case .uint64:
+            return read(offset: &offset) as QWord?
         case .string:
-            return self[wStringWithoutCount: offset]
+            return read(offset: &offset) ?? ""
         }
     }
     
@@ -94,45 +108,51 @@ extension ByteBuffer {
         switch type {
         case .int8:
             guard let int8 = value as? Int8 else { return }
-            append(int8: int8)
+            append(int8)
         case .uint8:
             guard let uint8 = value as? UInt8 else { return }
-            append(byte: uint8)
+            append(uint8)
         case .int16:
             guard let int16 = value as? Int16 else { return }
-            append(int16: int16)
+            append(int16)
         case .uint16:
             guard let uint16 = value as? UInt16 else { return }
-            append(word: uint16)
+            append(uint16)
         case .uint32:
             guard let uint32 = value as? UInt32 else { return }
-            append(dWord: uint32)
+            append(uint32)
+        case .uint64:
+            guard let uint64 = value as? UInt64 else { return }
+            append(uint64)
         case .string:
             guard let string = value as? String else { return }
             append(wString: string, includingLength: false)
         }
     }
     
-    func getArrayValues(of type: PTP.DeviceProperty.DataType, at offset: UInt) -> (values: [PTPDevicePropertyDataType], length: UInt)? {
+    func readArrayOfValues(of type: PTP.DeviceProperty.DataType, at offset: inout UInt) -> [PTPDevicePropertyDataType]? {
         
-        guard let elements = self[word: offset] else { return nil }
-        var internalOffset: UInt = offset + UInt(MemoryLayout<Word>.size)
-        var length: UInt = UInt(MemoryLayout<Word>.size)
+        guard let elements: Word = read(offset: &offset) else { return nil }
         var values: [PTPDevicePropertyDataType] = []
         
         for _ in 0..<elements {
-            guard let element: PTPDevicePropertyDataType = getValue(of: type, at: internalOffset) else { return nil }
+            guard let element: PTPDevicePropertyDataType = readValue(of: type, at: &offset) else { return nil }
             values.append(element)
-            internalOffset += UInt(element.sizeOf)
-            length += UInt(element.sizeOf)
         }
         
-        return (values, length)
+        return values
     }
     
     func getDeviceProperty(at offset: UInt) -> PTPDeviceProperty? {
         let slice = sliced(Int(offset))
         guard let header = slice.getDevicePropHeader() else { return nil }
-        return header.isRange ? PTP.DeviceProperty.Range(data: slice) : PTP.DeviceProperty.Enum(data: slice)
+        switch header.structure {
+        case .range:
+            return PTP.DeviceProperty.Range(data: slice)
+        case .enumeration:
+            return PTP.DeviceProperty.Enum(data: slice)
+        case .string:
+            return PTP.DeviceProperty.String(data: slice)
+        }
     }
 }

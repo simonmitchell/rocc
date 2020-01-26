@@ -29,7 +29,7 @@ extension ISO.Value: SonyPTPPropValueConvertable {
             self = .auto
         default:
             var buffer = ByteBuffer()
-            buffer.append(dWord: DWord(binaryInt))
+            buffer.append(DWord(binaryInt))
             guard let value = buffer[word: 0] else {
                 return nil
             }
@@ -54,13 +54,13 @@ extension ISO.Value: SonyPTPPropValueConvertable {
             return DWord(0x00ffffff)
         case .extended(let value):
             var data = ByteBuffer()
-            data.append(word: Word(value))
-            data.append(word: 0x1000)
+            data.append(Word(value))
+            data.append(Word(0x1000))
             return data[dWord: 0] ?? DWord(value)
         case .native(let value):
             var data = ByteBuffer()
-            data.append(word: Word(value))
-            data.append(word: 0x0000)
+            data.append(Word(value))
+            data.append(Word(0x0000))
             return data[dWord: 0] ?? DWord(value)
         }
     }
