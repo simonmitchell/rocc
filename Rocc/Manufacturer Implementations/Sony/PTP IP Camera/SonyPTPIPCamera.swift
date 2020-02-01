@@ -329,8 +329,155 @@ extension SonyPTPIPDevice: Camera {
     }
     
     func makeFunctionAvailable<T>(_ function: T, callback: @escaping ((Error?) -> Void)) where T : CameraFunction {
-        //TODO: Implement this properly!
-        callback(nil)
+        
+        switch function.function {
+        case .startContinuousShooting:
+            
+            setShutterSpeedAwayFromBulbIfRequired { [weak self] (_) in
+                
+                guard let self = self else { return }
+                
+                // On PTP IP cameras still capture mode gives us both continuous shooting speed, and it's mode too
+                self.getDevicePropDescFor(propCode: .stillCaptureMode, callback: { [weak self] (result) in
+                    
+                    guard let self = self else { return }
+                    
+                    switch result {
+                    case .success(let property):
+                        
+                        let event = CameraEvent(sonyDeviceProperties: [property])
+                        guard let firstMode = event.continuousShootingMode?.available.first(where: { $0 != .single }) ?? event.continuousShootingMode?.available.first else {
+                            callback(nil)
+                            return
+                        }
+                        
+                        self.performFunction(ContinuousCapture.Mode.set, payload: firstMode) { [weak self] (error, _) in
+
+                            guard error == nil else {
+                                callback(error)
+                                return
+                            }
+                            
+                            guard let self = self else { return }
+                            
+                            guard let firstSpeed = event.continuousShootingSpeed?.available.first else {
+                                callback(nil)
+                                return
+                            }
+                            
+                            self.performFunction(ContinuousCapture.Speed.set, payload: firstSpeed) { (error, _) in
+                                callback(error)
+                            }
+                        }
+                    case .failure(let error):
+                        callback(error)
+                    }
+                })
+            }
+        case .startBulbCapture:
+            performFunction(Shutter.Speed.set, payload: ShutterSpeed.bulb) { [weak self] (shutterSpeedError, _) in
+                guard shutterSpeedError == nil else {
+                    callback(shutterSpeedError)
+                    return
+                }
+                // We need to do this otherwise the camera can get stuck in continuous shooting mode!
+                self?.performFunction(ContinuousCapture.Mode.set, payload: .single) { (_, _) in
+                    callback(nil)
+                }
+            }
+        case .takePicture:
+            setShutterSpeedAwayFromBulbIfRequired() { [weak self] (_) in
+                self?.performFunction(ContinuousCapture.Mode.set, payload: .single) { (_, _) in
+                    callback(nil)
+                }
+            }
+        case .startIntervalStillRecording:
+            setShutterSpeedAwayFromBulbIfRequired() { [weak self] (_) in
+                self?.setToShootModeIfRequired(.interval, callback)
+            }
+        case .startAudioRecording:
+            setShutterSpeedAwayFromBulbIfRequired() { [weak self] (_) in
+                self?.setToShootModeIfRequired(.audio, callback)
+            }
+        case .startVideoRecording:
+            setShutterSpeedAwayFromBulbIfRequired() { [weak self] (_) in
+                self?.setToShootModeIfRequired(.video, callback)
+            }
+        case .startLoopRecording:
+            setShutterSpeedAwayFromBulbIfRequired() { [weak self] (_) in
+                self?.setToShootModeIfRequired(.loop, callback)
+            }
+        default:
+            callback(nil)
+        }
+    }
+    
+    private func setToShootModeIfRequired(_ shootMode: ShootingMode, _ completion: @escaping ((Error?) -> Void)) {
+        
+        // Last shoot mode should be up to date so do a quick check if we're already in the correct shoot mode
+        guard lastEvent?.shootMode?.current != shootMode else {
+            completion(nil)
+            return
+        }
+        
+        var stillCapMode: SonyStillCaptureMode = .single
+        
+        switch shootMode {
+        case .audio, .video, .loop:
+            //TODO: Work out how to handle these!
+            completion(nil)
+            return
+        case .photo, .timelapse, .bulb:
+            stillCapMode = SonyStillCaptureMode.single
+        case .continuous:
+            //TODO: Work out how to pick which continous mode
+            return
+        case .interval:
+            //TODO: Work out how to pick which interval mode
+            return
+        }
+        
+        ptpIPClient?.sendSetControlDeviceAValue(
+            PTP.DeviceProperty.Value(
+                code: .stillCaptureMode,
+                type: .uint32,
+                value: stillCapMode.rawValue
+            ),
+            callback: { (response) in
+                completion(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil)
+            }
+        )
+    }
+    
+    private func setShutterSpeedAwayFromBulbIfRequired(_ callback: @escaping ((Error?) -> Void)) {
+        
+        // We need to do this otherwise the camera can get stuck in continuous shooting mode!
+        // If the shutter speed is BULB then we need to set it to something else!
+        guard self.lastEvent?.shutterSpeed?.current.isBulb == true else {
+            callback(nil)
+            return
+        }
+        
+        // Get available shutter speeds
+        getDevicePropDescFor(propCode: .shutterSpeed) { [weak self] (result) in
+            
+            guard let self = self else { return }
+            
+            switch result {
+            case .success(let property):
+                let event = CameraEvent(sonyDeviceProperties: [property])
+                guard let firstNonBulbShutterSpeed = event.shutterSpeed?.available.first(where: { !$0.isBulb }) else {
+                    callback(nil)
+                    return
+                }
+                // Set shutter speed to non-bulb
+                self.performFunction(Shutter.Speed.set, payload: firstNonBulbShutterSpeed) { (error, _) in
+                    callback(error)
+                }
+            case .failure(let error):
+                callback(error)
+            }
+        }
     }
     
     func loadFilesToTransfer(callback: @escaping ((Error?, [File]?) -> Void)) {

@@ -269,7 +269,7 @@ final class PTPIPClient: NSObject {
         sendControlPacket(packet)
     }
     
-    func sendSetControlDeviceAValue(_ value: PTP.DeviceProperty.Value) {
+    func sendSetControlDeviceAValue(_ value: PTP.DeviceProperty.Value, callback: CommandRequestPacketResponse? = nil) {
         
         let transactionID = getNextTransactionId()
         let opRequestPacket = Packet.commandRequestPacket(code: .setControlDeviceA, arguments: [DWord(value.code.rawValue)], transactionId: transactionID, dataPhaseInfo: 2)
@@ -277,14 +277,13 @@ final class PTPIPClient: NSObject {
         data.appendValue(value.value, ofType: value.type)
         let dataPackets = Packet.dataSendPackets(data: data, transactionId: transactionID)
         
-        //TODO: Do we have to wait for callback?
-        sendCommandRequestPacket(opRequestPacket, callback: nil)
+        sendCommandRequestPacket(opRequestPacket, callback: callback)
         dataPackets.forEach { (dataPacket) in
             sendControlPacket(dataPacket)
         }
     }
     
-    func sendSetControlDeviceBValue(_ value: PTP.DeviceProperty.Value, callback: CommandRequestPacketResponse?) {
+    func sendSetControlDeviceBValue(_ value: PTP.DeviceProperty.Value, callback: CommandRequestPacketResponse? = nil) {
         
         let transactionID = getNextTransactionId()
         let opRequestPacket = Packet.commandRequestPacket(code: .setControlDeviceB, arguments: [DWord(value.code.rawValue)], transactionId: transactionID, dataPhaseInfo: 2)
@@ -292,7 +291,6 @@ final class PTPIPClient: NSObject {
         data.appendValue(value.value, ofType: value.type)
         let dataPackets = Packet.dataSendPackets(data: data, transactionId: transactionID)
         
-        //TODO: Do we have to wait for callback?
         sendCommandRequestPacket(opRequestPacket, callback: callback, callCallbackForAnyResponse: true)
         dataPackets.forEach { (dataPacket) in
             sendControlPacket(dataPacket)

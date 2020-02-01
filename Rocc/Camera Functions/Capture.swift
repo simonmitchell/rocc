@@ -120,10 +120,10 @@ public struct ContinuousCapture: CameraFunction {
         public typealias ReturnType = ContinuousShootingMode
         
         /// Sets the continous shooting mode
-        public static let set = ContinuousCapture(function: .setContinuousShootingMode)
+        public static let set = ContinuousCapture.Mode(function: .setContinuousShootingMode)
         
         /// Returns the current continuous shooting mode
-        public static let get = ContinuousCapture(function: .getContinuousShootingMode)
+        public static let get = ContinuousCapture.Mode(function: .getContinuousShootingMode)
     }
     
     /// Functions for interacting with the continuous shooting speed
@@ -136,10 +136,10 @@ public struct ContinuousCapture: CameraFunction {
         public typealias ReturnType = ContinuousShootingSpeed
         
         /// Sets the continuous shooting speed
-        public static let set = ContinuousCapture(function: .setContinuousShootingSpeed)
+        public static let set = ContinuousCapture.Speed(function: .setContinuousShootingSpeed)
         
         /// Returns the current continuous shooting speed
-        public static let get = ContinuousCapture(function: .getContinuousShootingSpeed)
+        public static let get = ContinuousCapture.Speed(function: .getContinuousShootingSpeed)
     }
 }
 
