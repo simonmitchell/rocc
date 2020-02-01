@@ -126,8 +126,15 @@ extension SonyPTPIPDevice {
             //TODO: Implement
             callback(false, nil, nil)
         case .startBulbCapture, .endBulbCapture:
-            //TODO: Implement
-            callback(false, nil, nil)
+            getDevicePropDescFor(propCode: .stillCaptureMode) { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent(sonyDeviceProperties: [property])
+                    callback(event.supportedFunctions?.contains(function.function), nil, nil)
+                case .failure(let error):
+                    callback(false, error, nil)
+                }
+            }
         case .startLoopRecording, .endLoopRecording:
             //TODO: Implement
             callback(false, nil, nil)

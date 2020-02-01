@@ -367,7 +367,6 @@ extension CameraEvent {
                 switch current.shootMode {
                 case .photo:
                     availableFunctions.append(.takePicture)
-                    availableFunctions.append(contentsOf: [.startBulbCapture, .endBulbCapture])
                 case .continuous:
                     availableFunctions.append(.startContinuousShooting)
                     availableFunctions.append(.endContinuousShooting)
@@ -489,7 +488,12 @@ extension CameraEvent {
                 let supported = enumProperty.supported.compactMap({ ShutterSpeed(sonyValue: $0) })
                 shutterSpeed = (value, available, supported)
                 
-                //TODO: Check if contains BULB and add to supported shoot modes
+                if supported.contains(where: { $0.isBulb }), !supportedFunctions.contains(.startBulbCapture) {
+                    supportedFunctions.append(contentsOf: [.startBulbCapture, .endBulbCapture])
+                }
+                if available.contains(where: { $0.isBulb }), !availableFunctions.contains(.startBulbCapture) {
+                    availableFunctions.append(contentsOf: [.startBulbCapture, .endBulbCapture])
+                }
                 
                 break
                 
@@ -716,6 +720,11 @@ extension CameraEvent {
             default:
                 break
             }
+        }
+        
+        // Correct shooting mode for BULB!
+        if let currentShutterSpeed = shutterSpeed?.current, currentShutterSpeed.isBulb, shootMode.current != .bulb {
+            shootMode.current = .bulb
         }
         
         self.storageInformation = storageInformation

@@ -139,7 +139,7 @@ internal final class SonyPTPIPDevice: SonyCamera {
         let packet = Packet.commandRequestPacket(code: .openSession, arguments: [0x00000001], transactionId: ptpIPClient?.getNextTransactionId() ?? 0)
         ptpIPClient?.sendCommandRequestPacket(packet, callback: { [weak self] (response) in
             guard response.code == .okay else {
-                completion(PTPError.commandRequestFailed, false)
+                completion(PTPError.commandRequestFailed(response.code), false)
                 return
             }
             self?.getDeviceInfo(completion: completion)
@@ -179,7 +179,7 @@ internal final class SonyPTPIPDevice: SonyCamera {
         let packet = Packet.commandRequestPacket(code: .sdioConnect, arguments: [number, 0x0000, 0x0000], transactionId: transactionId)
         ptpIPClient?.sendCommandRequestPacket(packet, callback: { (response) in
             guard response.code == .okay else {
-                completion(PTPError.commandRequestFailed)
+                completion(PTPError.commandRequestFailed(response.code))
                 return
             }
             completion(nil)
@@ -218,7 +218,7 @@ internal final class SonyPTPIPDevice: SonyCamera {
                     })
                     self.ptpIPClient?.sendCommandRequestPacket(packet, callback: { (response) in
                         guard response.code == .okay else {
-                            completion(PTPError.commandRequestFailed, false)
+                            completion(PTPError.commandRequestFailed(response.code), false)
                             return
                         }
                         // Sony app seems to jump current transaction ID back to 2 here, so we'll do the same
@@ -302,7 +302,7 @@ internal final class SonyPTPIPDevice: SonyCamera {
     }
     
     enum PTPError: Error {
-        case commandRequestFailed
+        case commandRequestFailed(CommandResponsePacket.Code)
         case fetchDeviceInfoFailed
         case fetchSdioExtDeviceInfoFailed
         case deviceInfoNotAvailable

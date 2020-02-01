@@ -18,6 +18,47 @@ extension SonyPTPIPDevice {
         Logger.log(message: "Taking picture...", category: "SonyPTPIPCamera")
         os_log("Taking picture...", log: log, type: .debug)
         
+        startCapturing { [weak self] (error) in
+            
+            guard let self = self else { return }
+            if let error = error {
+                completion(Result.failure(error))
+                return
+            }
+            
+            guard let focusMode = self.lastEvent?.focusMode?.current else {
+                
+                self.performFunction(Focus.Mode.get, payload: nil) { [weak self] (_, focusMode) in
+                
+                    guard let self = self else {
+                        return
+                    }
+                    
+                    guard focusMode?.isAutoFocus == true else {
+                        self.cancelShutterPress(objectID: nil, completion: completion)
+                        return
+                    }
+                    
+                    self.awaitFocus(completion: completion)
+                }
+                
+                return
+            }
+            
+            guard focusMode.isAutoFocus else {
+                self.cancelShutterPress(objectID: nil, completion: completion)
+                return
+            }
+            
+            self.awaitFocus(completion: completion)
+        }
+    }
+    
+    func startCapturing(completion: @escaping (Error?) -> Void) {
+        
+        Logger.log(message: "Starting capture...", category: "SonyPTPIPCamera")
+        os_log("Starting capture...", log: self.log, type: .debug)
+        
         ptpIPClient?.sendSetControlDeviceBValue(
             PTP.DeviceProperty.Value(
                 code: .autoFocus,
@@ -25,50 +66,30 @@ extension SonyPTPIPDevice {
                 value: Word(2)
             ),
             callback: { [weak self] (_) in
-                self?.capture(completion: completion)
+                
+                guard let self = self else { return }
+                
+                self.ptpIPClient?.sendSetControlDeviceBValue(
+                    PTP.DeviceProperty.Value(
+                        code: .capture,
+                        type: .uint16,
+                        value: Word(2)
+                    ),
+                    callback: { (shutterResponse) in
+                        guard !shutterResponse.code.isError else {
+                            completion(PTPError.commandRequestFailed(shutterResponse.code))
+                            return
+                        }
+                        completion(nil)
+                    }
+                )
             }
         )
     }
     
-    private func capture(completion: @escaping CaptureCompletion) {
+    func finishCapturing(completion: @escaping CaptureCompletion) {
         
-        ptpIPClient?.sendSetControlDeviceBValue(
-            PTP.DeviceProperty.Value(
-                code: .capture,
-                type: .uint16,
-                value: Word(2)
-            ),
-            callback: { [weak self] (_) in
-                
-                guard let self = self else { return }
-                
-                guard let focusMode = self.lastEvent?.focusMode?.current else {
-                    
-                    self.performFunction(Focus.Mode.get, payload: nil) { [weak self] (_, focusMode) in
-                    
-                        guard let self = self else {
-                            return
-                        }
-                        
-                        guard focusMode?.isAutoFocus == true else {
-                            self.cancelShutterPress(objectID: nil, completion: completion)
-                            return
-                        }
-                        
-                        self.awaitFocus(completion: completion)
-                    }
-                    
-                    return
-                }
-                
-                guard focusMode.isAutoFocus else {
-                    self.cancelShutterPress(objectID: nil, completion: completion)
-                    return
-                }
-                
-                self.awaitFocus(completion: completion)
-            }
-        )
+        cancelShutterPress(objectID: nil, completion: completion)
     }
     
     private func awaitFocus(completion: @escaping CaptureCompletion) {

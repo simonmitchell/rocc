@@ -334,11 +334,18 @@ extension SonyPTPIPDevice {
             //TODO: Implement
             callback(nil, nil)
         case .startBulbCapture:
-            //TODO: Implement
-            callback(nil, nil)
+            startCapturing { (error) in
+                callback(error, nil)
+            }
         case .endBulbCapture:
-            //TODO: Implement
-            callback(nil, nil)
+            finishCapturing { (result) in
+                switch result {
+                case .failure(let error):
+                    callback(error, nil)
+                case .success(let url):
+                    callback(nil, url as? T.ReturnType)
+                }
+            }
         case .startLoopRecording:
             //TODO: Implement
             callback(nil, nil)
@@ -346,7 +353,6 @@ extension SonyPTPIPDevice {
             //TODO: Implement
             callback(nil, nil)
         case .startLiveView, .startLiveViewWithSize, .endLiveView:
-            //TODO: Check whether we need to call any PTP IP methods for this!
             callback(nil, apiDeviceInfo.liveViewURL as? T.ReturnType)
         case .getLiveViewSize:
             //TODO: Implement
@@ -376,8 +382,7 @@ extension SonyPTPIPDevice {
                     type: .uint16,
                     value: function.function == .halfPressShutter ? Word(2) : Word(1)
                 ), callback: { response in
-                    //TODO: Handle errors!
-                    callback(nil, nil)
+                    callback(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil, nil)
                 }
             )
         case .setTouchAFPosition:
