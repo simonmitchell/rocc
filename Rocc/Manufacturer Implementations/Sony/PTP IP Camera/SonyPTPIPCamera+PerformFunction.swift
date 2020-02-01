@@ -310,11 +310,19 @@ extension SonyPTPIPDevice {
                 }
             }
         case .startContinuousShooting:
-            //TODO: Implement
+            startCapturing { (error) in
+                callback(error, nil)
+            }
             callback(nil, nil)
         case .endContinuousShooting:
-            //TODO: Implement
-            callback(nil, nil)
+            finishCapturing { (result) in
+                switch result {
+                case .failure(let error):
+                    callback(error, nil)
+                case .success(let url):
+                    callback(nil, url as? T.ReturnType)
+                }
+            }
         case .startVideoRecording:
             //TODO: Implement
             callback(nil, nil)

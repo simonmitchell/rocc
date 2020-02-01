@@ -491,7 +491,8 @@ extension CameraEvent {
                 if supported.contains(where: { $0.isBulb }), !supportedFunctions.contains(.startBulbCapture) {
                     supportedFunctions.append(contentsOf: [.startBulbCapture, .endBulbCapture])
                 }
-                if available.contains(where: { $0.isBulb }), !availableFunctions.contains(.startBulbCapture) {
+                // Only list startBulbCapture as available if current shutter speed is BULB
+                if available.contains(where: { $0.isBulb }), value.isBulb, !availableFunctions.contains(.startBulbCapture) {
                     availableFunctions.append(contentsOf: [.startBulbCapture, .endBulbCapture])
                 }
                 

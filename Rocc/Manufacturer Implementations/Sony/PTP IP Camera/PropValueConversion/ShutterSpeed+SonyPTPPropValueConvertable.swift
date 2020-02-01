@@ -39,8 +39,14 @@ extension ShutterSpeed: SonyPTPPropValueConvertable {
     
     var sonyPTPValue: PTPDevicePropertyDataType {
         var data = ByteBuffer()
-        data.append(Word(denominator))
-        data.append(Word(numerator))
+        // isBulb can be 0/0 or -1/-1 but PTP IP uses 0/0
+        if isBulb {
+            data.append(Word(0))
+            data.append(Word(0))
+        } else {
+            data.append(Word(denominator))
+            data.append(Word(numerator))
+        }
         return data[dWord: 0] ?? DWord(value)
     }
 }
