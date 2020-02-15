@@ -119,7 +119,7 @@ internal final class SonyPTPIPDevice: SonyCamera {
     
     var lastEvent: CameraEvent?
     
-    var imageURLs: [URL] = []
+    var imageURLs: [ShootingMode : [URL]] = [:]
         
     override func update(with deviceInfo: SonyDeviceInfo?) {
         name = modelEnum == nil ? name : (deviceInfo?.model?.friendlyName ?? name)
@@ -301,6 +301,29 @@ internal final class SonyPTPIPDevice: SonyCamera {
         }
     }
     
+    fileprivate func handlePTPIPEvent(_ event: EventPacket) {
+        
+        lastEventPacket = event
+        
+        switch event.code {
+        case .propertyChanged:
+            onEventAvailable?()
+        case .objectAdded:
+            Logger.log(message: "Got property changed event and was \"Object Added\", initiating transfer", category: "SonyPTPIPCamera")
+            os_log("Got property changed event and was \"Object Added\", initiating transfer", log: self.log, type: .debug)
+            guard let objectID = event.variables?.first else { return }
+            handleObjectId(objectID: objectID, shootingMode: lastEvent?.shootMode?.current ?? .photo) { (result) in
+                
+            }
+            break
+        case .objectRemoved:
+            // If object was removed, we are done with capture
+            break
+        default:
+            break
+        }
+    }
+    
     enum PTPError: Error {
         case commandRequestFailed(CommandResponsePacket.Code)
         case fetchDeviceInfoFailed
@@ -322,9 +345,7 @@ extension SonyPTPIPDevice: Camera {
             self?.sendStartSessionPacket(completion: completion)
         })
         ptpIPClient?.onEvent = { [weak self] (event) in
-            self?.lastEventPacket = event
-            guard event.code == .propertyChanged else { return }
-            self?.onEventAvailable?()
+            self?.handlePTPIPEvent(event)
         }
     }
     

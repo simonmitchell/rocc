@@ -23,8 +23,11 @@ extension SonyPTPIPDevice {
                     switch result {
                     case .success(let properties):
                         var event = CameraEvent(sonyDeviceProperties: properties)
-                        event.postViewPictureURLs = [self.imageURLs]
-                        self.imageURLs = []
+                        event.postViewPictureURLs = self.imageURLs[.photo].flatMap({ return [$0] })
+                        event.continuousShootingURLS = self.imageURLs[.continuous]?.compactMap({ (url) -> (postView: URL, thumbnail: URL) in
+                            return (postView: url, thumbnail: url)
+                        })
+                        self.imageURLs = [:]
                         callback(nil, event as? T.ReturnType)
                     case .failure(let error):
                         callback(error, nil)
@@ -34,8 +37,12 @@ extension SonyPTPIPDevice {
                 return
             }
             
-            lastEvent.postViewPictureURLs = [imageURLs]
-            imageURLs = []
+            lastEvent.postViewPictureURLs = self.imageURLs[.photo].flatMap({ return [$0] })
+            lastEvent.continuousShootingURLS = self.imageURLs[.continuous]?.compactMap({ (url) -> (postView: URL, thumbnail: URL) in
+                return (postView: url, thumbnail: url)
+            })
+            
+            imageURLs = [:]
             callback(nil, lastEvent as? T.ReturnType)
             
         case .setShootMode:
@@ -315,7 +322,7 @@ extension SonyPTPIPDevice {
             }
             callback(nil, nil)
         case .endContinuousShooting:
-            finishCapturing { (result) in
+            finishCapturing() { (result) in
                 switch result {
                 case .failure(let error):
                     callback(error, nil)
@@ -346,7 +353,7 @@ extension SonyPTPIPDevice {
                 callback(error, nil)
             }
         case .endBulbCapture:
-            finishCapturing { (result) in
+            finishCapturing() { (result) in
                 switch result {
                 case .failure(let error):
                     callback(error, nil)

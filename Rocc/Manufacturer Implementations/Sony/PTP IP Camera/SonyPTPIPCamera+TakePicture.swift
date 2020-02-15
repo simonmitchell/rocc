@@ -158,11 +158,11 @@ extension SonyPTPIPDevice {
                     ),
                     callback: { [weak self] (_) in
                         guard let self = self else { return }
-                        guard let objectID = objectID else {
+                        guard objectID != nil else {
                             self.awaitObjectId(completion: completion)
                             return
                         }
-                        self.handleObjectId(objectID: objectID, completion: completion)
+                        completion(Result.success(nil))
                     }
                 )
             }
@@ -203,19 +203,20 @@ extension SonyPTPIPDevice {
             })
             
 
-        }, timeout: 35) { [weak self] in
+        }, timeout: 35) {
 
-            guard let self = self else { return }
-            guard let _newObject = newObject else {
+            guard newObject != nil else {
                 completion(Result.failure(PTPError.objectNotFound))
                 return
             }
             
-            self.handleObjectId(objectID: _newObject, completion: completion)
+            // If we've got an object ID successfully then we captured an image, and we can callback, it's not necessary to transfer image to carry on.
+            // We will transfer the image when the event is received...
+            completion(Result.success(nil))
         }
     }
     
-    private func handleObjectId(objectID: DWord, completion: @escaping CaptureCompletion) {
+    func handleObjectId(objectID: DWord, shootingMode: ShootingMode, completion: @escaping CaptureCompletion) {
         
         Logger.log(message: "Got object with id: \(objectID)", category: "SonyPTPIPCamera")
         os_log("Got object ID", log: log, type: .debug)
@@ -228,7 +229,7 @@ extension SonyPTPIPDevice {
             case .success(let info):
                 // Call completion as technically now ready to take an image!
                 completion(Result.success(nil))
-                self.getObjectWith(info: info, objectID: objectID, completion: completion)
+                self.getObjectWith(info: info, objectID: objectID, shootingMode: shootingMode, completion: completion)
             case .failure(_):
                 // Doesn't really matter if this part fails, as image already taken
                 completion(Result.success(nil))
@@ -236,7 +237,7 @@ extension SonyPTPIPDevice {
         })
     }
     
-    private func getObjectWith(info: PTP.ObjectInfo, objectID: DWord, completion: @escaping CaptureCompletion) {
+    private func getObjectWith(info: PTP.ObjectInfo, objectID: DWord, shootingMode: ShootingMode, completion: @escaping CaptureCompletion) {
         
         Logger.log(message: "Getting object of size: \(info.compressedSize) with id: \(objectID)", category: "SonyPTPIPCamera")
         os_log("Getting object", log: log, type: .debug)
@@ -246,7 +247,7 @@ extension SonyPTPIPDevice {
             guard let self = self else { return }
             switch result {
             case .success(let data):
-                self.handleObjectData(data.data, fileName: info.fileName ?? "\(ProcessInfo().globallyUniqueString).jpg")
+                self.handleObjectData(data.data, shootingMode: shootingMode, fileName: info.fileName ?? "\(ProcessInfo().globallyUniqueString).jpg")
             case .failure(let error):
                 Logger.log(message: "Failed to get object: \(error.localizedDescription)", category: "SonyPTPIPCamera")
                 os_log("Failed to get object", log: self.log, type: .error)
@@ -256,7 +257,7 @@ extension SonyPTPIPDevice {
         ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
     }
     
-    private func handleObjectData(_ data: ByteBuffer, fileName: String) {
+    private func handleObjectData(_ data: ByteBuffer, shootingMode: ShootingMode, fileName: String) {
         
         Logger.log(message: "Got object data!: \(data.length). Attempting to save as image", category: "SonyPTPIPCamera")
         os_log("Got object data! Attempting to save as image", log: self.log, type: .debug)
@@ -272,7 +273,7 @@ extension SonyPTPIPDevice {
         let imageURL = temporaryDirectoryURL.appendingPathComponent(fileName)
         do {
             try imageData.write(to: imageURL)
-            imageURLs.append(imageURL)
+            imageURLs[shootingMode, default: []].append(imageURL)
             // Trigger dummy event
             onEventAvailable?()
         } catch let error {

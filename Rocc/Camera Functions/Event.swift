@@ -232,7 +232,7 @@ public struct CameraEvent {
     public let continuousShootingSpeed: (current: ContinuousShootingSpeed?, available: [ContinuousShootingSpeed], supported: [ContinuousShootingSpeed])?
     
     /// Array of URL of continuous shooting. When more than one URL notifies, the last one is the latest.
-    public let continuousShootingURLS: [(postView: URL, thumbnail: URL)]?
+    public var continuousShootingURLS: [(postView: URL, thumbnail: URL)]?
     
     /// Current and available flip settings.
     public let flipSetting: (current: String, available: [String], supported: [String])?
