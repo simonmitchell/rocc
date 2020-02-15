@@ -57,6 +57,8 @@ internal final class SonyTransferDevice {
     
     var onEventAvailable: (() -> Void)?
     
+    var onDisconnected: (() -> Void)?
+    
     init?(dictionary: [AnyHashable : Any]) {
         
         guard let serviceDictionaries = dictionary["serviceList"] as? [[AnyHashable : Any]] else {

@@ -93,6 +93,8 @@ final class PTPIPClient: NSObject {
     
     var onEvent: ((_ event: EventPacket) -> Void)?
     
+    var onDisconnect: (() -> Void)?
+    
     //MARK: - Connection -
     
     var connectCallback: ((_ error: Error?) -> Void)?
@@ -297,6 +299,17 @@ final class PTPIPClient: NSObject {
         }
     }
     
+    var onPong: (() -> Void)?
+    
+    func ping(callback: @escaping (Error?) -> Void) {
+        
+        sendEventPacket(Packet.pongPacket())
+        onPong = { [weak self] in
+            callback(nil)
+            self?.onPong = nil
+        }
+    }
+    
     //MARK: - Handling Responses -
     
     fileprivate func handle(packet: Packetable) {
@@ -335,6 +348,8 @@ final class PTPIPClient: NSObject {
                 // Perform a pong!
                 let pongPacket = Packet.pongPacket()
                 sendEventPacket(pongPacket)
+            case .pong:
+                onPong?()
             default:
                 break
             }
@@ -488,6 +503,8 @@ extension PTPIPClient: StreamDelegate {
             guard let error = aStream.streamError else { return }
             Logger.log(message: "Stream error: \(error.localizedDescription)", category: "PTPIPClient")
             os_log("Stream error: %@", log: ptpClientLog, type: .error, error.localizedDescription)
+            disconnect()
+            onDisconnect?()
             break
         case Stream.Event.hasSpaceAvailable:
             Logger.log(message: "Stream has space available", category: "PTPIPClient")
@@ -524,6 +541,7 @@ extension PTPIPClient: StreamDelegate {
             os_log("Stream end encountered", log: ptpClientLog, type: .debug)
             aStream.close()
             aStream.remove(from: .current, forMode: .default)
+            onDisconnect?()
             connectCallback?(PTPIPClientError.socketClosed)
             connectCallback = nil
             break

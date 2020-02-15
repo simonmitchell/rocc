@@ -573,8 +573,9 @@ extension SonyPTPIPDevice {
         case .getCameraFunction:
             callback(CameraError.noSuchMethod("getCameraFunction"), nil)
         case .ping:
-            //TODO: Implement
-            callback(nil, nil)
+            ptpIPClient?.ping(callback: { (error) in
+                callback(nil, nil)
+            })
         case .startRecordMode:
             callback(CameraError.noSuchMethod("startRecordMode"), nil)
         }

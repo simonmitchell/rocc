@@ -112,6 +112,8 @@ internal final class SonyAPICameraDevice: SonyCamera {
     
     public var onEventAvailable: (() -> Void)?
     
+    public var onDisconnected: (() -> Void)?
+    
     public var apiVersion: String?
     
     public var name: String?

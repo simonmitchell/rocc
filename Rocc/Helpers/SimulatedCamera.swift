@@ -104,6 +104,8 @@ public final class DummyCamera: Camera {
     
     public var onEventAvailable: (() -> Void)?
     
+    public var onDisconnected: (() -> Void)?
+    
     public func handleEvent(event: CameraEvent) {
         
     }

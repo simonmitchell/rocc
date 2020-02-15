@@ -130,6 +130,9 @@ public protocol Camera: class {
     /// Called by the camera when an event is available.
     var onEventAvailable: (() -> Void)? { get set }
     
+    /// Called by the camera when it was disconnected.
+    var onDisconnected: (() -> Void)? { get set }
+    
     /// The connection mode of the camera, this determines the core functionality that is available
     /// on the camera once it has been connected.
     var connectionMode: ConnectionMode { get }

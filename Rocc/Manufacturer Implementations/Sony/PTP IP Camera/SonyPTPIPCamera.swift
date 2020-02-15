@@ -38,6 +38,8 @@ internal final class SonyPTPIPDevice: SonyCamera {
     var lensModelName: String? = nil
     
     var onEventAvailable: (() -> Void)?
+    
+    var onDisconnected: (() -> Void)?
         
     var eventPollingMode: PollingMode {
         guard let deviceInfo = deviceInfo else { return .timed }
@@ -346,6 +348,9 @@ extension SonyPTPIPDevice: Camera {
         })
         ptpIPClient?.onEvent = { [weak self] (event) in
             self?.handlePTPIPEvent(event)
+        }
+        ptpIPClient?.onDisconnect = { [weak self] in
+            self?.onDisconnected?()
         }
     }
     
