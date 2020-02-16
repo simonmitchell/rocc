@@ -52,6 +52,8 @@
 		B128D0DA23F9A17C007B37F8 /* StillQuality+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B128D0D823F9A17C007B37F8 /* StillQuality+SonyPTPPropValueConvertable.swift */; };
 		B128D0DC23F9A198007B37F8 /* StillFormat+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B128D0DB23F9A198007B37F8 /* StillFormat+SonyPTPPropValueConvertable.swift */; };
 		B128D0DD23F9A198007B37F8 /* StillFormat+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B128D0DB23F9A198007B37F8 /* StillFormat+SonyPTPPropValueConvertable.swift */; };
+		B128D0DF23F9D60D007B37F8 /* Array+Unique.swift in Sources */ = {isa = PBXBuildFile; fileRef = B128D0DE23F9D60D007B37F8 /* Array+Unique.swift */; };
+		B128D0E023F9D60D007B37F8 /* Array+Unique.swift in Sources */ = {isa = PBXBuildFile; fileRef = B128D0DE23F9D60D007B37F8 /* Array+Unique.swift */; };
 		B1316A572089C08F006BD136 /* Rocc.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1316A4D2089C08F006BD136 /* Rocc.framework */; };
 		B1316A5C2089C08F006BD136 /* RoccTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1316A5B2089C08F006BD136 /* RoccTests.swift */; };
 		B1316A5E2089C08F006BD136 /* Rocc.h in Headers */ = {isa = PBXBuildFile; fileRef = B1316A502089C08F006BD136 /* Rocc.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -369,6 +371,7 @@
 		B128D0CE23F958AB007B37F8 /* SonyPTPIPCamera+Zoom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SonyPTPIPCamera+Zoom.swift"; sourceTree = "<group>"; };
 		B128D0D823F9A17C007B37F8 /* StillQuality+SonyPTPPropValueConvertable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StillQuality+SonyPTPPropValueConvertable.swift"; sourceTree = "<group>"; };
 		B128D0DB23F9A198007B37F8 /* StillFormat+SonyPTPPropValueConvertable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StillFormat+SonyPTPPropValueConvertable.swift"; sourceTree = "<group>"; };
+		B128D0DE23F9D60D007B37F8 /* Array+Unique.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+Unique.swift"; sourceTree = "<group>"; };
 		B1316A4D2089C08F006BD136 /* Rocc.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Rocc.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B1316A502089C08F006BD136 /* Rocc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Rocc.h; sourceTree = "<group>"; };
 		B1316A512089C08F006BD136 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -714,6 +717,7 @@
 				B154535421EFDC1700C59096 /* Countable.swift */,
 				B182B888237DEA340054539E /* Event+FunctionSupport.swift */,
 				B182B9232383520B0054539E /* DispatchQueue+AsyncWhile.swift */,
+				B128D0DE23F9D60D007B37F8 /* Array+Unique.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -1264,6 +1268,7 @@
 				B182B8EE23809CA40054539E /* PTPIPClient+DeviceProps.swift in Sources */,
 				B18AEB6323D8E0AB007B916A /* SonyPTPIPCamera+TakePicture.swift in Sources */,
 				B115EFB721ECF88100667FB7 /* UPnPParsers.swift in Sources */,
+				B128D0DF23F9D60D007B37F8 /* Array+Unique.swift in Sources */,
 				B1178701218775980006B72E /* FunctionNames.swift in Sources */,
 				B1EF4C8B20A24DA100EEDE3E /* AutoPowerOff.swift in Sources */,
 				B1B4345A209747C200A81B9D /* ISO.swift in Sources */,
@@ -1410,6 +1415,7 @@
 				B182B8EF23809CA40054539E /* PTPIPClient+DeviceProps.swift in Sources */,
 				B18AEB6423D8E0AB007B916A /* SonyPTPIPCamera+TakePicture.swift in Sources */,
 				B115EFB821ECF88100667FB7 /* UPnPParsers.swift in Sources */,
+				B128D0E023F9D60D007B37F8 /* Array+Unique.swift in Sources */,
 				B1178702218775980006B72E /* FunctionNames.swift in Sources */,
 				B1A1AA3820A4E02200FD0A4A /* TouchAF.swift in Sources */,
 				B1A1AA2620A4E02200FD0A4A /* FileSystem.swift in Sources */,
