@@ -223,7 +223,10 @@ public struct CameraEvent {
     public let zoomSetting: (current: String, available: [String], supported: [String])?
     
     /// The current and available still quality.
-    public let stillQuality: (current: String, available: [String], supported: [String])?
+    public let stillQuality: (current: StillQuality, available: [StillQuality], supported: [StillQuality])?
+    
+    /// The current and available still formats
+    public let stillFormat: (current: StillFormat, available: [StillFormat], supported: [StillFormat])?
     
     /// The current and available continuous shooting modes.
     public let continuousShootingMode: (current: ContinuousShootingMode?, available: [ContinuousShootingMode], supported: [ContinuousShootingMode])?

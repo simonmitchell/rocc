@@ -133,9 +133,9 @@ extension _CameraFunction {
             return "setStillSize"
         case .getStillSize:
             return "getStillSize"
-        case .setStillQuality:
+        case .setStillQuality, .setStillFormat:
             return "setStillQuality"
-        case .getStillQuality:
+        case .getStillQuality, .getStillFormat:
             return "getStillQuality"
         case .getPostviewImageSize:
             return "getPostviewImageSize"

@@ -762,11 +762,19 @@ extension SonyAPICameraDevice: Camera {
             })
         case .getStillQuality, .setStillQuality:
             apiClient.camera?.getSupportedStillQualities({ (result) in
-                guard case let .success(shutterSpeeds) = result else {
+                guard case let .success(stillQualities) = result else {
                     callback(true, nil, nil)
                     return
                 }
-                callback(true, nil, shutterSpeeds as? [T.SendType])
+                callback(true, nil, stillQualities as? [T.SendType])
+            })
+        case .getStillFormat, .setStillFormat:
+            apiClient.camera?.getSupportedStillFormats({ (result) in
+                guard case let .success(stillQualities) = result else {
+                    callback(true, nil, nil)
+                    return
+                }
+                callback(true, nil, stillQualities as? [T.SendType])
             })
         case .getPostviewImageSize, .setPostviewImageSize:
             apiClient.camera?.getSupportedPostviewImageSizes({ (result) in
@@ -1272,6 +1280,16 @@ extension SonyAPICameraDevice: Camera {
                         return
                     }
                     callback(true, nil, qualities as? [T.SendType])
+                })
+                
+            case .setStillFormat:
+                
+                self.apiClient.camera?.getAvailableStillFormats({ (result) in
+                    guard case let .success(formats) = result else {
+                        callback(true, nil, nil)
+                        return
+                    }
+                    callback(true, nil, formats as? [T.SendType])
                 })
                 
             case .setPostviewImageSize:
@@ -2408,7 +2426,7 @@ extension SonyAPICameraDevice: Camera {
                 
             case .setStillQuality:
                 
-                guard let quality = payload as? String else {
+                guard let quality = payload as? StillQuality else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2420,6 +2438,28 @@ extension SonyAPICameraDevice: Camera {
             case .getStillQuality:
                 
                 camera.getStillQuality() { (result) in
+                    switch result {
+                    case .failure(let error):
+                        callback(error, nil)
+                    case .success(let quality):
+                        callback(nil, quality as? T.ReturnType)
+                    }
+                }
+                
+            case .setStillFormat:
+                
+                guard let format = payload as? StillFormat else {
+                    callback(FunctionError.invalidPayload, nil)
+                    return
+                }
+                
+                camera.setStillFormat(format) { (error) in
+                    callback(error, nil)
+                }
+                
+            case .getStillFormat:
+                
+                camera.getStillFormat() { (result) in
                     switch result {
                     case .failure(let error):
                         callback(error, nil)

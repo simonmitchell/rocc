@@ -14,6 +14,56 @@ import ThunderRequestMac
 import ThunderRequest
 #endif
 
+fileprivate extension StillQuality {
+    
+    init?(sonyString: String) {
+        switch sonyString.lowercased() {
+        case "fine":
+            self = .fine
+        case "standard":
+            self = .standard
+        default:
+            return nil
+        }
+    }
+    
+    var sonyString: String {
+        switch self {
+        case .fine:
+            return "Fine"
+        case .standard:
+            return "Standard"
+        case .extraFine:
+            return "Extra Fine"
+        }
+    }
+}
+
+fileprivate extension StillFormat {
+    
+    init?(sonyString: String) {
+        switch sonyString.lowercased() {
+        case "fine", "standard":
+            self = .jpeg(sonyString)
+        case "raw+jpeg":
+            self = .rawAndJpeg
+        default:
+            return nil
+        }
+    }
+    
+    var sonyString: String {
+        switch self {
+        case .jpeg(let string):
+            return string
+        case .rawAndJpeg:
+            return "RAW+JPEG"
+        default:
+            return "RAW"
+        }
+    }
+}
+
 fileprivate extension Flash.Mode.Value {
     
     init?(sonyString: String) {
@@ -462,7 +512,8 @@ fileprivate extension CameraEvent {
         var _touchAF: TouchAF.Information?
         var _focusStatus: FocusStatus?
         var _zoomSetting: (current: String, available: [String], supported: [String])?
-        var _stillQuality: (current: String, available: [String], supported: [String])?
+        var _stillQuality: (current: StillQuality, available: [StillQuality], supported: [StillQuality])?
+        var _stillFormat: (current: StillFormat, available: [StillFormat], supported: [StillFormat])?
         var _continuousShootingMode: (current: ContinuousShootingMode?, available: [ContinuousShootingMode], supported: [ContinuousShootingMode])?
         var _continuousShootingSpeed: (current: ContinuousShootingSpeed, available: [ContinuousShootingSpeed], supported: [ContinuousShootingSpeed])?
         var _continuousShootingURLS: [(postView: URL, thumbnail: URL)]?
@@ -605,7 +656,15 @@ fileprivate extension CameraEvent {
                     _zoomSetting = (current, candidates, candidates)
                 case "stillQuality":
                     guard let current = dictionaryElement["stillQuality"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
-                    _stillQuality = (current, candidates, candidates)
+                    if let currentQuality = StillQuality(sonyString: current) {
+                        let qualities = candidates.compactMap({ StillQuality(sonyString: $0) }).unique
+                        _stillQuality = (currentQuality, qualities, qualities)
+                    }
+                    if let currentFormat = StillFormat(sonyString: current) {
+                        //TODO: This may give us duplicate still formats, work out a way around!
+                        let formats = candidates.compactMap({ StillFormat(sonyString: $0) })
+                        _stillFormat = (currentFormat, formats, formats)
+                    }
                 case "contShootingMode":
                     guard let current = dictionaryElement["contShootingMode"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
                     guard let currentEnum = ContinuousShootingMode(rawValue: current.lowercased()) else { return }
@@ -786,6 +845,7 @@ fileprivate extension CameraEvent {
         focusStatus = _focusStatus
         zoomSetting = _zoomSetting
         stillQuality = _stillQuality
+        stillFormat = _stillFormat
         continuousShootingMode = _continuousShootingMode
         continuousShootingSpeed = _continuousShootingSpeed
         continuousShootingURLS = _continuousShootingURLS
@@ -2893,9 +2953,9 @@ internal class CameraClient: ServiceClient {
     
     //MARK: Quality
     
-    typealias StillQualitiesCompletion = (_ result: Result<[String], Error>) -> Void
+    typealias StillQualitiesCompletion = (_ result: Result<[StillQuality], Error>) -> Void
     
-    typealias StillQualityCompletion = (_ result: Result<String, Error>) -> Void
+    typealias StillQualityCompletion = (_ result: Result<StillQuality, Error>) -> Void
     
     func getSupportedStillQualities(_ completion: @escaping StillQualitiesCompletion) {
         
@@ -2913,7 +2973,7 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            completion(Result.success(supported))
+            completion(Result.success(supported.compactMap({ StillQuality(sonyString: $0) })))
         }
     }
     
@@ -2933,13 +2993,13 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            completion(Result.success(available))
+            completion(Result.success(available.compactMap({ StillQuality(sonyString: $0) })))
         }
     }
     
-    func setStillQuality(_ quality: String, completion: @escaping GenericCompletion) {
+    func setStillQuality(_ quality: StillQuality, completion: @escaping GenericCompletion) {
         
-        let body = SonyRequestBody(method: "setStillQuality", params: [["stillQuality": quality]], id: 1, version: "1.0")
+        let body = SonyRequestBody(method: "setStillQuality", params: [["stillQuality": quality.sonyString]], id: 1, version: "1.0")
         
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             completion(error ?? CameraError(responseDictionary: response?.dictionary, methodName: "setStillQuality"))
@@ -2957,12 +3017,101 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let quality = result.first?["stillQuality"] as? String else {
+            guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let qualityString = result.first?["stillQuality"] as? String else {
+                completion(Result.failure(CameraError.invalidResponse("getStillQuality")))
+                return
+            }
+            guard let quality = StillQuality(sonyString: qualityString) else {
                 completion(Result.failure(CameraError.invalidResponse("getStillQuality")))
                 return
             }
             
             completion(Result.success(quality))
+        }
+    }
+    
+    //MARK: Format
+    
+    typealias StillFormatsCompletion = (_ result: Result<[StillFormat], Error>) -> Void
+    
+    typealias StillFormatCompletion = (_ result: Result<StillFormat, Error>) -> Void
+    
+    func getSupportedStillFormats(_ completion: @escaping StillFormatsCompletion) {
+        
+        // Sony rest camera doesn't support this, so we munge from still quality instead!
+        let body = SonyRequestBody(method: "getSupportedStillQuality")
+        
+        requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
+            
+            if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getSupportedStillQuality") {
+                completion(Result.failure(error))
+                return
+            }
+            
+            guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let supported = result.first?["candidate"] as? [String] else {
+                completion(Result.failure(CameraError.invalidResponse("getSupportedStillQuality")))
+                return
+            }
+            
+            //TODO: This could give duplicate values, find a way to counteract!
+            completion(Result.success(supported.compactMap({ StillFormat(sonyString: $0) })))
+        }
+    }
+    
+    func getAvailableStillFormats(_ completion: @escaping StillFormatsCompletion) {
+        
+        // Sony rest camera doesn't support this, so we munge from still quality instead!
+        let body = SonyRequestBody(method: "getAvailableStillQuality")
+        
+        requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
+            
+            if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getAvailableStillQuality") {
+                completion(Result.failure(error))
+                return
+            }
+            
+            guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let available = result.first?["candidate"] as? [String] else {
+                completion(Result.failure(CameraError.invalidResponse("getAvailableStillQuality")))
+                return
+            }
+            
+            //TODO: This could give duplicate values, find a way to counteract!
+            completion(Result.success(available.compactMap({ StillFormat(sonyString: $0) })))
+        }
+    }
+    
+    func setStillFormat(_ quality: StillFormat, completion: @escaping GenericCompletion) {
+        
+        // Sony rest camera doesn't support this, so we munge to still quality instead!
+        let body = SonyRequestBody(method: "setStillQuality", params: [["stillQuality": quality.sonyString]], id: 1, version: "1.0")
+        
+        requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
+            completion(error ?? CameraError(responseDictionary: response?.dictionary, methodName: "setStillQuality"))
+        }
+    }
+    
+    func getStillFormat(_ completion: @escaping StillFormatCompletion) {
+        
+        // Sony rest camera doesn't support this, so we munge from still quality instead!
+        let body = SonyRequestBody(method: "getStillQuality")
+        
+        requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
+            
+            if let error = error ?? CameraError(responseDictionary: response?.dictionary, methodName: "getStillQuality") {
+                completion(Result.failure(error))
+                return
+            }
+            
+            guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let qualityString = result.first?["stillQuality"] as? String else {
+                completion(Result.failure(CameraError.invalidResponse("getStillQuality")))
+                return
+            }
+            guard let format = StillFormat(sonyString: qualityString) else {
+                completion(Result.failure(CameraError.invalidResponse("getStillQuality")))
+                return
+            }
+            
+            completion(Result.success(format))
         }
     }
     

@@ -180,7 +180,7 @@ extension SonyCamera {
                 _supportingModels.append(contentsOf: cyberShotSeries)
                 _supportingModels.append(contentsOf: QXSeries)
                 return _supportingModels
-            case .setTrackingFocus, .getTrackingFocus, .getStillQuality, .setStillQuality:
+            case .setTrackingFocus, .getTrackingFocus, .getStillQuality, .setStillQuality, .setStillFormat, .getStillFormat:
                 return [.QX1, .QX30]
             case .setContinuousShootingMode, .getContinuousShootingMode, .startContinuousShooting, .endContinuousShooting:
                 var _supportingModels = alphaSeries

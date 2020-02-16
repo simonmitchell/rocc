@@ -18,6 +18,20 @@ public struct StillSize {
     let size: String
 }
 
+/// A structural representation of image still quality
+public enum StillQuality {
+    case standard
+    case fine
+    case extraFine
+}
+
+/// A structural representation of image still format
+public enum StillFormat {
+    case jpeg(String)
+    case raw
+    case rawAndJpeg
+}
+
 /// Functions for interacting with the camera's still capture API.
 public struct StillCapture: CameraFunction {
     
@@ -51,15 +65,31 @@ public struct StillCapture: CameraFunction {
         
         public var function: _CameraFunction
         
-        public typealias SendType = String
+        public typealias SendType = StillQuality
         
-        public typealias ReturnType = String
+        public typealias ReturnType = StillQuality
         
         /// Sets the still image capture quality
         public static let set = Quality(function: .setStillQuality)
         
         /// Returns the current still image capture quality
         public static let get = Quality(function: .getStillQuality)
+    }
+    
+    /// Functions for configuring the still capture format setting
+    public struct Format: CameraFunction {
+        
+        public var function: _CameraFunction
+        
+        public typealias SendType = StillFormat
+        
+        public typealias ReturnType = StillFormat
+        
+        /// Sets the still image format
+        public static let set = Quality(function: .setStillFormat)
+        
+        /// Returns the current still image format
+        public static let get = Quality(function: .getStillFormat)
     }
 }
 

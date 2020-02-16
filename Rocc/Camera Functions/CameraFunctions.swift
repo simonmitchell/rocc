@@ -73,6 +73,8 @@ public enum _CameraFunction: String, CaseIterable {
     case getStillSize
     case setStillQuality
     case getStillQuality
+    case setStillFormat
+    case getStillFormat
     case getPostviewImageSize
     case setPostviewImageSize
     case setVideoFileFormat

@@ -137,6 +137,8 @@ extension PTP.DeviceProperty.Code {
             return [.takePicture]
         case .remainingShots:
             return nil
+        case .stillQuality:
+            return [.setStillQuality]
         }
     }
     
@@ -269,7 +271,9 @@ extension PTP.DeviceProperty.Code {
         case .performZoom:
             return nil
         case .zoomPosition:
-            return nil 
+            return nil
+        case .stillQuality:
+            return .getStillQuality
         }
     }
 }
@@ -306,7 +310,9 @@ extension _CameraFunction {
         case .getStillSize, .setStillSize:
             return [.imageSize, .imageSizeSony]
         case .getStillQuality, .setStillQuality:
-            //TODO: Might need to work out what this is represented by using WireShark and Sony's app
+            return [.stillQuality]
+        case .getStillFormat, .setStillFormat:
+            //TODO: Implement next
             return nil
         case .setCurrentTime:
             return [.dateTime]
@@ -840,6 +846,7 @@ extension PTP {
             case remainingShots = 0xd249
             case performZoom = 0xd2dd
             case zoomPosition = 0xd25d
+            case stillQuality = 0xd252
         }
     }
 }

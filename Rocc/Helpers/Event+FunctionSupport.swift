@@ -54,6 +54,8 @@ extension CameraEvent {
             callback(true, nil, self.stillSizeInfo?.supported as? [T.SendType])
         case .setStillQuality, .getStillQuality:
             callback(true, nil, self.stillQuality?.supported as? [T.SendType])
+        case .setStillFormat, .getStillFormat:
+            callback(true, nil, self.stillFormat?.supported as? [T.SendType])
         case .getPostviewImageSize, .setPostviewImageSize:
             callback(true, nil, self.postViewImageSize?.supported as? [T.SendType])
         case .setVideoFileFormat, .getVideoFileFormat:
@@ -136,6 +138,8 @@ extension CameraEvent {
             callback(true, nil, self.stillSizeInfo?.available as? [T.SendType])
         case .setStillQuality, .getStillQuality:
             callback(true, nil, self.stillQuality?.available as? [T.SendType])
+        case .setStillFormat, .getStillFormat:
+            callback(true, nil, self.stillFormat?.available as? [T.SendType])
         case .getPostviewImageSize, .setPostviewImageSize:
             callback(true, nil, self.postViewImageSize?.available as? [T.SendType])
         case .setVideoFileFormat, .getVideoFileFormat:

@@ -73,7 +73,7 @@ extension SonyPTPIPDevice {
         case .setContinuousShootingMode:
             // This isn't a thing via PTP according to Sony's app (Instead we just have multiple continuous shooting speeds) so we just don't do anything!
             callback(nil, nil)
-        case .setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setFocusMode, .setExposureMode, .setFlashMode, .setContinuousShootingSpeed:
+        case .setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setFocusMode, .setExposureMode, .setFlashMode, .setContinuousShootingSpeed, .setStillQuality, .setStillFormat:
             guard let value = payload as? SonyPTPPropValueConvertable else {
                 callback(FunctionError.invalidPayload, nil)
                 return
@@ -446,11 +446,18 @@ extension SonyPTPIPDevice {
             //TODO: Implement
             callback(nil, nil)
         case .setStillQuality:
-            //TODO: Implement
+            //TODO: Implement next
             callback(nil, nil)
         case .getStillQuality:
-            //TODO: Implement
-            callback(nil, nil)
+            getDevicePropDescFor(propCode: .stillQuality, callback: { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                    callback(nil, event.stillQuality?.current as? T.ReturnType)
+                case .failure(let error):
+                    callback(error, nil)
+                }
+            })
         case .getPostviewImageSize:
             //TODO: Implement
             callback(nil, nil)
@@ -596,6 +603,18 @@ extension SonyPTPIPDevice {
             })
         case .startRecordMode:
             callback(CameraError.noSuchMethod("startRecordMode"), nil)
+        case .getStillFormat:
+            //TODO: Implement next
+//            getDevicePropDescFor(propCode: .stillFormat, callback: { (result) in
+//                switch result {
+//                case .success(let property):
+//                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
+//                    callback(nil, event.stillFormat?.current as? T.ReturnType)
+//                case .failure(let error):
+//                    callback(error, nil)
+//                }
+//            })
+            return
         }
     }
 }

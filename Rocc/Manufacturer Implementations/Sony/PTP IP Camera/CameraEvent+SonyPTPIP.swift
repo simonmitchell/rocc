@@ -185,6 +185,7 @@ extension CameraEvent {
         var continuousShootingMode: (current: ContinuousShootingMode?, available: [ContinuousShootingMode], supported: [ContinuousShootingMode])?
         var continuousShootingSpeed: (current: ContinuousShootingSpeed?, available: [ContinuousShootingSpeed], supported: [ContinuousShootingSpeed])?
         var batteryInfo: [BatteryInformation]?
+        var stillQuality: (current: StillQuality, available: [StillQuality], supported: [StillQuality])?
         
         var availableFunctions: [_CameraFunction] = []
         var supportedFunctions: [_CameraFunction] = []
@@ -467,6 +468,18 @@ extension CameraEvent {
                 
                 break
                 
+            case .stillQuality:
+                
+                guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
+                    return
+                }
+                guard let value = StillQuality(sonyValue: deviceProperty.currentValue) else {
+                    return
+                }
+                let available = enumProperty.available.compactMap({ StillQuality(sonyValue: $0) })
+                let supported = enumProperty.supported.compactMap({ StillQuality(sonyValue: $0) })
+                stillQuality = (value, available, supported)
+                
             case .fNumber:
                 
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
@@ -745,7 +758,8 @@ extension CameraEvent {
             touchAF: nil,
             focusStatus: focusStatus,
             zoomSetting: nil,
-            stillQuality: nil,
+            stillQuality: stillQuality,
+            stillFormat: nil, //TODO: Implement next
             continuousShootingMode: continuousShootingMode,
             continuousShootingSpeed: continuousShootingSpeed,
             continuousShootingURLS: nil,

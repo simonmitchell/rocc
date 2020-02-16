@@ -312,6 +312,7 @@ public final class DummyCamera: Camera {
             focusStatus: nil,
             zoomSetting: nil,
             stillQuality: nil,
+            stillFormat: nil,
             continuousShootingMode: nil,
             continuousShootingSpeed: nil,
             continuousShootingURLS: nil,
