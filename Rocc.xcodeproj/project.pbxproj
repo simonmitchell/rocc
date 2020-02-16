@@ -46,6 +46,8 @@
 		B11D8E7421B9300F00719019 /* SimulatedCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11D8E6D21B9300F00719019 /* SimulatedCamera.swift */; };
 		B1255AE023A0DE0C00A5A9B4 /* liveview-rx100m7-singleimage in Resources */ = {isa = PBXBuildFile; fileRef = B1255ADF23A0DE0C00A5A9B4 /* liveview-rx100m7-singleimage */; };
 		B1255AE923A0DF1C00A5A9B4 /* liveview-rx100m7-multipleimages in Resources */ = {isa = PBXBuildFile; fileRef = B1255AE823A0DF1C00A5A9B4 /* liveview-rx100m7-multipleimages */; };
+		B128D0CF23F958AB007B37F8 /* SonyPTPIPCamera+Zoom.swift in Sources */ = {isa = PBXBuildFile; fileRef = B128D0CE23F958AB007B37F8 /* SonyPTPIPCamera+Zoom.swift */; };
+		B128D0D023F958AB007B37F8 /* SonyPTPIPCamera+Zoom.swift in Sources */ = {isa = PBXBuildFile; fileRef = B128D0CE23F958AB007B37F8 /* SonyPTPIPCamera+Zoom.swift */; };
 		B1316A572089C08F006BD136 /* Rocc.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1316A4D2089C08F006BD136 /* Rocc.framework */; };
 		B1316A5C2089C08F006BD136 /* RoccTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1316A5B2089C08F006BD136 /* RoccTests.swift */; };
 		B1316A5E2089C08F006BD136 /* Rocc.h in Headers */ = {isa = PBXBuildFile; fileRef = B1316A502089C08F006BD136 /* Rocc.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -360,6 +362,7 @@
 		B11D8E6D21B9300F00719019 /* SimulatedCamera.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SimulatedCamera.swift; sourceTree = "<group>"; };
 		B1255ADF23A0DE0C00A5A9B4 /* liveview-rx100m7-singleimage */ = {isa = PBXFileReference; lastKnownFileType = text; path = "liveview-rx100m7-singleimage"; sourceTree = "<group>"; };
 		B1255AE823A0DF1C00A5A9B4 /* liveview-rx100m7-multipleimages */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "liveview-rx100m7-multipleimages"; sourceTree = "<group>"; };
+		B128D0CE23F958AB007B37F8 /* SonyPTPIPCamera+Zoom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SonyPTPIPCamera+Zoom.swift"; sourceTree = "<group>"; };
 		B1316A4D2089C08F006BD136 /* Rocc.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Rocc.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B1316A502089C08F006BD136 /* Rocc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Rocc.h; sourceTree = "<group>"; };
 		B1316A512089C08F006BD136 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -788,6 +791,7 @@
 			children = (
 				B1F7CECB236D8261007E3921 /* SonyPTPIPCamera.swift */,
 				B182B8FF2381E2510054539E /* SonyPTPIPCamera+FunctionSupport.swift */,
+				B128D0CE23F958AB007B37F8 /* SonyPTPIPCamera+Zoom.swift */,
 				B182B8FC2381E22A0054539E /* SonyPTPIPCamera+FunctionAvailability.swift */,
 				B182B8F22381E1CD0054539E /* SonyPTPIPCamera+PerformFunction.swift */,
 				B18AEB6223D8E0AB007B916A /* SonyPTPIPCamera+TakePicture.swift */,
@@ -1207,6 +1211,7 @@
 				B164F02621811BD400590A05 /* SonyCameraDiscoverer.swift in Sources */,
 				B18AEB7023D98B51007B916A /* PTPObjectInfo.swift in Sources */,
 				B16BFD1121F5F0E600AF3F24 /* SimplePing.m in Sources */,
+				B128D0CF23F958AB007B37F8 /* SonyPTPIPCamera+Zoom.swift in Sources */,
 				B18AEB6D23D8E451007B916A /* PTPIPClient+Objects.swift in Sources */,
 				B1A25F3221AE950E00D9EE81 /* Errors.swift in Sources */,
 				B1EADA2F23781AE9000B7B36 /* FocusMode+SonyPTPPropValueConvertable.swift.swift in Sources */,
@@ -1350,6 +1355,7 @@
 				B1D358FA20AA34CF0069C698 /* LiveViewStreaming.swift in Sources */,
 				B18AEB7123D98B51007B916A /* PTPObjectInfo.swift in Sources */,
 				B16BFD1221F5F0E600AF3F24 /* SimplePing.m in Sources */,
+				B128D0D023F958AB007B37F8 /* SonyPTPIPCamera+Zoom.swift in Sources */,
 				B18AEB6E23D8E451007B916A /* PTPIPClient+Objects.swift in Sources */,
 				B11D8E7421B9300F00719019 /* SimulatedCamera.swift in Sources */,
 				B1EADA3023781AE9000B7B36 /* FocusMode+SonyPTPPropValueConvertable.swift.swift in Sources */,

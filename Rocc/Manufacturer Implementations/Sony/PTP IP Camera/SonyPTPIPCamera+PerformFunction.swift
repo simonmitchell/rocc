@@ -22,7 +22,9 @@ extension SonyPTPIPDevice {
                     guard let self = self else { return }
                     switch result {
                     case .success(let properties):
-                        var event = CameraEvent(sonyDeviceProperties: properties)
+                        let eventAndStillModes = CameraEvent.fromSonyDeviceProperties(properties)
+                        var event = eventAndStillModes.event
+                        self.lastStillCaptureModes = eventAndStillModes.stillCaptureModes
                         event.postViewPictureURLs = self.imageURLs[.photo].flatMap({ return [$0] })
                         event.continuousShootingURLS = self.imageURLs[.continuous]?.compactMap({ (url) -> (postView: URL, thumbnail: URL) in
                             return (postView: url, thumbnail: url)
@@ -50,12 +52,19 @@ extension SonyPTPIPDevice {
                 callback(FunctionError.invalidPayload, nil)
                 return
             }
+            guard let stillCapMode = bestStillCaptureMode(for: value) else {
+                callback(FunctionError.notAvailable, nil)
+                return
+            }
+            setStillCaptureMode(stillCapMode) { (error) in
+                callback(error, nil)
+            }
             //TODO: Implement when we have better grasp of available shoot modes
         case .getShootMode:
             getDevicePropDescFor(propCode: .stillCaptureMode, callback: { (result) in
                 switch result {
                 case .success(let property):
-                    let event = CameraEvent(sonyDeviceProperties: [property])
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
                     callback(nil, event.shootMode?.current as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
@@ -76,7 +85,7 @@ extension SonyPTPIPDevice {
             getDevicePropDescFor(propCode: .ISO, callback: { (result) in
                 switch result {
                 case .success(let property):
-                    let event = CameraEvent(sonyDeviceProperties: [property])
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
                     callback(nil, event.iso?.current as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
@@ -86,7 +95,7 @@ extension SonyPTPIPDevice {
             getDevicePropDescFor(propCode: .shutterSpeed, callback: { (result) in
                 switch result {
                 case .success(let property):
-                    let event = CameraEvent(sonyDeviceProperties: [property])
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
                     callback(nil, event.shutterSpeed?.current as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
@@ -96,7 +105,7 @@ extension SonyPTPIPDevice {
             getDevicePropDescFor(propCode: .fNumber, callback: { (result) in
                 switch result {
                 case .success(let property):
-                    let event = CameraEvent(sonyDeviceProperties: [property])
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
                     callback(nil, event.aperture?.current as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
@@ -106,7 +115,7 @@ extension SonyPTPIPDevice {
             getDevicePropDescFor(propCode: .exposureBiasCompensation, callback: { (result) in
                 switch result {
                 case .success(let property):
-                    let event = CameraEvent(sonyDeviceProperties: [property])
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
                     callback(nil, event.aperture?.current as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
@@ -116,7 +125,7 @@ extension SonyPTPIPDevice {
             getDevicePropDescFor(propCode: .focusMode, callback: { (result) in
                 switch result {
                 case .success(let property):
-                    let event = CameraEvent(sonyDeviceProperties: [property])
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
                     callback(nil, event.focusMode?.current as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
@@ -126,7 +135,7 @@ extension SonyPTPIPDevice {
             getDevicePropDescFor(propCode: .exposureProgramMode, callback: { (result) in
                 switch result {
                 case .success(let property):
-                    let event = CameraEvent(sonyDeviceProperties: [property])
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
                     callback(nil, event.exposureMode?.current as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
@@ -136,7 +145,7 @@ extension SonyPTPIPDevice {
             getDevicePropDescFor(propCode: .flashMode, callback: { (result) in
                 switch result {
                 case .success(let property):
-                    let event = CameraEvent(sonyDeviceProperties: [property])
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
                     callback(nil, event.flashMode?.current as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
@@ -208,7 +217,7 @@ extension SonyPTPIPDevice {
                     this.getDevicePropDescFor(propCode: .aspectRatio, callback: { (aspectResult) in
                         switch aspectResult {
                         case .success(let aspectProperty):
-                            let event = CameraEvent(sonyDeviceProperties: [imageSizeProperty, aspectProperty])
+                            let event = CameraEvent.fromSonyDeviceProperties([imageSizeProperty, aspectProperty]).event
                             callback(nil, event.stillSizeInfo?.stillSize as? T.ReturnType)
                         case .failure(let error):
                             callback(error, nil)
@@ -247,7 +256,7 @@ extension SonyPTPIPDevice {
             getDevicePropDescFor(propCode: .stillCaptureMode, callback: { (result) in
                 switch result {
                 case .success(let property):
-                    let event = CameraEvent(sonyDeviceProperties: [property])
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
                     callback(nil, event.selfTimer?.current as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
@@ -287,7 +296,7 @@ extension SonyPTPIPDevice {
                     this.getDevicePropDescFor(propCode: .colorTemp, callback: { (ctResult) in
                         switch ctResult {
                         case .success(let ctProperty):
-                            let event = CameraEvent(sonyDeviceProperties: [wbProperty, ctProperty])
+                            let event = CameraEvent.fromSonyDeviceProperties([wbProperty, ctProperty]).event
                             callback(nil, event.whiteBalance?.whitebalanceValue as? T.ReturnType)
                         case .failure(let error):
                             callback(error, nil)
@@ -379,11 +388,18 @@ extension SonyPTPIPDevice {
             //TODO: Implement
             callback(nil, nil)
         case .startZooming:
-            //TODO: Implement
-            callback(nil, nil)
+            guard let direction = payload as? Zoom.Direction else {
+                callback(FunctionError.invalidPayload, nil)
+                return
+            }
+            startZooming(direction: direction) { (error) in
+                callback(error, nil)
+            }
         case .stopZooming:
-            //TODO: Implement
-            callback(nil, nil)
+            // Just call and forget as there's no explicit call using PTP/IP to zoom
+            stopZooming { (error) in
+                callback(error, nil)
+            }
         case .setZoomSetting:
             //TODO: Implement
             callback(nil, nil)

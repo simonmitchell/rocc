@@ -164,66 +164,33 @@ enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
 
 extension CameraEvent {
     
-    init(sonyDeviceProperties: [PTPDeviceProperty]) {
+    static func fromSonyDeviceProperties(_ sonyDeviceProperties: [PTPDeviceProperty]) -> (event: CameraEvent, stillCaptureModes: (available: [SonyStillCaptureMode], supported: [SonyStillCaptureMode])?) {
         
-        status = nil
-        liveViewInfo = nil
-        zoomPosition = nil
-        postViewPictureURLs = []
+        var stillCapModes: (available: [SonyStillCaptureMode], supported: [SonyStillCaptureMode])?
+           
+        var zoomPosition: Double? = nil
         var storageInformation: [StorageInformation]? = nil
-        beepMode = nil
-        function = nil
-        functionResult = false
-        videoQuality = nil
         var stillSizeInfo: StillSizeInformation?
-        steadyMode = nil
-        viewAngle = nil
         var exposureMode: (current: Exposure.Mode.Value, available: [Exposure.Mode.Value], supported: [Exposure.Mode.Value])?
-        postViewImageSize = nil
         var selfTimer: (current: TimeInterval, available: [TimeInterval], supported: [TimeInterval])?
         var shootMode: (current: ShootingMode, available: [ShootingMode], supported: [ShootingMode]) = (.photo, [], [])
         var exposureCompensation: (current: Exposure.Compensation.Value, available: [Exposure.Compensation.Value], supported: [Exposure.Compensation.Value])?
         var flashMode: (current: Flash.Mode.Value, available: [Flash.Mode.Value], supported: [Flash.Mode.Value])?
         var aperture: (current: Aperture.Value, available: [Aperture.Value], supported: [Aperture.Value])?
         var focusMode: (current: Focus.Mode.Value, available: [Focus.Mode.Value], supported: [Focus.Mode.Value])?
-        var _iso: (current: ISO.Value, available: [ISO.Value], supported: [ISO.Value])?
-        isProgramShifted = false
+        var iso: (current: ISO.Value, available: [ISO.Value], supported: [ISO.Value])?
         var shutterSpeed: (current: ShutterSpeed, available: [ShutterSpeed], supported: [ShutterSpeed])?
         var whiteBalance: WhiteBalanceInformation?
-        touchAF = nil
         var focusStatus: FocusStatus?
-        zoomSetting = nil
-        stillQuality = nil
         var continuousShootingMode: (current: ContinuousShootingMode?, available: [ContinuousShootingMode], supported: [ContinuousShootingMode])?
         var continuousShootingSpeed: (current: ContinuousShootingSpeed?, available: [ContinuousShootingSpeed], supported: [ContinuousShootingSpeed])?
-        continuousShootingURLS = nil
-        flipSetting = nil
-        scene = nil
-        intervalTime = nil
-        colorSetting = nil
-        videoFileFormat = nil
-        videoRecordingTime = nil
-        infraredRemoteControl = nil
-        tvColorSystem = nil
-        trackingFocusStatus = nil
-        trackingFocus = nil
         var batteryInfo: [BatteryInformation]?
-        numberOfShots = nil
-        autoPowerOff = nil
-        loopRecordTime = nil
-        audioRecording = nil
-        windNoiseReduction = nil
-        bulbShootingUrl
-         = nil
-        bulbCapturingTime = nil
         
         var availableFunctions: [_CameraFunction] = []
         var supportedFunctions: [_CameraFunction] = []
         
         sonyDeviceProperties.forEach { (deviceProperty) in
-            
-            //TODO: Handle functions such as take picture which don't have a getFunction or setFunction
-            
+                        
             switch deviceProperty.getSetSupported {
             case .get:
                 if let getFunction = deviceProperty.code.getFunction {
@@ -322,6 +289,8 @@ extension CameraEvent {
                 }
                 let available = enumProperty.available.compactMap({ SonyStillCaptureMode(sonyValue: $0) })
                 let supported = enumProperty.supported.compactMap({ SonyStillCaptureMode(sonyValue: $0) })
+                
+                stillCapModes = (available, supported)
                 
                 // Adjust `ShootingMode`s that are available
                 available.forEach {
@@ -469,12 +438,12 @@ extension CameraEvent {
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
                 }
-                guard let iso = ISO.Value(sonyValue: deviceProperty.currentValue) else {
+                guard let isoValue = ISO.Value(sonyValue: deviceProperty.currentValue) else {
                     return
                 }
                 let available = enumProperty.available.compactMap({ ISO.Value(sonyValue: $0) })
                 let supported = enumProperty.supported.compactMap({ ISO.Value(sonyValue: $0) })
-                _iso = (iso, available, supported)
+                iso = (isoValue, available, supported)
                 
             case .shutterSpeed:
                 
@@ -718,6 +687,24 @@ extension CameraEvent {
                     supported: supportedValues
                 )
                 
+            case .zoomPosition:
+                
+                guard let otherProperty = deviceProperty as? PTP.DeviceProperty.Other else {
+                    return
+                }
+                guard let intValue = otherProperty.currentValue.toInt else {
+                    return
+                }
+                // We have to do some clever stuff here, because although the property is defined as `UInt32` it actually consists of two UInt16, the first
+                // being a value 0-100 of the zoom level, and the other is unknown...
+                var byteBuffer = ByteBuffer()
+                byteBuffer.append(DWord(intValue))
+                var offset: UInt = 0
+                guard let uint16: Word = byteBuffer.read(offset: &offset) else {
+                    return
+                }
+                zoomPosition = Double(uint16)/100
+                
             default:
                 break
             }
@@ -727,24 +714,61 @@ extension CameraEvent {
         if let currentShutterSpeed = shutterSpeed?.current, currentShutterSpeed.isBulb, shootMode.current != .bulb {
             shootMode.current = .bulb
         }
+    
+        let event = CameraEvent(
+            status: nil,
+            liveViewInfo: nil,
+            zoomPosition: zoomPosition,
+            availableFunctions: availableFunctions,
+            supportedFunctions: supportedFunctions,
+            postViewPictureURLs: [],
+            storageInformation: storageInformation,
+            beepMode: nil,
+            function: nil,
+            functionResult: false,
+            videoQuality: nil,
+            stillSizeInfo: stillSizeInfo,
+            steadyMode: nil,
+            viewAngle: nil,
+            exposureMode: exposureMode,
+            postViewImageSize: nil,
+            selfTimer: selfTimer,
+            shootMode: shootMode,
+            exposureCompensation: exposureCompensation,
+            flashMode: flashMode,
+            aperture: aperture,
+            focusMode: focusMode,
+            iso: iso,
+            isProgramShifted: nil,
+            shutterSpeed: shutterSpeed,
+            whiteBalance: whiteBalance,
+            touchAF: nil,
+            focusStatus: focusStatus,
+            zoomSetting: nil,
+            stillQuality: nil,
+            continuousShootingMode: continuousShootingMode,
+            continuousShootingSpeed: continuousShootingSpeed,
+            continuousShootingURLS: nil,
+            flipSetting: nil,
+            scene: nil,
+            intervalTime: nil,
+            colorSetting: nil,
+            videoFileFormat: nil,
+            videoRecordingTime: nil,
+            infraredRemoteControl: nil,
+            tvColorSystem: nil,
+            trackingFocusStatus: nil,
+            trackingFocus: nil,
+            batteryInfo: batteryInfo,
+            numberOfShots: nil,
+            autoPowerOff: nil,
+            loopRecordTime: nil,
+            audioRecording: nil,
+            windNoiseReduction: nil,
+            bulbShootingUrl: nil,
+            bulbCapturingTime: nil
+        )
         
-        self.storageInformation = storageInformation
-        self.shutterSpeed = shutterSpeed
-        self.iso = _iso
-        self.availableFunctions = availableFunctions
-        self.aperture = aperture
-        self.whiteBalance = whiteBalance
-        self.exposureCompensation = exposureCompensation
-        self.exposureMode = exposureMode
-        self.selfTimer = selfTimer
-        self.shootMode = shootMode
-        self.focusMode = focusMode
-        self.flashMode = flashMode
-        self.focusStatus = focusStatus
-        self.batteryInfo = batteryInfo
-        self.stillSizeInfo = stillSizeInfo
-        self.supportedFunctions = supportedFunctions
-        self.continuousShootingMode = continuousShootingMode
-        self.continuousShootingSpeed = continuousShootingSpeed
+        return (event, stillCapModes)
     }
 }

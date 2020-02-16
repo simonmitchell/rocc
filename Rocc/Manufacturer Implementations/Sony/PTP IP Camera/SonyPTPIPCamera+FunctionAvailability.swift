@@ -51,7 +51,7 @@ extension SonyPTPIPDevice {
                 getDevicePropDescFor(propCode: .fNumber, callback: { (result) in
                     switch result {
                     case .success(let property):
-                        let event = CameraEvent(sonyDeviceProperties: [property])
+                        let event = CameraEvent.fromSonyDeviceProperties([property]).event
                         callback(event.availableFunctions?.contains(function.function), nil, event.aperture?.available as? [T.SendType])
                     case .failure(let error):
                         callback(false, error, nil)
@@ -61,7 +61,7 @@ extension SonyPTPIPDevice {
                 getDevicePropDescFor(propCode: .ISO, callback: { (result) in
                     switch result {
                     case .success(let property):
-                        let event = CameraEvent(sonyDeviceProperties: [property])
+                        let event = CameraEvent.fromSonyDeviceProperties([property]).event
                         callback(event.availableFunctions?.contains(function.function), nil, event.iso?.available as? [T.SendType])
                     case .failure(let error):
                         callback(false, error, nil)
@@ -81,7 +81,7 @@ extension SonyPTPIPDevice {
                         this.getDevicePropDescFor(propCode: .colorTemp, callback: { (ctResult) in
                             switch ctResult {
                             case .success(let ctProperty):
-                                let event = CameraEvent(sonyDeviceProperties: [wbProperty, ctProperty])
+                                let event = CameraEvent.fromSonyDeviceProperties([wbProperty, ctProperty]).event
                                 callback(event.availableFunctions?.contains(function.function), nil, event.whiteBalance?.available as? [T.SendType])
                             case .failure(let error):
                                 callback(false, error, nil)
@@ -100,7 +100,7 @@ extension SonyPTPIPDevice {
                 getDevicePropDescFor(propCode: .stillCaptureMode, callback: { (result) in
                     switch result {
                     case .success(let property):
-                        let event = CameraEvent(sonyDeviceProperties: [property])
+                        let event = CameraEvent.fromSonyDeviceProperties([property]).event
                         callback(event.availableFunctions?.contains(function.function), nil, event.shootMode?.available as? [T.SendType])
                     case .failure(let error):
                         callback(false, error, nil)
@@ -109,14 +109,11 @@ extension SonyPTPIPDevice {
             case .setProgramShift, .getProgramShift:
                 //TODO: Implement
                 callback(false, nil, nil)
-            case .takePicture:
-                //TODO: Implement
-                callback(false, nil, nil)
-            case .startContinuousShooting, .endContinuousShooting:
+            case .takePicture, .startContinuousShooting, .endContinuousShooting, .startBulbCapture, .endBulbCapture:
                 getDevicePropDescFor(propCode: .stillCaptureMode, callback: { (result) in
                     switch result {
                     case .success(let property):
-                        let event = CameraEvent(sonyDeviceProperties: [property])
+                        let event = CameraEvent.fromSonyDeviceProperties([property]).event
                         callback(event.availableFunctions?.contains(function.function), nil, nil)
                     case .failure(let error):
                         callback(false, error, nil)
@@ -131,14 +128,10 @@ extension SonyPTPIPDevice {
             case .startIntervalStillRecording, .endIntervalStillRecording:
                 //TODO: Implement
                 callback(false, nil, nil)
-            case .startBulbCapture, .endBulbCapture:
-                //TODO: Implement
-                callback(false, nil, nil)
             case .startLoopRecording, .endLoopRecording:
                 //TODO: Implement
                 callback(false, nil, nil)
             case .startLiveView, .startLiveViewWithSize, .endLiveView:
-                //TODO: Check if we need to call something here!
                 callback(true, nil, nil)
             case .getLiveViewSize:
                 //TODO: Implement
@@ -147,7 +140,7 @@ extension SonyPTPIPDevice {
                 //TODO: Implement
                 callback(false, nil, nil)
             case .startZooming, .stopZooming:
-                //TODO: Implement
+                // If we get to this point, no way to tell if it's available as is setDeviceBValue
                 callback(false, nil, nil)
             case .setZoomSetting, .getZoomSetting:
                 //TODO: Implement
@@ -156,7 +149,7 @@ extension SonyPTPIPDevice {
                 getDevicePropDescFor(propCode: .autoFocus, callback: { (result) in
                     switch result {
                     case .success(let property):
-                        let event = CameraEvent(sonyDeviceProperties: [property])
+                        let event = CameraEvent.fromSonyDeviceProperties([property]).event
                         callback(event.availableFunctions?.contains(function.function), nil, nil)
                     case .failure(let error):
                         callback(false, error, nil)
@@ -175,7 +168,7 @@ extension SonyPTPIPDevice {
                 getDevicePropDescFor(propCode: .stillCaptureMode, callback: { (result) in
                     switch result {
                     case .success(let property):
-                        let event = CameraEvent(sonyDeviceProperties: [property])
+                        let event = CameraEvent.fromSonyDeviceProperties([property]).event
                         callback(event.availableFunctions?.contains(function.function), nil, event.continuousShootingMode?.available as? [T.SendType])
                     case .failure(let error):
                         callback(false, error, nil)
@@ -185,7 +178,7 @@ extension SonyPTPIPDevice {
                 getDevicePropDescFor(propCode: .stillCaptureMode, callback: { (result) in
                     switch result {
                     case .success(let property):
-                        let event = CameraEvent(sonyDeviceProperties: [property])
+                        let event = CameraEvent.fromSonyDeviceProperties([property]).event
                         callback(event.availableFunctions?.contains(function.function), nil, event.continuousShootingSpeed?.available as? [T.SendType])
                     case .failure(let error):
                         callback(false, error, nil)
@@ -195,7 +188,7 @@ extension SonyPTPIPDevice {
                 getDevicePropDescFor(propCode: .stillCaptureMode, callback: { (result) in
                     switch result {
                     case .success(let property):
-                        let event = CameraEvent(sonyDeviceProperties: [property])
+                        let event = CameraEvent.fromSonyDeviceProperties([property]).event
                         callback(event.availableFunctions?.contains(function.function), nil, event.selfTimer?.available as? [T.SendType])
                     case .failure(let error):
                         callback(false, error, nil)
@@ -205,7 +198,7 @@ extension SonyPTPIPDevice {
                 getDevicePropDescFor(propCode: .exposureProgramMode, callback: { (result) in
                     switch result {
                     case .success(let property):
-                        let event = CameraEvent(sonyDeviceProperties: [property])
+                        let event = CameraEvent.fromSonyDeviceProperties([property]).event
                         callback(event.availableFunctions?.contains(function.function), nil, event.exposureMode?.available as? [T.SendType])
                     case .failure(let error):
                         callback(false, error, nil)
@@ -215,7 +208,7 @@ extension SonyPTPIPDevice {
                 getDevicePropDescFor(propCode: .focusMode, callback: { (result) in
                     switch result {
                     case .success(let property):
-                        let event = CameraEvent(sonyDeviceProperties: [property])
+                        let event = CameraEvent.fromSonyDeviceProperties([property]).event
                         callback(event.availableFunctions?.contains(function.function), nil, event.focusMode?.available as? [T.SendType])
                     case .failure(let error):
                         callback(false, error, nil)
@@ -225,7 +218,7 @@ extension SonyPTPIPDevice {
                 getDevicePropDescFor(propCode: .exposureBiasCompensation, callback: { (result) in
                     switch result {
                     case .success(let property):
-                        let event = CameraEvent(sonyDeviceProperties: [property])
+                        let event = CameraEvent.fromSonyDeviceProperties([property]).event
                         callback(event.availableFunctions?.contains(function.function), nil, event.exposureCompensation?.available as? [T.SendType])
                     case .failure(let error):
                         callback(false, error, nil)
@@ -235,7 +228,7 @@ extension SonyPTPIPDevice {
                 getDevicePropDescFor(propCode: .shutterSpeed, callback: { (result) in
                     switch result {
                     case .success(let property):
-                        let event = CameraEvent(sonyDeviceProperties: [property])
+                        let event = CameraEvent.fromSonyDeviceProperties([property]).event
                         callback(event.availableFunctions?.contains(function.function), nil, event.shutterSpeed?.available as? [T.SendType])
                     case .failure(let error):
                         callback(false, error, nil)
@@ -245,7 +238,7 @@ extension SonyPTPIPDevice {
                 getDevicePropDescFor(propCode: .flashMode, callback: { (result) in
                     switch result {
                     case .success(let property):
-                        let event = CameraEvent(sonyDeviceProperties: [property])
+                        let event = CameraEvent.fromSonyDeviceProperties([property]).event
                         callback(event.availableFunctions?.contains(function.function), nil, event.flashMode?.available as? [T.SendType])
                     case .failure(let error):
                         callback(false, error, nil)
@@ -265,7 +258,7 @@ extension SonyPTPIPDevice {
                         this.getDevicePropDescFor(propCode: .aspectRatio, callback: { (aspectResult) in
                             switch aspectResult {
                             case .success(let aspectProperty):
-                                let event = CameraEvent(sonyDeviceProperties: [imageSizeProperty, aspectProperty])
+                                let event = CameraEvent.fromSonyDeviceProperties([imageSizeProperty, aspectProperty]).event
                                 callback(event.availableFunctions?.contains(function.function), nil, event.stillSizeInfo?.available as? [T.SendType])
                             case .failure(let error):
                                 callback(false, error, nil)

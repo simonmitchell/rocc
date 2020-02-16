@@ -11,7 +11,7 @@ import Foundation
 extension PTP.DeviceProperty {
     
     enum Structure: Byte {
-        case string
+        case other
         case range
         case enumeration
     }
@@ -151,8 +151,8 @@ extension ByteBuffer {
             return PTP.DeviceProperty.Range(data: slice)
         case .enumeration:
             return PTP.DeviceProperty.Enum(data: slice)
-        case .string:
-            return PTP.DeviceProperty.String(data: slice)
+        case .other:
+            return PTP.DeviceProperty.Other(data: slice)
         }
     }
 }

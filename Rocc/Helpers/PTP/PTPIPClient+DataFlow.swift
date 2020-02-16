@@ -24,7 +24,6 @@ extension PTPIPClient {
         }
         
         mutating func appendData(from dataPacket: DataPacket) {
-            //TODO: Maybe see if we can remove this compactMap at some point!!
             data.append(bytes: dataPacket.data.bytes.compactMap({ $0 }))
         }
     }

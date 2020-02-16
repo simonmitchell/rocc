@@ -66,7 +66,7 @@ extension PTP.DeviceProperty.Code {
         case .sharpness:
             //TODO: Add function
             return nil
-        case .digitalZoom:
+        case .digitalZoom, .performZoom, .zoomPosition:
             return [.startZooming, .stopZooming]
         case .effectMode:
             //TODO: Add function
@@ -266,6 +266,10 @@ extension PTP.DeviceProperty.Code {
             return nil
         case .remainingShots:
             return nil
+        case .performZoom:
+            return nil
+        case .zoomPosition:
+            return nil 
         }
     }
 }
@@ -288,7 +292,7 @@ extension _CameraFunction {
             //TODO: Not sure if this matches up to anything
             return nil
         case .startZooming, .stopZooming:
-            return [.digitalZoom]
+            return [.digitalZoom, .performZoom, .zoomPosition]
         case .getExposureMode, .setExposureMode:
             return [.exposureProgramMode]
         case .getFocusMode, .setFocusMode:
@@ -584,13 +588,13 @@ extension PTPEnumDeviceProperty {
     }
 }
 
-// MARK: - String Properties -
+// MARK: - Properties that are neither enum nor range! -
 
-protocol PTPStringDeviceProperty: PTPDeviceProperty {
+protocol PTPOtherDeviceProperty: PTPDeviceProperty {
     
 }
 
-extension PTPStringDeviceProperty {
+extension PTPOtherDeviceProperty {
     
     func toData() -> ByteBuffer {
         
@@ -650,7 +654,7 @@ extension PTP {
             }
         }
         
-        struct String: PTPStringDeviceProperty {
+        struct Other: PTPOtherDeviceProperty {
             
             var type: DataType
             
@@ -834,6 +838,8 @@ extension PTP {
             case movie = 0xD2C8
             case stillImage = 0xD2C7
             case remainingShots = 0xd249
+            case performZoom = 0xd2dd
+            case zoomPosition = 0xd25d
         }
     }
 }

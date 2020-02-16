@@ -40,6 +40,8 @@ internal final class SonyPTPIPDevice: SonyCamera {
     var onEventAvailable: (() -> Void)?
     
     var onDisconnected: (() -> Void)?
+    
+    var zoomingDirection: Zoom.Direction?
         
     var eventPollingMode: PollingMode {
         guard let deviceInfo = deviceInfo else { return .timed }
@@ -120,6 +122,8 @@ internal final class SonyPTPIPDevice: SonyCamera {
     var lastEventPacket: EventPacket?
     
     var lastEvent: CameraEvent?
+    
+    var lastStillCaptureModes: (available: [SonyStillCaptureMode], supported: [SonyStillCaptureMode])?
     
     var imageURLs: [ShootingMode : [URL]] = [:]
         
@@ -343,6 +347,11 @@ extension SonyPTPIPDevice: Camera {
         
     func connect(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
         
+        lastEvent = nil
+        lastEventPacket = nil
+        lastStillCaptureModes = nil
+        zoomingDirection = nil
+        
         ptpIPClient?.connect(callback: { [weak self] (error) in
             self?.sendStartSessionPacket(completion: completion)
         })
@@ -371,7 +380,7 @@ extension SonyPTPIPDevice: Camera {
                     switch result {
                     case .success(let property):
                         
-                        let event = CameraEvent(sonyDeviceProperties: [property])
+                        let event = CameraEvent.fromSonyDeviceProperties([property]).event
                         guard let firstMode = event.continuousShootingMode?.available.first(where: { $0 != .single }) ?? event.continuousShootingMode?.available.first else {
                             callback(nil)
                             return
@@ -407,13 +416,13 @@ extension SonyPTPIPDevice: Camera {
                     return
                 }
                 // We need to do this otherwise the camera can get stuck in continuous shooting mode!
-                self?.performFunction(ContinuousCapture.Mode.set, payload: .single) { (_, _) in
+                self?.performFunction(ShootMode.set, payload: .photo) { (_, _) in
                     callback(nil)
                 }
             }
         case .takePicture:
             setShutterSpeedAwayFromBulbIfRequired() { [weak self] (_) in
-                self?.performFunction(ContinuousCapture.Mode.set, payload: .single) { (_, _) in
+                self?.performFunction(ShootMode.set, payload: .photo) { (_, _) in
                     callback(nil)
                 }
             }
@@ -438,6 +447,22 @@ extension SonyPTPIPDevice: Camera {
         }
     }
     
+    func bestStillCaptureMode(for shootMode: ShootingMode) -> SonyStillCaptureMode? {
+                
+        switch shootMode {
+        case .audio, .video, .loop, .interval:
+            //TODO: Work out how to handle these!
+            return nil
+        case .photo, .timelapse, .bulb:
+            return .single
+        case .continuous:
+            guard let continuousShootingModes = lastStillCaptureModes?.available.filter({ $0.shootMode == .continuous }) else {
+                return .continuous
+            }
+            return continuousShootingModes.first
+        }
+    }
+    
     private func setToShootModeIfRequired(_ shootMode: ShootingMode, _ completion: @escaping ((Error?) -> Void)) {
         
         // Last shoot mode should be up to date so do a quick check if we're already in the correct shoot mode
@@ -446,28 +471,21 @@ extension SonyPTPIPDevice: Camera {
             return
         }
         
-        var stillCapMode: SonyStillCaptureMode = .single
-        
-        switch shootMode {
-        case .audio, .video, .loop:
-            //TODO: Work out how to handle these!
+        guard let stillCaptureMode = bestStillCaptureMode(for: shootMode) else {
             completion(nil)
             return
-        case .photo, .timelapse, .bulb:
-            stillCapMode = SonyStillCaptureMode.single
-        case .continuous:
-            //TODO: Work out how to pick which continous mode
-            return
-        case .interval:
-            //TODO: Work out how to pick which interval mode
-            return
         }
+        
+        setStillCaptureMode(stillCaptureMode, completion)
+    }
+    
+    func setStillCaptureMode(_ mode: SonyStillCaptureMode, _ completion: @escaping ((Error?) -> Void)) {
         
         ptpIPClient?.sendSetControlDeviceAValue(
             PTP.DeviceProperty.Value(
                 code: .stillCaptureMode,
                 type: .uint32,
-                value: stillCapMode.rawValue
+                value: mode.rawValue
             ),
             callback: { (response) in
                 completion(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil)
@@ -491,7 +509,7 @@ extension SonyPTPIPDevice: Camera {
             
             switch result {
             case .success(let property):
-                let event = CameraEvent(sonyDeviceProperties: [property])
+                let event = CameraEvent.fromSonyDeviceProperties([property]).event
                 guard let firstNonBulbShutterSpeed = event.shutterSpeed?.available.first(where: { !$0.isBulb }) else {
                     callback(nil)
                     return

@@ -12,7 +12,6 @@ extension PTP {
     
     struct SDIOExtDeviceInfo {
         
-        //TODO: Work out how this works! Seems to be related to the initial request...
         let unknownWord: Word
         
         let supportedPropCodes: [Word]

@@ -108,7 +108,6 @@ public class ShutterSpeedFormatter {
             }
         }
         
-        //TODO: Change shutterSpeed.value
         guard fixedShutterSpeed.denominator != 1 else {
             
             var string: String = ""

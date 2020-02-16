@@ -20,7 +20,8 @@ extension PTP.DeviceInfo {
             print("Propcode", propCode, propCode & 0x7000)
             switch propCode & 0x7000 {
             case 0x1000:
-                guard let opCode = PTP.CommandCode(rawValue: propCode), !supportedOpCodes.contains(opCode) else { return
+                guard let opCode = PTP.CommandCode(rawValue: propCode), !supportedOpCodes.contains(opCode) else {
+                    return
                 }
                 supportedOpCodes.append(opCode)
             case 0x4000:
