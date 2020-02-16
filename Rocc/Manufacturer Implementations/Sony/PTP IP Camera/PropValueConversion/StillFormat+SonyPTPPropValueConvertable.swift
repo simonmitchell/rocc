@@ -26,7 +26,7 @@ extension StillFormat: SonyPTPPropValueConvertable {
     }
     
     var code: PTP.DeviceProperty.Code {
-        return .stillQuality
+        return .stillFormat
     }
     
     init?(sonyValue: PTPDevicePropertyDataType) {
