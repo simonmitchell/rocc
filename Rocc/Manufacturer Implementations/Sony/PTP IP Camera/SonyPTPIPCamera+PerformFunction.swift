@@ -445,9 +445,6 @@ extension SonyPTPIPDevice {
         case .getContinuousShootingSpeed:
             //TODO: Implement
             callback(nil, nil)
-        case .setStillQuality:
-            //TODO: Implement next
-            callback(nil, nil)
         case .getStillQuality:
             getDevicePropDescFor(propCode: .stillQuality, callback: { (result) in
                 switch result {
@@ -604,16 +601,15 @@ extension SonyPTPIPDevice {
         case .startRecordMode:
             callback(CameraError.noSuchMethod("startRecordMode"), nil)
         case .getStillFormat:
-            //TODO: Implement next
-//            getDevicePropDescFor(propCode: .stillFormat, callback: { (result) in
-//                switch result {
-//                case .success(let property):
-//                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
-//                    callback(nil, event.stillFormat?.current as? T.ReturnType)
-//                case .failure(let error):
-//                    callback(error, nil)
-//                }
-//            })
+            getDevicePropDescFor(propCode: .stillFormat, callback: { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                    callback(nil, event.stillFormat?.current as? T.ReturnType)
+                case .failure(let error):
+                    callback(error, nil)
+                }
+            })
             return
         }
     }

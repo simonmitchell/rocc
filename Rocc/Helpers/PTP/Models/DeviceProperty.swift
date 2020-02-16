@@ -139,6 +139,8 @@ extension PTP.DeviceProperty.Code {
             return nil
         case .stillQuality:
             return [.setStillQuality]
+        case .stillFormat:
+            return [.setStillFormat]
         }
     }
     
@@ -274,6 +276,8 @@ extension PTP.DeviceProperty.Code {
             return nil
         case .stillQuality:
             return .getStillQuality
+        case .stillFormat:
+            return .getStillFormat
         }
     }
 }
@@ -312,8 +316,7 @@ extension _CameraFunction {
         case .getStillQuality, .setStillQuality:
             return [.stillQuality]
         case .getStillFormat, .setStillFormat:
-            //TODO: Implement next
-            return nil
+            return [.stillFormat]
         case .setCurrentTime:
             return [.dateTime]
         case .cancelHalfPressShutter, .halfPressShutter:
@@ -847,6 +850,7 @@ extension PTP {
             case performZoom = 0xd2dd
             case zoomPosition = 0xd25d
             case stillQuality = 0xd252
+            case stillFormat = 0xd253
         }
     }
 }

@@ -280,8 +280,15 @@ extension SonyPTPIPDevice {
                     }
                 })
             case .setStillFormat, .getStillFormat:
-                //TODO: Implement next
-                callback(false, nil, nil)
+                getDevicePropDescFor(propCode: .stillFormat, callback: { (result) in
+                    switch result {
+                    case .success(let property):
+                        let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                        callback(event.availableFunctions?.contains(function.function), nil, event.stillFormat?.available as? [T.SendType])
+                    case .failure(let error):
+                        callback(false, error, nil)
+                    }
+                })
             case .getPostviewImageSize, .setPostviewImageSize:
                 //TODO: Implement
                 callback(false, nil, nil)
