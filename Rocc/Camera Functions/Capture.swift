@@ -86,10 +86,10 @@ public struct StillCapture: CameraFunction {
         public typealias ReturnType = StillFormat
         
         /// Sets the still image format
-        public static let set = Quality(function: .setStillFormat)
+        public static let set = Format(function: .setStillFormat)
         
         /// Returns the current still image format
-        public static let get = Quality(function: .getStillFormat)
+        public static let get = Format(function: .getStillFormat)
     }
 }
 
