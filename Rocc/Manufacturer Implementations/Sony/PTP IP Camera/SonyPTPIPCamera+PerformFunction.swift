@@ -243,8 +243,10 @@ extension SonyPTPIPDevice {
             case 5.0:
                 value = .timer5
             case 10.0:
-                //TODO: Pick out the one which is available! How!?
-                value = .timer10_a
+                // Pick out whichever 10 second timer duration is available
+                value = lastStillCaptureModes?.available.first(where: { (stillCapMode) -> Bool in
+                    return stillCapMode.isSingleTimerMode && stillCapMode.timerDuration == 10.0
+                }) ?? .timer10_a
             default:
                 value = .single
             }
