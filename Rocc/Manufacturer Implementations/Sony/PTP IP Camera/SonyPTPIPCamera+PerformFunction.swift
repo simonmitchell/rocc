@@ -342,11 +342,35 @@ extension SonyPTPIPDevice {
                 }
             }
         case .startVideoRecording:
-            //TODO: Implement
-            callback(nil, nil)
+            self.ptpIPClient?.sendSetControlDeviceBValue(
+                PTP.DeviceProperty.Value(
+                    code: .capture,
+                    type: .uint16,
+                    value: Word(2)
+                ),
+                callback: { (videoResponse) in
+                    guard !videoResponse.code.isError else {
+                        callback(PTPError.commandRequestFailed(videoResponse.code), nil)
+                        return
+                    }
+                    callback(nil, nil)
+                }
+            )
         case .endVideoRecording:
-            //TODO: Implement
-            callback(nil, nil)
+            self.ptpIPClient?.sendSetControlDeviceBValue(
+                PTP.DeviceProperty.Value(
+                    code: .capture,
+                    type: .uint16,
+                    value: Word(1)
+                ),
+                callback: { (videoResponse) in
+                    guard !videoResponse.code.isError else {
+                        callback(PTPError.commandRequestFailed(videoResponse.code), nil)
+                        return
+                    }
+                    callback(nil, nil)
+                }
+            )
         case .startAudioRecording:
             //TODO: Implement
             callback(nil, nil)

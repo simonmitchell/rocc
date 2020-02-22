@@ -128,14 +128,14 @@ extension PTP.DeviceProperty.Code {
         case .ISO:
             return [.setISO]
         case .movie:
-            return nil
+            return [.startVideoRecording, .endVideoRecording]
         case .stillImage:
             return nil
         case .autoFocus:
             return [.halfPressShutter, .cancelHalfPressShutter]
         case .capture:
             return [.takePicture]
-        case .remainingShots:
+        case .remainingShots, .remainingCaptureTime:
             return nil
         case .stillQuality:
             return [.setStillQuality]
@@ -268,7 +268,7 @@ extension PTP.DeviceProperty.Code {
             return nil
         case .capture:
             return nil
-        case .remainingShots:
+        case .remainingShots, .remainingCaptureTime:
             return nil
         case .performZoom:
             return nil
@@ -441,7 +441,7 @@ extension String: PTPDevicePropertyDataType {
     }
 }
 
-protocol PTPDeviceProperty {
+protocol PTPDeviceProperty: CustomStringConvertible {
             
     init?(data: ByteBuffer)
     
@@ -450,6 +450,8 @@ protocol PTPDeviceProperty {
     func toData() -> ByteBuffer
     
     var type: PTP.DeviceProperty.DataType { get set }
+    
+    var rawCode: Word { get set }
     
     var code: PTP.DeviceProperty.Code { get set }
     
@@ -487,6 +489,7 @@ extension PTPRangeDeviceProperty {
         var offset: UInt = header.length
         type = header.dataType
         code = header.code
+        rawCode = header.rawCode
         currentValue = header.current
         factoryValue = header.factory
         getSetAvailable = header.getSetAvailable
@@ -578,6 +581,7 @@ extension PTPEnumDeviceProperty {
         var offset: UInt = header.length
         type = header.dataType
         code = header.code
+        rawCode = header.rawCode
         currentValue = header.current
         factoryValue = header.factory
         getSetSupported = header.getSetSupported
@@ -630,6 +634,7 @@ extension PTPOtherDeviceProperty {
         }
         type = header.dataType
         code = header.code
+        rawCode = header.rawCode
         currentValue = header.current
         factoryValue = header.factory
         getSetSupported = header.getSetSupported
@@ -665,9 +670,36 @@ extension PTP {
         
         struct Other: PTPOtherDeviceProperty {
             
+            var description: String {
+                
+                let codeString: String
+                if code != .undefined {
+                    codeString = "\(code)"
+                } else {
+                    var codeBuffer = ByteBuffer()
+                    codeBuffer[word: 0] = rawCode
+                    codeString = "\(codeBuffer.toHex)".trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+                
+                var currentBuffer = ByteBuffer()
+                currentBuffer.appendValue(currentValue, ofType: type)
+                let currentString = currentBuffer.toHex
+                
+                return """
+                        {
+                            "code": \"\(codeString)\",
+                            "current": \"\(currentString)\",
+                            "getSetAvailable": \"\(getSetAvailable)\",
+                            "getSetSupported": \"\(getSetSupported)\"
+                        }
+                        """
+            }
+            
             var type: DataType
             
             var code: Code
+            
+            var rawCode: Word
             
             var currentValue: PTPDevicePropertyDataType
             
@@ -687,6 +719,7 @@ extension PTP {
                 getSetSupported = .unknown
                 getSetAvailable = .unknown
                 length = 0
+                rawCode = 0
             }
         }
         
@@ -695,6 +728,7 @@ extension PTP {
             init() {
                 type = .int16
                 code = .undefined
+                rawCode = 0
                 currentValue = UInt8(0)
                 factoryValue = UInt8(0)
                 getSetSupported = .unknown
@@ -708,6 +742,8 @@ extension PTP {
             var type: DataType
             
             var code: Code
+            
+            var rawCode: Word
             
             var currentValue: PTPDevicePropertyDataType
             
@@ -724,6 +760,31 @@ extension PTP {
             var max: PTPDevicePropertyDataType
             
             var step: PTPDevicePropertyDataType
+            
+            var description: String {
+                
+                let codeString: String
+                if code != .undefined {
+                    codeString = "\(code)"
+                } else {
+                    var codeBuffer = ByteBuffer()
+                    codeBuffer[word: 0] = rawCode
+                    codeString = "\(codeBuffer.toHex)".trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+                
+                var currentBuffer = ByteBuffer()
+                currentBuffer.appendValue(currentValue, ofType: type)
+                let currentString = currentBuffer.toHex
+                
+                return """
+                        {
+                            "code": \"\(codeString)\",
+                            "current": \"\(currentString)\",
+                            "getSetAvailable": \"\(getSetAvailable)\",
+                            "getSetSupported": \"\(getSetSupported)\"
+                        }
+                        """
+            }
         }
         
         struct Enum: PTPEnumDeviceProperty {
@@ -731,6 +792,7 @@ extension PTP {
             init() {
                 type = .int16
                 code = .undefined
+                rawCode = 0
                 currentValue = UInt8(0)
                 factoryValue = UInt8(0)
                 getSetSupported = .unknown
@@ -744,6 +806,8 @@ extension PTP {
             var type: DataType
             
             var code: Code
+            
+            var rawCode: Word
             
             var currentValue: PTPDevicePropertyDataType
             
@@ -767,6 +831,33 @@ extension PTP {
             var available: [PTPDevicePropertyDataType]
             
             var supported: [PTPDevicePropertyDataType]
+            
+            var description: String {
+                
+                let codeString: String
+                if code != .undefined {
+                    codeString = "\(code)"
+                } else {
+                    var codeBuffer = ByteBuffer()
+                    codeBuffer[word: 0] = rawCode
+                    codeString = "\(codeBuffer.toHex)".trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+                
+                var currentBuffer = ByteBuffer()
+                currentBuffer.appendValue(currentValue, ofType: type)
+                let currentString = currentBuffer.toHex
+                
+                return """
+                        {
+                            "code": \"\(codeString)\",
+                            "current": \"\(currentString)\",
+                            "getSetAvailable": \"\(getSetAvailable)\",
+                            "getSetSupported": \"\(getSetSupported)\",
+                            "available": \(available),
+                            "supported": \(supported)
+                        }
+                        """
+            }
         }
         
         enum GetSetSupported: Byte {
@@ -847,6 +938,7 @@ extension PTP {
             case movie = 0xD2C8
             case stillImage = 0xD2C7
             case remainingShots = 0xd249
+            case remainingCaptureTime = 0xd24a
             case performZoom = 0xd2dd
             case zoomPosition = 0xd25d
             case stillQuality = 0xd252

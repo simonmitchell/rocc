@@ -18,6 +18,8 @@ extension PTP.DeviceProperty {
     
     struct Header {
         
+        let rawCode: Word
+        
         let code: PTP.DeviceProperty.Code
         
         let dataType: PTP.DeviceProperty.DataType
@@ -45,6 +47,7 @@ extension ByteBuffer {
         guard let codeWord: Word = read(offset: &offset) else {
             return nil
         }
+        let rawCode = codeWord
         let code = PTP.DeviceProperty.Code(rawValue: codeWord) ?? .undefined
         
         guard let typeWord: Word = read(offset: &offset), let type = PTP.DeviceProperty.DataType(rawValue: typeWord) else {
@@ -74,6 +77,7 @@ extension ByteBuffer {
         }
         
         return PTP.DeviceProperty.Header(
+            rawCode: rawCode,
             code: code,
             dataType: type,
             getSetAvailable: getSetAvailable,

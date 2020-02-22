@@ -91,11 +91,24 @@ extension SonyPTPIPDevice {
             callback(false, nil, nil)
             break
         case .setShootMode, .getShootMode:
-            getDevicePropDescFor(propCode: .stillCaptureMode, callback: { (result) in
+            getDevicePropDescFor(propCode: .stillCaptureMode, callback: { [weak self] (result) in
+                
+                guard let self = self else {
+                    return
+                }
+                
                 switch result {
                 case .success(let property):
-                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
-                    callback(event.supportedFunctions?.contains(function.function), nil, event.shootMode?.supported as? [T.SendType])
+                    self.getDevicePropDescFor(propCode: .exposureProgramMode) { (exposureProgrammeResult) in
+                        let event: CameraEvent
+                        switch exposureProgrammeResult {
+                        case .success(let programmeProperty):
+                            event = CameraEvent.fromSonyDeviceProperties([property, programmeProperty]).event
+                        case .failure(_):
+                            event = CameraEvent.fromSonyDeviceProperties([property]).event
+                        }
+                        callback(event.supportedFunctions?.contains(function.function), nil, event.shootMode?.supported as? [T.SendType])
+                    }
                 case .failure(let error):
                     callback(false, error, nil)
                 }
@@ -114,8 +127,15 @@ extension SonyPTPIPDevice {
                 }
             })
         case .startVideoRecording, .endVideoRecording:
-            //TODO: Implement
-            callback(false, nil, nil)
+            getDevicePropDescFor(propCode: .movie) { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                    callback(event.supportedFunctions?.contains(function.function), nil, nil)
+                case .failure(let error):
+                    callback(false, error, nil)
+                }
+            }
         case .startAudioRecording, .endAudioRecording:
             //TODO: Implement
             callback(false, nil, nil)
@@ -147,13 +167,13 @@ extension SonyPTPIPDevice {
                 }
             })
         case .setTouchAFPosition, .getTouchAFPosition, .cancelTouchAFPosition:
-            //TODO: Implement
+            // Doesn't seem to be available via PTP/IP
             callback(false, nil, nil)
         case .startTrackingFocus, .stopTrackingFocus:
-            //TODO: Implement
+            // Doesn't seem to be available via PTP/IP
             callback(false, nil, nil)
         case .setTrackingFocus, .getTrackingFocus:
-            //TODO: Implement
+            // Doesn't seem to be available via PTP/IP
             callback(false, nil, nil)
         case .setContinuousShootingMode, .getContinuousShootingMode:
             getDevicePropDescFor(propCode: .stillCaptureMode, callback: { (result) in

@@ -14,6 +14,17 @@ extension Array where Element : Hashable {
     }
 }
 
+extension Exposure.Mode.Value {
+    var isVideo: Bool {
+        switch self {
+        case .videoManual, .videoProgrammedAuto, .videoShutterPriority, .videoAperturePriority:
+            return true
+        default:
+            return false
+        }
+    }
+}
+
 enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
     
     case single = 0x00000001
@@ -630,10 +641,35 @@ extension CameraEvent {
                 
                 guard let shots = deviceProperty.currentValue.toInt else { return }
                 
+                let info = storageInformation?.first
+                let storageInfo = StorageInformation(
+                    description: info?.description,
+                    spaceForImages: shots,
+                    recordTarget: true,
+                    recordableTime: info?.recordableTime,
+                    id: nil
+                )
                 storageInformation = [
-                    StorageInformation(description: nil, spaceForImages: shots, recordTarget: true, recordableTime: nil, id: nil)
+                    storageInfo
                 ]
+                
                 break
+                
+            case .remainingCaptureTime:
+                
+                guard let seconds = deviceProperty.currentValue.toInt else { return }
+                
+                let info = storageInformation?.first
+                let storageInfo = StorageInformation(
+                    description: info?.description,
+                    spaceForImages: info?.spaceForImages,
+                    recordTarget: true,
+                    recordableTime: seconds,
+                    id: nil
+                )
+                storageInformation = [
+                    storageInfo
+                ]
                 
             case .whiteBalance:
                 
@@ -739,6 +775,23 @@ extension CameraEvent {
         // Correct shooting mode for BULB!
         if let currentShutterSpeed = shutterSpeed?.current, currentShutterSpeed.isBulb, shootMode.current != .bulb {
             shootMode.current = .bulb
+        }
+        
+        // If we have exposure program mode, and is video, update current shoot mode
+        if let exposureProgrammeMode = exposureMode {
+            if exposureProgrammeMode.supported.contains(where: { $0.isVideo }), !shootMode.supported.contains(.video) {
+                shootMode.supported.append(.video)
+                supportedFunctions.append(contentsOf: [.startVideoRecording, .endVideoRecording])
+            }
+            if exposureProgrammeMode.current.isVideo {
+                shootMode.current = .video
+                shootMode.available = [.video]
+                availableFunctions.append(contentsOf: [.startVideoRecording, .endVideoRecording])
+                let videoDisabledFunctions: [_CameraFunction] = [.takePicture, .startBulbCapture, .endBulbCapture, .endContinuousShooting, .startContinuousShooting]
+                availableFunctions = availableFunctions.filter({
+                    !videoDisabledFunctions.contains($0)
+                })
+            }
         }
     
         let event = CameraEvent(
