@@ -451,9 +451,8 @@ extension SonyPTPIPDevice: Camera {
                 
         switch shootMode {
         case .video:
-            return nil
+            return .single
         case .audio, .loop, .interval:
-            //TODO: Work out how to handle these!
             return nil
         case .photo, .timelapse, .bulb:
             return .single

@@ -114,7 +114,7 @@ extension SonyPTPIPDevice {
                 }
             })
         case .setProgramShift, .getProgramShift:
-            //TODO: Implement
+            // Not available natively with PTP/IP
             callback(false, nil, nil)
         case .takePicture, .startContinuousShooting, .endContinuousShooting, .startBulbCapture, .endBulbCapture:
             getDevicePropDescFor(propCode: .stillCaptureMode, callback: { (result) in

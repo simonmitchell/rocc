@@ -297,7 +297,7 @@ extension _CameraFunction {
         case .setShootMode, .getShootMode:
             return [.stillCaptureMode]
         case .setProgramShift, .getProgramShift:
-            //TODO: Not sure if this matches up to anything
+            // Not available natively with PTP/IP
             return nil
         case .startZooming, .stopZooming:
             return [.digitalZoom, .performZoom, .zoomPosition]

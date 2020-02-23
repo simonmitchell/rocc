@@ -53,19 +53,45 @@ extension SonyPTPIPDevice {
                 return
             }
             guard let stillCapMode = bestStillCaptureMode(for: value) else {
-                callback(FunctionError.notAvailable, nil)
+                guard let exposureProgrammeMode = self.bestExposureProgrammeModes(for: value, currentExposureProgrammeMode: self.lastEvent?.exposureMode?.current)?.first else {
+                    callback(FunctionError.notAvailable, nil)
+                    return
+                }
+                self.setExposureProgrammeMode(exposureProgrammeMode) { (programmeError) in
+                    // We return error here, as if callers obey the available shoot modes they shouldn't be calling this with an invalid value
+                    callback(programmeError, nil)
+                }
                 return
             }
-            setStillCaptureMode(stillCapMode) { (error) in
-                callback(error, nil)
+            setStillCaptureMode(stillCapMode) { [weak self] (error) in
+                guard let self = self, error == nil, let exposureProgrammeMode = self.bestExposureProgrammeModes(for: value, currentExposureProgrammeMode: self.lastEvent?.exposureMode?.current)?.first else {
+                    callback(error, nil)
+                    return
+                }
+                self.setExposureProgrammeMode(exposureProgrammeMode) { (programmeError) in
+                    // We return error here, as if callers obey the available shoot modes they shouldn't be calling this with an invalid value
+                    callback(programmeError, nil)
+                }
             }
-            //TODO: Implement when we have better grasp of available shoot modes
         case .getShootMode:
-            getDevicePropDescFor(propCode: .stillCaptureMode, callback: { (result) in
+            getDevicePropDescFor(propCode: .stillCaptureMode, callback: { [weak self] (result) in
+                guard let self = self else {
+                    return
+                }
+                
                 switch result {
                 case .success(let property):
-                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
-                    callback(nil, event.shootMode?.current as? T.ReturnType)
+                    self.getDevicePropDescFor(propCode: .exposureProgramMode) { (exposureProgrammeResult) in
+                        switch exposureProgrammeResult {
+                        case .success(let exposureProperty):
+                            let event = CameraEvent.fromSonyDeviceProperties([property, exposureProperty]).event
+                            callback(nil, event.shootMode?.current as? T.ReturnType)
+                        case .failure(_):
+                            // Ignore the error here as can still get a good estimation from still cap mode
+                            let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                            callback(nil, event.shootMode?.current as? T.ReturnType)
+                        }
+                    }
                 case .failure(let error):
                     callback(error, nil)
                 }
@@ -312,12 +338,9 @@ extension SonyPTPIPDevice {
         case .setupCustomWhiteBalanceFromShot:
             //TODO: Implement
             callback(nil, nil)
-        case .setProgramShift:
-            //TODO: Implement
-            callback(nil, nil)
-        case .getProgramShift:
-            //TODO: Implement
-            callback(nil, nil)
+        case .setProgramShift, .getProgramShift:
+            // Not available natively with PTP/IP
+            callback(FunctionError.notSupportedByAvailableVersion, nil)
         case .takePicture:
             takePicture { (result) in
                 switch result {
@@ -344,7 +367,7 @@ extension SonyPTPIPDevice {
         case .startVideoRecording:
             self.ptpIPClient?.sendSetControlDeviceBValue(
                 PTP.DeviceProperty.Value(
-                    code: .capture,
+                    code: .movie,
                     type: .uint16,
                     value: Word(2)
                 ),
@@ -359,7 +382,7 @@ extension SonyPTPIPDevice {
         case .endVideoRecording:
             self.ptpIPClient?.sendSetControlDeviceBValue(
                 PTP.DeviceProperty.Value(
-                    code: .capture,
+                    code: .movie,
                     type: .uint16,
                     value: Word(1)
                 ),
