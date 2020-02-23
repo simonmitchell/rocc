@@ -450,7 +450,9 @@ extension SonyPTPIPDevice: Camera {
     func bestStillCaptureMode(for shootMode: ShootingMode) -> SonyStillCaptureMode? {
                 
         switch shootMode {
-        case .audio, .video, .loop, .interval:
+        case .video:
+            return nil
+        case .audio, .loop, .interval:
             //TODO: Work out how to handle these!
             return nil
         case .photo, .timelapse, .bulb:
@@ -463,6 +465,91 @@ extension SonyPTPIPDevice: Camera {
         }
     }
     
+    func bestExposureProgrammeModes(for shootMode: ShootingMode, currentExposureProgrammeMode: Exposure.Mode.Value?) -> [Exposure.Mode.Value]? {
+        
+        var modes: [Exposure.Mode.Value]?
+        let defaultModes: [Exposure.Mode.Value] = [.intelligentAuto, .programmedAuto, .aperturePriority, .shutterPriority, .manual, .superiorAuto, .slowAndQuickProgrammedAuto, .slowAndQuickAperturePriority, .slowAndQuickShutterPriority, .slowAndQuickManual]
+        let defaultVideoModes: [Exposure.Mode.Value] = [.videoProgrammedAuto, .videoAperturePriority, .videoShutterPriority, .videoManual]
+        
+        // For Video -> Photo or Photo -> Video there are equivalents, so Aperture Priority has Video Aperture Priority e.t.c. so we should prioritise these...
+        switch shootMode {
+        case .video:
+            switch currentExposureProgrammeMode {
+            case .aperturePriority, .slowAndQuickAperturePriority:
+                modes = defaultVideoModes.bringingToFront(.videoAperturePriority)
+            case .programmedAuto, .intelligentAuto, .slowAndQuickProgrammedAuto:
+                modes = defaultVideoModes.bringingToFront(.videoProgrammedAuto)
+            case .shutterPriority, .slowAndQuickShutterPriority:
+                modes = defaultVideoModes.bringingToFront(.videoShutterPriority)
+            case .manual, .slowAndQuickManual:
+                modes = defaultVideoModes.bringingToFront(.videoManual)
+            default:
+                modes = defaultVideoModes
+            }
+        case .photo, .timelapse:
+            switch currentExposureProgrammeMode {
+            case .videoShutterPriority:
+                modes = defaultModes.bringingToFront(.slowAndQuickShutterPriority).bringingToFront(.shutterPriority)
+            case .videoProgrammedAuto:
+                modes = defaultModes.bringingToFront(.intelligentAuto).bringingToFront(.superiorAuto).bringingToFront(.slowAndQuickProgrammedAuto).bringingToFront(.programmedAuto)
+            case .videoAperturePriority:
+                modes = defaultModes.bringingToFront(.slowAndQuickAperturePriority).bringingToFront(.aperturePriority)
+            case .videoManual:
+                modes = defaultModes.bringingToFront(.slowAndQuickManual).bringingToFront(.manual)
+            case .some(let currentMode):
+                modes = defaultModes.bringingToFront(currentMode)
+            default:
+                // Don't need to worry about sorting here, as we'll already be in the required mode
+                modes = defaultModes
+            }
+            break
+        case .bulb:
+            // If we're in BULB then we need to return either M or Shutter Priority
+            switch currentExposureProgrammeMode {
+            case .videoShutterPriority:
+                modes = [.shutterPriority, .slowAndQuickShutterPriority, .manual, .slowAndQuickManual]
+            case .videoManual:
+                modes = [.manual, .slowAndQuickManual, .shutterPriority, .slowAndQuickShutterPriority]
+            default:
+                modes = [.shutterPriority, .slowAndQuickShutterPriority, .manual, .slowAndQuickManual]
+            }
+        default:
+            return nil
+        }
+        
+        if let availableModes = lastEvent?.exposureMode?.available {
+            modes = modes?.filter({ availableModes.contains($0) })
+        }
+        
+        return modes
+    }
+    
+    private func setToExposureProgrammgeModeIfRequired(for shootMode: ShootingMode, _ completion: @escaping ((Error?) -> Void)) {
+        
+        guard let exposureProgrammeModes = self.bestExposureProgrammeModes(for: shootMode, currentExposureProgrammeMode: self.lastEvent?.exposureMode?.current), let firstMode = exposureProgrammeModes.first else {
+            completion(nil)
+            return
+        }
+        // If our preffered exposure programme modes already contains the current one, we don't need to do anything
+        if let current = lastEvent?.exposureMode?.current, exposureProgrammeModes.contains(current) {
+            completion(nil)
+            return
+        }
+        
+        // Make sure this is available, as it isn't always!
+        isFunctionAvailable(Exposure.Mode.set) { [weak self] (available, _, _) in
+            guard let self = self else {
+                completion(nil)
+                return
+            }
+            guard let _available = available, _available else {
+                completion(nil)
+                return
+            }
+            self.setExposureProgrammeMode(firstMode, completion)
+        }
+    }
+    
     private func setToShootModeIfRequired(_ shootMode: ShootingMode, _ completion: @escaping ((Error?) -> Void)) {
         
         // Last shoot mode should be up to date so do a quick check if we're already in the correct shoot mode
@@ -472,11 +559,31 @@ extension SonyPTPIPDevice: Camera {
         }
         
         guard let stillCaptureMode = bestStillCaptureMode(for: shootMode) else {
-            completion(nil)
+            setToExposureProgrammgeModeIfRequired(for: shootMode, completion)
             return
         }
         
-        setStillCaptureMode(stillCaptureMode, completion)
+        setStillCaptureMode(stillCaptureMode) { [weak self] (error) in
+            guard let self = self, error == nil else {
+                completion(error)
+                return
+            }
+            self.setToExposureProgrammgeModeIfRequired(for: shootMode, completion)
+        }
+    }
+    
+    func setExposureProgrammeMode(_ mode: Exposure.Mode.Value, _ completion: @escaping ((Error?) -> Void)) {
+        
+        ptpIPClient?.sendSetControlDeviceAValue(
+            PTP.DeviceProperty.Value(
+                code: .exposureProgramMode,
+                type: .uint32,
+                value: mode.sonyPTPValue
+            ),
+            callback: { (response) in
+                completion(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil)
+            }
+        )
     }
     
     func setStillCaptureMode(_ mode: SonyStillCaptureMode, _ completion: @escaping ((Error?) -> Void)) {
