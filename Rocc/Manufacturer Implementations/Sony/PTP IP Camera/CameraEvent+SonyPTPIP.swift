@@ -183,6 +183,7 @@ extension CameraEvent {
         var storageInformation: [StorageInformation]? = nil
         var stillSizeInfo: StillSizeInformation?
         var exposureMode: (current: Exposure.Mode.Value, available: [Exposure.Mode.Value], supported: [Exposure.Mode.Value])?
+        var exposureModeDialControl: (current: Exposure.Mode.DialControl.Value, available: [Exposure.Mode.DialControl.Value], supported: [Exposure.Mode.DialControl.Value])?
         var selfTimer: (current: TimeInterval, available: [TimeInterval], supported: [TimeInterval])?
         var shootMode: (current: ShootingMode, available: [ShootingMode], supported: [ShootingMode]) = (.photo, [], [])
         var exposureCompensation: (current: Exposure.Compensation.Value, available: [Exposure.Compensation.Value], supported: [Exposure.Compensation.Value])?
@@ -262,13 +263,26 @@ extension CameraEvent {
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
                 }
-                guard let compensation = Exposure.Mode.Value(sonyValue: enumProperty.currentValue) else {
+                guard let mode = Exposure.Mode.Value(sonyValue: enumProperty.currentValue) else {
                     return
                 }
                 let available = enumProperty.available.compactMap({ Exposure.Mode.Value(sonyValue: $0) })
                 let supported = enumProperty.supported.compactMap({ Exposure.Mode.Value(sonyValue: $0) })
                 
-                exposureMode = (compensation, available, supported)
+                exposureMode = (mode, available, supported)
+                
+            case .exposureProgramModeControl:
+                
+                guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
+                    return
+                }
+                guard let control = Exposure.Mode.DialControl.Value(sonyValue: enumProperty.currentValue) else {
+                    return
+                }
+                let available = enumProperty.available.compactMap({ Exposure.Mode.DialControl.Value(sonyValue: $0) })
+                let supported = enumProperty.supported.compactMap({ Exposure.Mode.DialControl.Value(sonyValue: $0) })
+                
+                exposureModeDialControl = (control, available, supported)
                 
             case .focusFound:
                 
@@ -807,6 +821,7 @@ extension CameraEvent {
             steadyMode: nil,
             viewAngle: nil,
             exposureMode: exposureMode,
+            exposureModeDialControl: exposureModeDialControl,
             postViewImageSize: nil,
             selfTimer: selfTimer,
             shootMode: shootMode,

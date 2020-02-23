@@ -50,6 +50,8 @@ extension PTP.DeviceProperty.Code {
             return [.setShutterSpeed]
         case .exposureProgramMode:
             return [.setExposureMode]
+        case .exposureProgramModeControl:
+            return [.setExposureModeDialControl]
         case .exposureIndex:
             //TODO: Add function
             return nil
@@ -184,6 +186,8 @@ extension PTP.DeviceProperty.Code {
             return .getShutterSpeed
         case .exposureProgramMode:
             return .getExposureMode
+        case .exposureProgramModeControl:
+            return .getExposureModeDialControl
         case .exposureIndex:
             //TODO: Add function
             return nil
@@ -940,6 +944,7 @@ extension PTP {
             case remainingShots = 0xd249
             case remainingCaptureTime = 0xd24a
             case performZoom = 0xd2dd
+            case exposureProgramModeControl = 0xd25a
             case zoomPosition = 0xd25d
             case stillQuality = 0xd252
             case stillFormat = 0xd253

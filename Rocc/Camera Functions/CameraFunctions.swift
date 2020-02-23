@@ -61,6 +61,8 @@ public enum _CameraFunction: String, CaseIterable {
     case getSelfTimerDuration
     case setExposureMode
     case getExposureMode
+    case setExposureModeDialControl
+    case getExposureModeDialControl
     case setFocusMode
     case getFocusMode
     case setExposureCompensation

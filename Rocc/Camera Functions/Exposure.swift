@@ -14,6 +14,28 @@ public struct Exposure {
     /// Functions for configuring the exposure mode of the camera
     public struct Mode: CameraFunction {
         
+        /// Functions for configuring what controls the exposure mode dial on the camera
+        public struct DialControl: CameraFunction {
+            
+            public var function: _CameraFunction
+            
+            public typealias SendType = Value
+            
+            public typealias ReturnType = Value
+            
+            /// An enum representing the value of `DialControl` setting
+            public enum Value {
+                /// The dial is controlled by the physical dial on the camera
+                case camera
+                /// The dial is controlled by the app
+                case app
+            }
+            
+            public static let set = DialControl(function: .setExposureModeDialControl)
+            
+            public static let get = DialControl(function: .getExposureModeDialControl)
+        }
+        
         public enum Value {
             case programmedAuto
             case aperturePriority

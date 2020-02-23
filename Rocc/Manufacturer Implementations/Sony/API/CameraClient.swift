@@ -868,6 +868,8 @@ fileprivate extension CameraEvent {
         bulbCapturingTime = _bulbCapturingTime
         bulbShootingUrl = _bulbShootingURL
         supportedFunctions = []
+        //PTP/IP thing!
+        exposureModeDialControl = nil
     }
 }
 

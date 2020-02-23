@@ -267,6 +267,7 @@ public final class DummyCamera: Camera {
             steadyMode: nil,
             viewAngle: nil,
             exposureMode: nil,
+            exposureModeDialControl: nil,
             postViewImageSize: nil,
             selfTimer: (current: currentSelfTimer, available: [0.0, 2.0, 5.0], supported: [0.0, 2.0, 5.0]),
             shootMode: (current: currentShootMode, available: [.photo, .continuous, .timelapse, .video, .continuous, .bulb], supported: [.photo, .continuous, .timelapse, .video, .continuous, .bulb]),

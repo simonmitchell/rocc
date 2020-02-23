@@ -109,6 +109,8 @@ extension _CameraFunction {
             return "setSelfTimer"
         case .getSelfTimerDuration:
             return "getSelfTimer"
+        case .setExposureModeDialControl, .getExposureModeDialControl:
+            return nil
         case .setExposureMode:
             return "setExposureMode"
         case .getExposureMode:

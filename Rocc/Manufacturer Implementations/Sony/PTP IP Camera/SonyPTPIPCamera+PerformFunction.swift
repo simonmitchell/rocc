@@ -99,7 +99,7 @@ extension SonyPTPIPDevice {
         case .setContinuousShootingMode:
             // This isn't a thing via PTP according to Sony's app (Instead we just have multiple continuous shooting speeds) so we just don't do anything!
             callback(nil, nil)
-        case .setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setFocusMode, .setExposureMode, .setFlashMode, .setContinuousShootingSpeed, .setStillQuality, .setStillFormat:
+        case .setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setFocusMode, .setExposureMode, .setExposureModeDialControl, .setFlashMode, .setContinuousShootingSpeed, .setStillQuality, .setStillFormat:
             guard let value = payload as? SonyPTPPropValueConvertable else {
                 callback(FunctionError.invalidPayload, nil)
                 return
@@ -159,6 +159,16 @@ extension SonyPTPIPDevice {
             })
         case .getExposureMode:
             getDevicePropDescFor(propCode: .exposureProgramMode, callback: { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                    callback(nil, event.exposureMode?.current as? T.ReturnType)
+                case .failure(let error):
+                    callback(error, nil)
+                }
+            })
+        case .getExposureModeDialControl:
+            getDevicePropDescFor(propCode: .exposureProgramModeControl, callback: { (result) in
                 switch result {
                 case .success(let property):
                     let event = CameraEvent.fromSonyDeviceProperties([property]).event

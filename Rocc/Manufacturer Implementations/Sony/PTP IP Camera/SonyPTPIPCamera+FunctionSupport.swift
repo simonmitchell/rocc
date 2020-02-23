@@ -217,6 +217,16 @@ extension SonyPTPIPDevice {
                     callback(false, error, nil)
                 }
             })
+        case .setExposureModeDialControl, .getExposureModeDialControl:
+            getDevicePropDescFor(propCode: .exposureProgramModeControl, callback: { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                    callback(event.supportedFunctions?.contains(function.function), nil, event.exposureModeDialControl?.supported as? [T.SendType])
+                case .failure(let error):
+                    callback(false, error, nil)
+                }
+            })
         case .setFocusMode, .getFocusMode:
             getDevicePropDescFor(propCode: .focusMode, callback: { (result) in
                 switch result {

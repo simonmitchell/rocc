@@ -89,3 +89,39 @@ extension Exposure.Mode.Value: SonyPTPPropValueConvertable {
         }
     }
 }
+
+extension Exposure.Mode.DialControl.Value: SonyPTPPropValueConvertable {
+    
+    var type: PTP.DeviceProperty.DataType {
+        return .uint8
+    }
+    
+    var code: PTP.DeviceProperty.Code {
+        return .exposureProgramModeControl
+    }
+    
+    init?(sonyValue: PTPDevicePropertyDataType) {
+        
+        guard let binaryInt = sonyValue.toInt else {
+            return nil
+        }
+        
+        switch binaryInt {
+        case 0x01:
+            self = .app
+        case 0x00:
+            self = .camera
+        default:
+            return nil
+        }
+    }
+    
+    var sonyPTPValue: PTPDevicePropertyDataType {
+        switch self {
+        case .app:
+            return Byte(0x01)
+        case .camera:
+            return Byte(0x00)
+        }
+    }
+}
