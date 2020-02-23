@@ -87,7 +87,7 @@ extension SonyPTPIPDevice {
                 }
             })
         case .setupCustomWhiteBalanceFromShot:
-            //TODO: Implement
+            //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(false, nil, nil)
             break
         case .setShootMode, .getShootMode:
@@ -137,24 +137,26 @@ extension SonyPTPIPDevice {
                 }
             }
         case .startAudioRecording, .endAudioRecording:
-            //TODO: Implement
+            //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(false, nil, nil)
         case .startIntervalStillRecording, .endIntervalStillRecording:
-            //TODO: Implement
+            //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(false, nil, nil)
         case .startLoopRecording, .endLoopRecording:
-            //TODO: Implement
+            //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(false, nil, nil)
         case .startLiveView, .startLiveViewWithSize, .endLiveView:
             callback(true, nil, nil)
         case .getLiveViewSize:
+            //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(false, nil, nil)
         case .setSendLiveViewFrameInfo, .getSendLiveViewFrameInfo:
+            // Doesn't seem to be available via PTP/IP
             callback(false, nil, nil)
         case .startZooming, .stopZooming:
             callback(false, nil, nil)
         case .setZoomSetting, .getZoomSetting:
-            //TODO: Implement
+            //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(false, nil, nil)
         case .halfPressShutter, .cancelHalfPressShutter:
             getDevicePropDescFor(propCode: .autoFocus, callback: { (result) in
@@ -302,7 +304,7 @@ extension SonyPTPIPDevice {
             }
             callback(false, nil, nil)
         case .getPostviewImageSize, .setPostviewImageSize:
-            //TODO: Implement
+            //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(false, nil, nil)
         case .setVideoFileFormat, .getVideoFileFormat:
             //TODO: Implement
@@ -311,76 +313,46 @@ extension SonyPTPIPDevice {
             //TODO: Implement
             callback(false, nil, nil)
         case .setSteadyMode, .getSteadyMode:
-            //TODO: Implement
+            //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(false, nil, nil)
         case .setViewAngle, .getViewAngle:
-            //TODO: Implement
+            //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(false, nil, nil)
         case .setScene, .getScene:
-            //TODO: Implement
+            //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(false, nil, nil)
         case .setColorSetting, .getColorSetting:
-            //TODO: Implement
+            //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(false, nil, nil)
         case .setIntervalTime, .getIntervalTime:
-            //TODO: Implement
+            //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(false, nil, nil)
         case .setLoopRecordDuration, .getLoopRecordDuration:
-            //TODO: Implement
+            //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(false, nil, nil)
         case .setWindNoiseReduction, .getWindNoiseReduction:
-            //TODO: Implement
+            //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(false, nil, nil)
         case .setAudioRecording, .getAudioRecording:
-            //TODO: Implement
+            //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(false, nil, nil)
         case .setFlipSetting, .getFlipSetting:
-            //TODO: Implement
+            //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(false, nil, nil)
         case .setTVColorSystem, .getTVColorSystem:
-            //TODO: Implement
+            //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(false, nil, nil)
-        case .listContent:
-            //TODO: Implement
-            callback(false, nil, nil)
-        case .getContentCount:
-            //TODO: Implement
-            callback(false, nil, nil)
-        case .listSchemes:
-            //TODO: Implement
-            callback(false, nil, nil)
-        case .listSources:
-            //TODO: Implement
-            callback(false, nil, nil)
-        case .deleteContent:
-            //TODO: Implement
-            callback(false, nil, nil)
-        case .setStreamingContent:
-            //TODO: Implement
-            callback(false, nil, nil)
-        case .startStreaming:
-            //TODO: Implement
-            callback(false, nil, nil)
-        case .pauseStreaming:
-            //TODO: Implement
-            callback(false, nil, nil)
-        case .seekStreamingPosition:
-            //TODO: Implement
-            callback(false, nil, nil)
-        case .stopStreaming:
-            //TODO: Implement
-            callback(false, nil, nil)
-        case .getStreamingStatus:
-            //TODO: Implement
+        case .listContent, .getContentCount, .listSchemes, .listSources, .deleteContent, .setStreamingContent, .startStreaming, .pauseStreaming, .seekStreamingPosition, .stopStreaming, .getStreamingStatus:
+            // Not available via PTP/IP
             callback(false, nil, nil)
         case .setInfraredRemoteControl, .getInfraredRemoteControl:
-            //TODO: Implement
+            //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(false, nil, nil)
         case .setAutoPowerOff, .getAutoPowerOff:
-            //TODO: Implement
+            //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(false, nil, nil)
         case .setBeepMode, .getBeepMode:
-            //TODO: Implement
+            //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(false, nil, nil)
         case .setCurrentTime:
             //TODO: Implement

@@ -345,7 +345,6 @@ extension CameraEvent {
                     }
                 })
                 
-                //TODO: Maybe we shouldn't be doing this?
                 switch current.shootMode {
                 case .photo:
                     availableFunctions.append(.takePicture)
@@ -353,7 +352,7 @@ extension CameraEvent {
                     availableFunctions.append(.startContinuousShooting)
                     availableFunctions.append(.endContinuousShooting)
                 default:
-                    //TODO: Hande others?
+                    // Others are handled by exposureProgrammeMode
                     break
                 }
                 
@@ -415,8 +414,6 @@ extension CameraEvent {
                 if shootMode.supported.contains(.photo) {
                     shootMode.supported.append(.timelapse)
                 }
-                                
-                //TODO: Munge to camera protocol format!
             
             case .exposureBiasCompensation:
                 
