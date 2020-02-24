@@ -13,7 +13,6 @@ env:
   - TVOS_SDK=appletvsimulator12.2
   - OSX_SDK=macosx10.14
   matrix:
-    xcode_destination: platform=iOS Simulator,OS=13.0,name=iPhone 11 Pro Max
     - DESTINATION="OS=13.3,name=iPhone 11 Pro Max"           SCHEME="$IOS_FRAMEWORK_SCHEME"     SDK="$IOS_SDK"     RUN_TESTS="YES" BUILD_EXAMPLE="NO" POD_LINT="NO"
     - DESTINATION="arch=x86_64"                     SCHEME="$OSX_FRAMEWORK_SCHEME"     SDK="$OSX_SDK"     RUN_TESTS="NO"  BUILD_EXAMPLE="NO" POD_LINT="NO"
 script:
