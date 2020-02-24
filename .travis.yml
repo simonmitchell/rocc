@@ -9,8 +9,8 @@ env:
   - IOS_FRAMEWORK_SCHEME="Rocc"
   - TVOS_FRAMEWORK_SCHEME=""
   - OSX_FRAMEWORK_SCHEME="RoccMac"
-  - IOS_SDK=iphonesimulator13.3
-  - TVOS_SDK=appletvsimulator13.3
+  - IOS_SDK=iphonesimulator13.2
+  - TVOS_SDK=appletvsimulator13.2
   - OSX_SDK=macosx10.15
   matrix:
     - DESTINATION="OS=13.3,name=iPhone 11 Pro Max"           SCHEME="$IOS_FRAMEWORK_SCHEME"     SDK="$IOS_SDK"     RUN_TESTS="YES" BUILD_EXAMPLE="NO" POD_LINT="NO"
