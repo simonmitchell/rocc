@@ -105,7 +105,10 @@ extension SonyPTPIPDevice {
                 return
             }
             ptpIPClient?.sendSetControlDeviceAValue(
-                PTP.DeviceProperty.Value(value)
+                PTP.DeviceProperty.Value(value),
+                callback: { (response) in
+                    callback(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil, nil)
+                }
             )
         case .getISO:
             getDevicePropDescFor(propCode: .ISO, callback: { (result) in
