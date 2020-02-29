@@ -37,10 +37,28 @@ public struct Exposure {
         }
         
         public enum Value {
+            
+            public enum Scene {
+                case portrait
+                case sport
+                case sunset
+                case night
+                case landscape
+                case macro
+                case handheldTwilight
+                case nightPortrait
+                case antiMotionBlur
+                case pet
+                case food
+                case fireworks
+                case highSensitivity
+            }
+            
             case programmedAuto
             case aperturePriority
             case shutterPriority
             case manual
+            case panorama
             case videoProgrammedAuto
             case videoAperturePriority
             case videoShutterPriority
@@ -51,6 +69,11 @@ public struct Exposure {
             case slowAndQuickManual
             case intelligentAuto
             case superiorAuto
+            case highFrameRateProgrammedAuto
+            case highFrameRateAperturePriority
+            case highFrameRateShutterPriority
+            case highFrameRateManual
+            case scene(Scene)
         }
     
         public var function: _CameraFunction
