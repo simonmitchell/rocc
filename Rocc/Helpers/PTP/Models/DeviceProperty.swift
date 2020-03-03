@@ -143,6 +143,8 @@ extension PTP.DeviceProperty.Code {
             return [.setStillQuality]
         case .stillFormat:
             return [.setStillFormat]
+        case .highFrameRateLock:
+            return [.lockHighFrameRateCaptureSettings, .unlockHighFrameRateCaptureSettings]
         }
     }
     
@@ -282,6 +284,8 @@ extension PTP.DeviceProperty.Code {
             return .getStillQuality
         case .stillFormat:
             return .getStillFormat
+        case .highFrameRateLock:
+            return nil
         }
     }
 }
@@ -943,6 +947,7 @@ extension PTP {
             case stillImage = 0xD2C7
             case remainingShots = 0xd249
             case remainingCaptureTime = 0xd24a
+            case highFrameRateLock = 0xd2d5
             case performZoom = 0xd2dd
             case exposureProgramModeControl = 0xd25a
             case zoomPosition = 0xd25d

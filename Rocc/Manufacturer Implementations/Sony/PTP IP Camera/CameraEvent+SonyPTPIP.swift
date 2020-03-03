@@ -23,6 +23,15 @@ extension Exposure.Mode.Value {
             return false
         }
     }
+    
+    var isHighFrameRate: Bool {
+        switch self {
+        case .highFrameRateManual, .highFrameRateProgrammedAuto, .highFrameRateShutterPriority, .highFrameRateAperturePriority:
+            return true
+        default:
+            return false
+        }
+    }
 }
 
 enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
@@ -788,20 +797,32 @@ extension CameraEvent {
             shootMode.current = .bulb
         }
         
-        // If we have exposure program mode, and is video, update current shoot mode
+        // Manually handle certain exposure modes to make new functions available!
         if let exposureProgrammeMode = exposureMode {
             if exposureProgrammeMode.supported.contains(where: { $0.isVideo }), !shootMode.supported.contains(.video) {
                 shootMode.supported.append(.video)
                 supportedFunctions.append(contentsOf: [.startVideoRecording, .endVideoRecording])
             }
+            if exposureProgrammeMode.supported.contains(where: { $0.isHighFrameRate }), !shootMode.supported.contains(.highFrameRate) {
+                shootMode.supported.append(.highFrameRate)
+                supportedFunctions.append(contentsOf: [.startHighFrameRateCapture, .lockHighFrameRateCaptureSettings, .unlockHighFrameRateCaptureSettings])
+            }
             if exposureProgrammeMode.current.isVideo {
+                
                 shootMode.current = .video
                 shootMode.available = [.video]
                 availableFunctions.append(contentsOf: [.startVideoRecording, .endVideoRecording])
-                let videoDisabledFunctions: [_CameraFunction] = [.takePicture, .startBulbCapture, .endBulbCapture, .endContinuousShooting, .startContinuousShooting]
+                let videoDisabledFunctions: [_CameraFunction] = [.takePicture, .startBulbCapture, .endBulbCapture, .endContinuousShooting, .startContinuousShooting, .lockHighFrameRateCaptureSettings,. unlockHighFrameRateCaptureSettings, .startHighFrameRateCapture]
                 availableFunctions = availableFunctions.filter({
                     !videoDisabledFunctions.contains($0)
                 })
+                
+            } else if exposureProgrammeMode.current.isHighFrameRate {
+                
+                shootMode.current = .highFrameRate
+                shootMode.available = [.highFrameRate]
+                
+                //TODO: HFR - Append available functions
             }
         }
     

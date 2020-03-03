@@ -24,6 +24,10 @@ extension SonyPTPIPDevice {
                     case .success(let properties):
                         let eventAndStillModes = CameraEvent.fromSonyDeviceProperties(properties)
                         var event = eventAndStillModes.event
+                        print("""
+                                GOT EVENT:
+                                \(properties)
+                                """)
                         self.lastStillCaptureModes = eventAndStillModes.stillCaptureModes
                         event.postViewPictureURLs = self.imageURLs[.photo].flatMap({ return [$0] })
                         event.continuousShootingURLS = self.imageURLs[.continuous]?.compactMap({ (url) -> (postView: URL, thumbnail: URL) in
@@ -603,7 +607,20 @@ extension SonyPTPIPDevice {
                     callback(error, nil)
                 }
             })
-            return
+        case .lockHighFrameRateCaptureSettings, .unlockHighFrameRateCaptureSettings:
+            ptpIPClient?.sendSetControlDeviceBValue(
+                PTP.DeviceProperty.Value(
+                    code: .highFrameRateLock,
+                    type: .uint16,
+                    value: function.function == .lockHighFrameRateCaptureSettings ? DWord(1) : DWord(2)
+                ),
+                callback: { (response) in
+                    callback(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil, nil)
+                }
+            )
+        case .startHighFrameRateCapture:
+            //TODO: HFR
+            break
         }
     }
 }

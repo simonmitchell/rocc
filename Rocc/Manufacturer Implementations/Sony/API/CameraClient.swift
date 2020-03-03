@@ -228,6 +228,9 @@ fileprivate extension ShootingMode {
             return "looprec"
         case .bulb:
             return "bulb"
+        case .highFrameRate:
+            // Not actually a thing... so should never be asked for this!
+            return "hfr"
         }
     }
 }

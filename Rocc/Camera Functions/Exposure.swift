@@ -36,7 +36,7 @@ public struct Exposure {
             public static let get = DialControl(function: .getExposureModeDialControl)
         }
         
-        public enum Value {
+        public enum Value: Equatable {
             
             public enum Scene {
                 case portrait

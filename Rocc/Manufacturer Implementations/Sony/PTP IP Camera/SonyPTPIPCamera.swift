@@ -450,7 +450,8 @@ extension SonyPTPIPDevice: Camera {
     func bestStillCaptureMode(for shootMode: ShootingMode) -> SonyStillCaptureMode? {
                 
         switch shootMode {
-        case .video:
+        case .video, .highFrameRate:
+            //TODO: Check if this is correct for HFR
             return .single
         case .audio, .loop, .interval:
             return nil
