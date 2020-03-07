@@ -104,15 +104,19 @@ internal final class SonyPTPIPDevice: SonyCamera {
         
         super.init(dictionary: dictionary)
         
-        name = dictionary["friendlyName"] as? String
-
-        if let model = model {
-            modelEnum = Model(rawValue: model)
+        let _name = dictionary["friendlyName"] as? String
+        let _modelEnum: SonyCamera.Model?
+        if let _name = _name {
+            _modelEnum = SonyCamera.Model(rawValue: _name)
         } else {
-            modelEnum = nil
+            _modelEnum = nil
         }
-
-        model = modelEnum?.friendlyName
+                
+        name = _modelEnum?.friendlyName ?? _name
+        manufacturer = dictionary["manufacturer"] as? String ?? "Sony"
+                
+        modelEnum = _modelEnum
+        model = modelEnum?.friendlyName        
     }
     
     var isConnected: Bool = false
