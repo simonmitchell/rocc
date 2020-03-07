@@ -49,7 +49,7 @@ internal final class SonyCameraDevice {
             
             let accessType: String?
             
-            init?(dictionary: [AnyHashable : Any]) {
+            init?(dictionary: [AnyHashable : Any], model: Model?) {
                 
                 guard let _type = dictionary["av:X_ScalarWebAPI_ServiceType"] as? String else {
                     return nil
@@ -57,8 +57,12 @@ internal final class SonyCameraDevice {
                 guard let urlString = dictionary["av:X_ScalarWebAPI_ActionList_URL"] as? String else {
                     return nil
                 }
-                guard let _url = URL(string: urlString) else {
+                guard var _url = URL(string: urlString) else {
                     return nil
+                }
+                
+                if let model = model, model.usesLegacyAPI {
+                    _url = _url.deletingLastPathComponent()
                 }
                 
                 url = _url
@@ -71,7 +75,7 @@ internal final class SonyCameraDevice {
         
         let services: [Service]
         
-        init?(dictionary: [AnyHashable : Any]) {
+        init?(dictionary: [AnyHashable : Any], model: Model?) {
             
             guard let versionString = dictionary["av:X_ScalarWebAPI_Version"] as? String else { return nil }
             version = versionString
@@ -79,7 +83,7 @@ internal final class SonyCameraDevice {
                 services = []
                 return
             }
-            services = serviceList.compactMap({ Service(dictionary: $0) })
+            services = serviceList.compactMap({ Service(dictionary: $0, model: model) })
         }
     }
     
@@ -148,7 +152,15 @@ internal final class SonyCameraDevice {
     
     init?(dictionary: [AnyHashable : Any]) {
         
-        guard let apiDeviceInfoDict = dictionary["av:X_ScalarWebAPI_DeviceInfo"] as? [AnyHashable : Any], let apiInfo = ApiDeviceInfo(dictionary: apiDeviceInfoDict) else {
+        let _name = dictionary["friendlyName"] as? String
+        let _modelEnum: Model?
+        if let _name = _name {
+            _modelEnum = Model(rawValue: _name)
+        } else {
+            _modelEnum = nil
+        }
+        
+        guard let apiDeviceInfoDict = dictionary["av:X_ScalarWebAPI_DeviceInfo"] as? [AnyHashable : Any], let apiInfo = ApiDeviceInfo(dictionary: apiDeviceInfoDict, model: _modelEnum) else {
             return nil
         }
         
@@ -156,13 +168,13 @@ internal final class SonyCameraDevice {
         apiClient = SonyCameraAPIClient(apiInfo: apiDeviceInfo)
         apiVersion = apiDeviceInfo.version
         
-        name = dictionary["friendlyName"] as? String
+        name = _modelEnum?.friendlyName ?? _name
         udn = dictionary["UDN"] as? String
         
         identifier = udn ?? NSUUID().uuidString
         
-        if let model = model {
-            modelEnum = Model(rawValue: model)
+        if let name = name {
+            modelEnum = Model(rawValue: name)
         } else {
             modelEnum = nil
         }
@@ -209,6 +221,70 @@ extension SonyCameraDevice: Camera {
         return true
     }
     
+    private func getInTransferMode(callback: @escaping (Result<Bool>) -> Void) {
+        
+        guard let cameraClient = apiClient.camera else {
+            callback(Result.failure(CameraError.cameraNotReady("getVersions")))
+            return
+        }
+        
+        // If the camera model doesn't support getVersions then we don't need to worry!
+        if let modelEnum = modelEnum, modelEnum.usesLegacyAPI {
+            callback(Result.success(false))
+        } else {
+            cameraClient.getVersions { (result) in
+                
+                // Ignore 404 as this just means we're a legacy camera
+                if case let .failure(error) = result, (error as NSError).code != 404 {
+                    callback(Result.failure(error))
+                    return
+                }
+                
+                guard let avClient = self.apiClient.avContent else {
+                    callback(Result.success(false))
+                    return
+                }
+                
+                avClient.getVersions { (avResult) in
+                    
+                    // Ignore 404 as this just means we're a legacy camera
+                    if case let .failure(error) = avResult, (error as NSError).code != 404 {
+                        callback(Result.failure(error))
+                        return
+                    }
+                    
+                    cameraClient.getCameraFunction({ (functionResult) in
+                        
+                        switch functionResult {
+                        case .failure(_): // If we can't get camera function then check what it currently
+                            // is, and if it's "contents transfer" we know that we're in "Send to Smartphone" mode!
+                            
+                            // Get event, because getCameraFunction failed!
+                            cameraClient.getEvent(polling: false, { (eventResult) in
+                                
+                                var isInTransferMode: Bool = false
+                                
+                                switch eventResult {
+                                case .failure(_):
+                                    callback(Result.success(false))
+                                    break
+                                case .success(let event):
+                                    if let function = event.function?.current {
+                                        isInTransferMode = function.lowercased() == "contents transfer"
+                                    }
+                                }
+                                
+                                callback(Result.success(isInTransferMode))
+                            })
+                        case .success(_): // If we can get camera function, we're not in "Send to Smartphone" mode!
+                            callback(Result.success(false))
+                        }
+                    })
+                }
+            }
+        }
+    }
+    
     public func connect(completion: @escaping Camera.ConnectedCompletion) {
         
         guard let cameraClient = apiClient.camera else {
@@ -216,82 +292,28 @@ extension SonyCameraDevice: Camera {
             return
         }
         
-        cameraClient.getVersions { (result) in
+        getInTransferMode { (result) in
             
             switch result {
-            case .failure(let versionsError):
-                completion(versionsError, false)
-            case .success(_):
+            case .failure(let error):
+                completion(error, false)
+            case .success(let inTransferMode):
                 
-                guard let avClient = self.apiClient.avContent else {
-                    
-                    guard self.modelEnum == nil || Model.supporting(function: .startRecordMode).contains(self.modelEnum!) else {
-                        completion(nil, false)
-                        return
-                    }
-                    
-                    cameraClient.startRecordMode() { (error) in
-                        var _error = error
-                        // Ignore no such method errors because in that case we simply never needed to call this method in the first place!
-                        if let clientError = error as? CameraError, case .noSuchMethod(_) = clientError {
-                            _error = nil
-                        }
-                        completion(_error, false)
-                    }
+                guard self.modelEnum == nil || Model.supporting(function: .startRecordMode).contains(self.modelEnum!) else {
+                    completion(nil, inTransferMode)
                     return
                 }
                 
-                avClient.getVersions() { (result) in
-                    switch result {
-                    case .failure(let avVersionsError):
-                        completion(avVersionsError, false)
-                    case .success(_):
-                        
-                        let successCallback: (_ inTransferMode: Bool) -> Void = { inTransferMode in
-                            
-                            guard self.modelEnum == nil || Model.supporting(function: .startRecordMode).contains(self.modelEnum!) else {
-                                completion(nil, inTransferMode)
-                                return
-                            }
-                            
-                            cameraClient.startRecordMode() { (error) in
-                                var _error = error
-                                // Ignore no such method errors because in that case we simply never needed to call this method in the first place!
-                                if let clientError = error as? CameraError, case .noSuchMethod(_) = clientError {
-                                    _error = nil
-                                }
-                                completion(_error, inTransferMode)
-                            }
-                        }
-                        
-                        cameraClient.getCameraFunction({ (functionResult) in
-                            
-                            switch functionResult {
-                            case .failure(_): // If we can't set camera function then check what it currently
-                                // is, and if it's "contents transfer" we know that we're in "Send to Smartphone" mode!
-                                
-                                // Get event, because getCameraFunction failed!
-                                cameraClient.getEvent(polling: false, { (eventResult) in
-                                    
-                                    var isInTransferMode: Bool = false
-                                    
-                                    switch eventResult {
-                                    case .failure(_):
-                                        successCallback(false)
-                                        break
-                                    case .success(let event):
-                                        if let function = event.function?.current {
-                                            isInTransferMode = function.lowercased() == "contents transfer"
-                                        }
-                                    }
-                                    
-                                    successCallback(isInTransferMode)
-                                })
-                            case .success(_): // If we can get camera function, we're not in "Send to Smartphone" mode!
-                                successCallback(false)
-                            }
-                        })
+                cameraClient.startRecordMode() { (error) in
+                    var _error = error
+                    // Ignore no such method errors because in that case we simply never needed to call this method in the first place!
+                    if let clientError = error as? CameraError, case .noSuchMethod(_) = clientError {
+                        _error = nil
+                        // Also ignore 404 as this is what cameras like RX100 M2 return!
+                    } else if (error as NSError?)?.code == 404 {
+                        _error = nil
                     }
+                    completion(_error, inTransferMode)
                 }
             }
         }
@@ -312,18 +334,18 @@ extension SonyCameraDevice: Camera {
             return
         }
         
-        switchCameraToRequiredFunctionFor(function) { [weak self] (error) in
+        switchCameraToRequiredFunctionFor(function) { [weak self] (fnError) in
             
-            guard let this = self, error == nil else {
-                callback(error)
+            guard let this = self, fnError == nil else {
+                callback(fnError)
                 return
             }
             
             switch function.function {
             case .takePicture, .startContinuousShooting, .startBulbCapture:
                 
-                camera.setShootMode(.photo, completion: { [weak this] (error) in
-                    
+                this.setToShootModeIfRequired(camera: camera, shootMode: .photo) { [weak this] (error) in
+                                        
                     switch function.function {
                     case .startContinuousShooting:
                         this?.setShutterSpeedAwayFromBulbIfRequired(camera: camera, { (_) in
@@ -383,34 +405,61 @@ extension SonyCameraDevice: Camera {
                             })
                         })
                     }
-                })
+                }
                 
             case .startIntervalStillRecording:
-                this.setShutterSpeedAwayFromBulbIfRequired(camera: camera, { (_) in
-                    camera.setShootMode(.interval, completion: { (error) in
-                        callback(error)
-                    })
+                this.setShutterSpeedAwayFromBulbIfRequired(camera: camera, { [weak this] (_) in
+                    this?.setToShootModeIfRequired(camera: camera, shootMode: .interval, callback)
                 })
             case .startAudioRecording:
-                this.setShutterSpeedAwayFromBulbIfRequired(camera: camera, { (_) in
-                    camera.setShootMode(.audio, completion: { (error) in
-                        callback(error)
-                    })
+                this.setShutterSpeedAwayFromBulbIfRequired(camera: camera, { [weak this] (_) in
+                    this?.setToShootModeIfRequired(camera: camera, shootMode: .audio, callback)
                 })
             case .startVideoRecording:
-                this.setShutterSpeedAwayFromBulbIfRequired(camera: camera, { (_) in
-                    camera.setShootMode(.video, completion: { (error) in
-                        callback(error)
-                    })
+                this.setShutterSpeedAwayFromBulbIfRequired(camera: camera, { [weak this] (_) in
+                    this?.setToShootModeIfRequired(camera: camera, shootMode: .video, callback)
                 })
             case .startLoopRecording:
-                this.setShutterSpeedAwayFromBulbIfRequired(camera: camera, { (_) in
-                    camera.setShootMode(.loop, completion: { (error) in
-                        callback(error)
-                    })
+                this.setShutterSpeedAwayFromBulbIfRequired(camera: camera, { [weak this] (_) in
+                    this?.setToShootModeIfRequired(camera: camera, shootMode: .loop, callback)
                 })
             default:
                 callback(nil)
+            }
+        }
+    }
+    
+    private func setToShootModeIfRequired(camera: CameraClient, shootMode: ShootingMode, _ completion: @escaping ((Error?) -> Void)) {
+        
+        // Last shoot mode should be up to date so do a quick check if we're already in the correct shoot mode
+        guard lastShootMode != shootMode else {
+            completion(nil)
+            return
+        }
+        
+        // Some cameras throw error if we try and set shoot mode to it's current value, so let's do a last-ditch attempt to check current shoot mode before changing
+        camera.getShootMode { (result) in
+            switch result {
+            case .success(let currentMode):
+                guard currentMode != shootMode else {
+                    completion(nil)
+                    return
+                }
+                camera.setShootMode(shootMode, completion: { [weak self] (error) in
+                    completion(error)
+                    guard error == nil else {
+                        return
+                    }
+                    self?.lastShootMode = shootMode
+                })
+            case .failure(_):
+                camera.setShootMode(shootMode, completion: { [weak self] (error) in
+                    completion(error)
+                    guard error == nil else {
+                        return
+                    }
+                    self?.lastShootMode = shootMode
+                })
             }
         }
     }
@@ -420,11 +469,10 @@ extension SonyCameraDevice: Camera {
         // We need to do this otherwise the camera can get stuck in continuous shooting mode!
         // If the shutter speed is BULB then we need to set it to something else!
         guard self.lastShutterSpeed?.isBulb == true else {
-            
             callback(nil)
-            
             return
         }
+        
         // Get available shutter speeds
         camera.getAvailableShutterSpeeds({ (shutterSpeedResults) in
             switch shutterSpeedResults {
@@ -1755,7 +1803,7 @@ extension SonyCameraDevice: Camera {
                         // Take picture immediately after half press has completed, two scenarios here:
                         // 1. User is in MF, this takePicture should succeed and take the photo
                         // 2. User is in AF, this takePicture could fail (which we ignore), and then we wait for focus change
-                        takePicture(true, { [weak _this] success in
+                        takePicture(false, { success in
                             
                             // If the take picture failed, then we'll await the focus change from `Shutter.halfPress`
                             guard !success else {
@@ -1763,15 +1811,7 @@ extension SonyCameraDevice: Camera {
                                 return
                             }
                             
-                            Logger.shared.log("Take picture failed, awaiting focus change", category: "SonyCamera", level: .debug)
-                            
-                            // Await event letting us know the camera has finished focussing
-                            _this?.onFocusChange({ (status) -> Bool in
-                                guard let _status = status, _status != .focusing else { return false }
-                                Logger.shared.log("Camera achieved focus, taking picture", category: "SonyCamera", level: .debug)
-                                takePicture(false, nil)
-                                return true
-                            })
+                            Logger.shared.log("Take picture failed, nothing we can do...", category: "SonyCamera", level: .debug)
                         })
                     })
                 }

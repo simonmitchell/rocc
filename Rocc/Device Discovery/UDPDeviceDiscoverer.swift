@@ -8,11 +8,7 @@
 
 import Foundation
 import os
-#if os(macOS)
-import ThunderRequestMac
-#else
 import ThunderRequest
-#endif
 import SystemConfiguration
 
 extension UserDefaults {
@@ -96,7 +92,7 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
             
             urls.forEach { (url) in
                 
-                parseDeviceInfo(at: url) { [weak self] (error) in
+                parseDeviceInfo(at: url, isCached: true) { [weak self] (error) in
                     guard let strongSelf = self else {
                         return
                     }
@@ -170,7 +166,7 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
             Logger.log(message: "Did find device at \(device.ddURL.absoluteString)", category: "UDPDeviceDiscoverer")
             os_log("Did find device at: %{public}@", log: self.log, type: .debug, device.ddURL.absoluteString)
             
-            self.parseDeviceInfo(at: device.ddURL)
+            self.parseDeviceInfo(at: device.ddURL, isCached: false)
         }
     }
     
@@ -185,7 +181,7 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
         udpClient.finishSearching(with: callback)
     }
     
-    private func parseDeviceInfo(at url: URL, callback: ((_ error: Error?) -> Void)? = nil) {
+    private func parseDeviceInfo(at url: URL, isCached: Bool, callback: ((_ error: Error?) -> Void)? = nil) {
         
         let lastPathComponent = url.lastPathComponent
         let baseURL = url.deletingLastPathComponent()
@@ -210,7 +206,7 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
             
             Logger.log(message: "Parsing device info", category: "UDPDeviceDiscoverer")
             os_log("Parsing device info", log: strongSelf.log, type: .debug)
-            strongSelf.parseDevice(from: stringResponse, baseURL: baseURL, callback: { [weak strongSelf] parsed in
+            strongSelf.parseDevice(from: stringResponse, isCached: isCached, baseURL: baseURL, callback: { [weak strongSelf] parsed in
                 
                 // If we parsed a device, cache it's url!
                 guard parsed else { return }
@@ -247,7 +243,7 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
         }
     }
     
-    func parseDevice(from stringRepresentation: String, baseURL: URL, callback: @escaping (_ bool: Bool) -> Void) {
+    func parseDevice(from stringRepresentation: String, isCached: Bool, baseURL: URL, callback: @escaping (_ bool: Bool) -> Void) {
         
         
     }
@@ -259,10 +255,10 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
         delegate?.deviceDiscoverer(self, didError: error)
     }
     
-    func sendDeviceToDelegate(_ camera: Camera) {
+    func sendDeviceToDelegate(_ camera: Camera, isCached: Bool) {
         
         Logger.log(message: "Letting delegate know about discovered device with name: \(camera.name ?? "Unknown")", category: "UDPDeviceDiscoverer")
         os_log("Letting delegate know about discovered device with name: %{public}@", log: log, type: .debug, camera.name ?? "Unknown")
-        delegate?.deviceDiscoverer(self, discovered: camera)
+        delegate?.deviceDiscoverer(self, discovered: camera, isCached: isCached)
     }
 }

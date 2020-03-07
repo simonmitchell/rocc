@@ -17,6 +17,7 @@ extension SonyCameraDevice {
         case a7r = "ILCE-7R"
         case a7rii = "ILCE-7RM2"
         case a7riii = "ILCE-7RM3"
+        case a7riv = "ILCE-7RM4"
         case a7s = "ILCE-7S"
         case a7sii = "ILCE-7SM2"
         case a7siii = "ILCE-7SM3"
@@ -24,8 +25,13 @@ extension SonyCameraDevice {
         case a5000 = "ILCE-5000"
         case a5100 = "ILCE-5100"
         case a6000 = "ILCE-6000"
+        case a6100 = "ILCE-6100"
         case a6300 = "ILCE-6300"
+        case a6400 = "ILCE-6400"
         case a6500 = "ILCE-6500"
+        case a6600 = "ILCE-6600"
+        case cyberShot_HX50 = "DSC-HX50"
+        case cyberShot_HX50V = "DSC-HX50V"
         case cyberShot_HX60 = "DSC-HX60"
         case cyberShot_HX60V = "DSC-HX60V"
         case cyberShot_HX80 = "DSC-HX80"
@@ -38,9 +44,11 @@ extension SonyCameraDevice {
         case cyberShot_RX0M2 = "DSC-RX0M2"
         case cyberShot_RX10M2 = "DSC-RX1RM2"
         case cyberShot_RX10M3 = "DSC-RX10M3"
+        case cyberShot_RX100M2 = "DSC-RX100M2"
         case cyberShot_RX100M3 = "DSC-RX100M3"
         case cyberShot_RX100M4 = "DSC-RX100M4"
         case cyberShot_RX100M5 = "DSC-RX100M5"
+        case cyberShot_RX100M6 = "DSC-RX100M6"
         case FDR_X1000V = "FDR-X1000V"
         case FDR_X3000 = "FDR-X3000"
         case HDR_AS100V = "HDR-AS100V"
@@ -68,6 +76,7 @@ extension SonyCameraDevice {
             case .a7r: return "ɑ7R"
             case .a7rii: return "ɑ7R II"
             case .a7riii: return "ɑ7R III"
+            case .a7riv: return "ɑ7R IV"
             case .a7s: return "ɑ7S"
             case .a7sii: return "ɑ7S II"
             case .a7siii: return "ɑ7S III"
@@ -75,8 +84,13 @@ extension SonyCameraDevice {
             case .a5000: return "ɑ5000"
             case .a5100: return "ɑ5100"
             case .a6000: return "ɑ6000"
+            case .a6100: return "ɑ6100"
             case .a6300: return "ɑ6300"
+            case .a6400: return "ɑ6400"
             case .a6500: return "ɑ6500"
+            case .a6600: return "ɑ6600"
+            case .cyberShot_HX50: return "Cyber-Shot HX50"
+            case .cyberShot_HX50V: return "Cyber-Shot HX50V"
             case .cyberShot_HX60: return "Cyber-Shot HX60"
             case .cyberShot_HX60V: return "Cyber-Shot HX60V"
             case .cyberShot_HX80: return "Cyber-Shot HX80"
@@ -87,9 +101,11 @@ extension SonyCameraDevice {
             case .cyberShot_WX500: return "Cyber-Shot WX500"
             case .cyberShot_RX10M2: return "Cyber-Shot RX1 R II"
             case .cyberShot_RX10M3: return "Cyber-Shot RX10 III"
+            case .cyberShot_RX100M2: return "Cyber-Shot RX100 II"
             case .cyberShot_RX100M3: return "Cyber-Shot RX100 III"
             case .cyberShot_RX100M4: return "Cyber-Shot RX100 IV"
             case .cyberShot_RX100M5: return "Cyber-Shot RX100 V"
+            case .cyberShot_RX100M6: return "Cybter-Shot RX100 VI"
             case .cyberShot_RX0: return "RX0"
             case .cyberShot_RX0M2: return "RX0 II"
             case .FDR_X1000V: return "FDR-X1000V"
@@ -111,6 +127,10 @@ extension SonyCameraDevice {
             case .QX100: return "QX100"
             case .QX30: return "QX30"
             }
+        }
+        
+        internal var usesLegacyAPI: Bool {
+            return [.cyberShot_RX100M2, .cyberShot_HX50V, .cyberShot_HX50].contains(self)
         }
         
         internal static func supporting(function: _CameraFunction) -> [Model] {
@@ -304,7 +324,7 @@ extension SonyCameraDevice {
         }
         
         static var cyberShotSeries: [Model] {
-            return [.cyberShot_HX60, .cyberShot_HX60V, .cyberShot_HX80, .cyberShot_HX90, .cyberShot_HX90V, .cyberShot_HX400, .cyberShot_HX400V, .cyberShot_WX500, .cyberShot_RX10M2, .cyberShot_RX10M3, .cyberShot_RX100M3, .cyberShot_RX100M4, .cyberShot_RX100M5, .cyberShot_RX0, .cyberShot_RX0M2]
+            return [.cyberShot_HX50, .cyberShot_HX50V, .cyberShot_HX60, .cyberShot_HX60V, .cyberShot_HX80, .cyberShot_HX90, .cyberShot_HX90V, .cyberShot_HX400, .cyberShot_HX400V, .cyberShot_WX500, .cyberShot_RX10M2, .cyberShot_RX10M3, .cyberShot_RX100M2, .cyberShot_RX100M3, .cyberShot_RX100M4, .cyberShot_RX100M5, .cyberShot_RX100M6, .cyberShot_RX0, .cyberShot_RX0M2]
         }
         
         static var fdrSeries: [Model] {
@@ -333,6 +353,8 @@ extension SonyCameraDevice {
                 return "3.00"
             case .a7iii, .a7riii:
                 return "3.00"
+            case .a6600, .a6400:
+                return "2.00"
             case .a6300:
                 return "2.01"
             case .a5000:
@@ -363,7 +385,9 @@ extension SonyCameraDevice {
                 .a7riii,
                 .a9,
                 .cyberShot_RX0,
-                .cyberShot_RX0M2
+                .cyberShot_RX0M2,
+                .cyberShot_RX100M5,
+                .cyberShot_RX100M6
             ]
             return modelsWhichRequireHalfPressToCapture.contains(self)
         }

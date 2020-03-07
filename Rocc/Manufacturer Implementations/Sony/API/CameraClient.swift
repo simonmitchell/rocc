@@ -7,12 +7,7 @@
 //
 
 import Foundation
-
-#if os(macOS)
-import ThunderRequestMac
-#else
 import ThunderRequest
-#endif
 
 fileprivate extension ShootingMode {
     
@@ -296,12 +291,24 @@ fileprivate extension CameraEvent {
         var _audioRecording: (current: String, available: [String])?
         var _windNoiseReduction: (current: String, available: [String])?
         var _bulbCapturingTime: TimeInterval?
+        var _bulbShootingURL: URL?
         
         result.forEach { (eventElement) in
             
             if let dictionaryElement = eventElement as? [AnyHashable : Any], let type = dictionaryElement["type"] as? String {
                 
                 switch type {
+                case "bulbShooting":
+                    guard let urlArrays = dictionaryElement["bulbShootingUrl"] as? [[AnyHashable : Any]] else {
+                        return
+                    }
+                    guard let urlString = urlArrays.compactMap({ (dict) -> String? in
+                        dict["postviewUrl"] as? String
+                    }).first else {
+                        return
+                    }
+                    _bulbShootingURL = URL(string: urlString)
+                    break
                 case "availableApiList":
                     _apiList = dictionaryElement["names"] as? [String]
                 case "cameraStatus":
@@ -606,8 +613,7 @@ fileprivate extension CameraEvent {
         audioRecording = _audioRecording
         windNoiseReduction = _windNoiseReduction
         bulbCapturingTime = _bulbCapturingTime
-        //TODO: Add this in!
-        bulbShootingUrl = nil
+        bulbShootingUrl = _bulbShootingURL
     }
 }
 
@@ -702,6 +708,18 @@ fileprivate extension TouchAF.Information {
 internal class CameraClient: ServiceClient {
     
     typealias GenericCompletion = (_ error: Error?) -> Void
+    
+    var eventMethodName: String? {
+        guard let availableApiList = availableApiList else {
+            return nil
+        }
+        for eventName in ["getEvent", "receiveEvent"] {
+            if availableApiList.contains(eventName) {
+                return eventName
+            }
+        }
+        return nil
+    }
     
     internal convenience init?(apiInfo: SonyCameraDevice.ApiDeviceInfo) {
         guard let cameraService = apiInfo.services.first(where: { $0.type == "camera" }) else { return nil }
@@ -3843,7 +3861,22 @@ internal class CameraClient: ServiceClient {
     
     func getEvent(polling: Bool, _ completion: @escaping EventCompletion) {
         
-        let body = SonyRequestBody(method: "getEvent", params: [polling], id: 1, version: versions?.last ?? "1.0")
+        guard let eventMethodName = eventMethodName else {
+            
+            getAvailableApiList { [weak self] (result) in
+                // Fallback to getEvent as more commonly used!
+                self?.getEvent(methodName: self?.eventMethodName ?? "getEvent", polling: polling, completion)
+            }
+            
+            return
+        }
+        
+        getEvent(methodName: eventMethodName, polling: polling, completion)
+    }
+    
+    private func getEvent(methodName: String, polling: Bool, _ completion: @escaping EventCompletion) {
+        
+        let body = SonyRequestBody(method: methodName, params: [polling], id: 1, version: versions?.last ?? "1.0")
         
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             
