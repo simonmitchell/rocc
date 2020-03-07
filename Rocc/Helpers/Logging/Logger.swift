@@ -8,11 +8,7 @@
 
 import Foundation
 import os.log
-#if os(macOS)
-import ThunderRequestMac
-#elseif os(iOS)
 import ThunderRequest
-#endif
 
 /// A simple class for logging to a given file url
 public final class Logger {
@@ -66,6 +62,10 @@ public final class Logger {
     }
     
     private func log(_ message: String, category: String) {
+        
+        #if DEBUG
+            print("[\(category)] \(message)")
+        #endif
         
         guard let fileURL = fileURL, let logQueue = logQueue else { return }
         

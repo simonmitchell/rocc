@@ -7,12 +7,7 @@
 //
 
 import Foundation
-
-#if os(macOS)
-import ThunderRequestMac
-#else
 import ThunderRequest
-#endif
 
 fileprivate extension StillQuality {
     
