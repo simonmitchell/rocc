@@ -8,7 +8,7 @@ env:
   - LANG=en_US.UTF-8
   - IOS_FRAMEWORK_SCHEME="Rocc"
   - TVOS_FRAMEWORK_SCHEME=""
-  - OSX_FRAMEWORK_SCHEME="RoccMac"
+  - OSX_FRAMEWORK_SCHEME="Rocc"
   - IOS_SDK=iphonesimulator13.2
   - TVOS_SDK=appletvsimulator13.2
   - OSX_SDK=macosx10.15
