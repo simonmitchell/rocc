@@ -7,11 +7,7 @@
 //
 
 import Foundation
-#if os(iOS)
 import ThunderRequest
-#elseif os(macOS)
-import ThunderRequestMac
-#endif
 import os
 
 extension SonyTransferDevice {

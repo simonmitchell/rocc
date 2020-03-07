@@ -49,40 +49,39 @@ extension File {
     static func dummy(date: Date = Date(), image: Int) -> File {
         
         let imageUrls: [String] = [
-            "https://drive.google.com/uc?id=10W31pbVndvcp9aW3mG54UCAuLnsZJEdu",
-            "https://drive.google.com/uc?id=18BqbSKAe21mySvKjbY9aCjneENtn5nkr",
-            "https://drive.google.com/uc?id=1zDO2L4YErsMS8WhpqUuCrzsu5UehZ7q8",
-            "https://drive.google.com/uc?id=11e--675T1i3KowEDZh5gaPAHKMd-9jit",
-            "https://drive.google.com/uc?id=1re4FbtMPVFvHpJ1lBxBiSMvxNmxfWV9p",
-            "https://drive.google.com/uc?id=14cHdyJOq1ZNN1ZyOSy4GjHO3GUOAMKaL",
-            "https://drive.google.com/uc?id=1jmKPEIpb1Ob7g2e0maT3-m5CoyVnTSI8",
-            "https://drive.google.com/uc?id=1LdQQLYe5Cnx94qBsnl7Kv7BC9W8DAaG2",
-            "https://drive.google.com/uc?id=1Yw9w6N2k60U9vo-GRgwnp0dAnnM96-lq",
-            "https://drive.google.com/uc?id=15mAmI7tDA4B4oFvlRJ0pmpHK5060-gK2",
-            "https://drive.google.com/uc?id=1BF9oA6QXa03Qt1KcMwc96ksppGtUsOAv",
-            "https://drive.google.com/uc?id=17hnMDnnX7smPhb0C6Owi6UwFJAsHUElf",
-            "https://drive.google.com/uc?id=1fGrCC_wQHJ5R10IBdT7VgBZAAynmJ5uA",
-            "https://drive.google.com/uc?id=1jwMZrmerzSMgT397CsB3K8d34V1QZtnN",
-            "https://drive.google.com/uc?id=1MkH7ufW5jCyS4hip2oCfRlly_AiZZ662",
-            "https://drive.google.com/uc?id=1x2r-8KxnpS2VXT_1eEJrVtRnBXw00BFt",
-            "https://scontent-lht6-1.xx.fbcdn.net/v/t1.0-9/44166137_10205020811755656_6680655795945734144_o.jpg?_nc_cat=100&_nc_ht=scontent-lht6-1.xx&oh=49b136ec2c83b9d1d8a0e5c3b72dfaac&oe=5CA725D6",
-            "https://scontent-lht6-1.xx.fbcdn.net/v/t1.0-9/44032459_10205020808315570_5469471131528331264_o.jpg?_nc_cat=111&_nc_ht=scontent-lht6-1.xx&oh=c3fae3b3b731fe98a36bbe09358d5e11&oe=5CA56D19",
-            "https://scontent-lht6-1.xx.fbcdn.net/v/t1.0-9/44023944_10205020808195567_7274851361567539200_o.jpg?_nc_cat=102&_nc_ht=scontent-lht6-1.xx&oh=b6e306129912f6cf557a3c3b4beb2246&oe=5CB088B8",
-            "https://scontent-lht6-1.xx.fbcdn.net/v/t1.0-9/44028963_10205020807875559_663651414500704256_o.jpg?_nc_cat=100&_nc_ht=scontent-lht6-1.xx&oh=491bfb2e8553f078ec3fcecb6fefd51e&oe=5CA6CF77",
-            "https://scontent-lht6-1.xx.fbcdn.net/v/t1.0-9/44077180_10205020807475549_6486553158548979712_o.jpg?_nc_cat=101&_nc_ht=scontent-lht6-1.xx&oh=a9e9815ddd1be1ff06b17d850cf55561&oe=5C9A2DCD",
-            "https://scontent-lht6-1.xx.fbcdn.net/v/t1.0-9/44027774_10205020806955536_5337969364752662528_o.jpg?_nc_cat=107&_nc_ht=scontent-lht6-1.xx&oh=6b63472242657e017db0ae3ccb131e39&oe=5C9FD62A",
-            "https://scontent-lht6-1.xx.fbcdn.net/v/t1.0-9/43952377_10205020806595527_3181607508250722304_o.jpg?_nc_cat=101&_nc_ht=scontent-lht6-1.xx&oh=0dec0fb6f44a1a42349dc70fb669839d&oe=5CB03DA2",
-            "https://scontent-lht6-1.xx.fbcdn.net/v/t1.0-9/44056825_10205020805115490_2152903248187490304_o.jpg?_nc_cat=101&_nc_ht=scontent-lht6-1.xx&oh=4cf2cdd7ee96e5931578811fe01bb4c8&oe=5C674634",
-            "https://scontent-lht6-1.xx.fbcdn.net/v/t1.0-9/43952177_10205020804435473_1461334065226448896_o.jpg?_nc_cat=110&_nc_ht=scontent-lht6-1.xx&oh=fa88bda3a10e64da52f50b88af3d21fc&oe=5C671237",
-            "https://scontent-lht6-1.xx.fbcdn.net/v/t1.0-9/43950742_10205020801795407_3857080102974128128_o.jpg?_nc_cat=107&_nc_ht=scontent-lht6-1.xx&oh=5d32f7adf9c3d83ff96def1c2e15a445&oe=5C65D719",
-            "https://scontent-lht6-1.xx.fbcdn.net/v/t1.0-9/44063085_10205020800915385_7307852352671711232_o.jpg?_nc_cat=111&_nc_ht=scontent-lht6-1.xx&oh=cd443d54257a363973231d008b32c3c4&oe=5C65A3BF"
+            "https://user-images.githubusercontent.com/9033831/69366783-f0057400-0c8e-11ea-9ba6-110b184daf43.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366786-f09e0a80-0c8e-11ea-95bb-c347c7910881.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366787-f09e0a80-0c8e-11ea-92b1-f6e63109bde0.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366788-f09e0a80-0c8e-11ea-8fa0-3f086154110d.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366789-f136a100-0c8e-11ea-9190-6ea3262b5068.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366790-f136a100-0c8e-11ea-8eca-d8b25b4ef194.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366791-f136a100-0c8e-11ea-9592-3e234a08407e.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366792-f136a100-0c8e-11ea-93e7-36659e4e9120.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366794-f136a100-0c8e-11ea-9b8c-0d02bd466615.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366795-f1cf3780-0c8e-11ea-8933-8e12d0cd507d.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366796-f1cf3780-0c8e-11ea-866d-4157889cb9dd.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366797-f1cf3780-0c8e-11ea-9057-88cf68158615.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366800-f1cf3780-0c8e-11ea-9160-48f37c330641.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366801-f1cf3780-0c8e-11ea-93c9-3b69d5b92039.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366802-f267ce00-0c8e-11ea-86cb-7ea3facbf4f8.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366803-f267ce00-0c8e-11ea-92ab-1b2f1aff1834.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366805-f267ce00-0c8e-11ea-936a-9d50cc8dce21.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366806-f267ce00-0c8e-11ea-93af-ee86d680a625.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366807-f3006480-0c8e-11ea-8871-e89d7b890adb.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366809-f3006480-0c8e-11ea-8f3f-8f3b9f1769e9.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366811-f3006480-0c8e-11ea-9a9f-0d6018d9689a.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366812-f3006480-0c8e-11ea-9896-33b82df37aa0.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366813-f3006480-0c8e-11ea-9c9d-acf4f285c0ca.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366814-f398fb00-0c8e-11ea-8328-6177325958c5.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366815-f398fb00-0c8e-11ea-8313-1aed95f64171.jpg",
+            "https://user-images.githubusercontent.com/9033831/69366817-f398fb00-0c8e-11ea-88df-e7f6f9698366.jpg"
         ]
         
         let index = image % imageUrls.count
         let url = URL(string: imageUrls[index])
         
         let original = File.Content.Original(fileName: "test.jpeg", fileType: "JPG", url: url)
-        let rawOriginal = File.Content.Original(fileName: "rest.ARW", fileType: "ARW", url: URL(string: "http://www.rawsamples.ch/raws/sony/RAW_SONY_ILCE-7M2.ARW"))
+        let rawOriginal = File.Content.Original(fileName: "rest.ARW", fileType: "ARW", url: URL(string: "https://www.rawsamples.ch/raws/sony/RAW_SONY_ILCE-7M2.ARW"))
         
         let content = Content(originals: [rawOriginal, original], largeURL: url, smallURL: url, thumbnailURL: url)
         
@@ -234,7 +233,7 @@ public final class DummyCamera: Camera {
                 ShutterSpeed(numerator: 20, denominator: 1),
                 ShutterSpeed(numerator: 25, denominator: 1),
                 ShutterSpeed(numerator: 30, denominator: 1),
-                ShutterSpeed.bulb
+                .bulb
             ] as? [T.SendType])
         case .setExposureCompensation:
             callback(true, nil, [-3.0, -2.66, -2.33, -2.0, -1.66, -1.33, -1.0, -0.66, -0.33, 0, 0.33, 0.66, 1.0, 1.33, 1.66, 2.0, 2.33, 2.66, 3.0] as? [T.SendType])
@@ -307,7 +306,8 @@ public final class DummyCamera: Camera {
                 ShutterSpeed(numerator: 18, denominator: 1),
                 ShutterSpeed(numerator: 20, denominator: 1),
                 ShutterSpeed(numerator: 25, denominator: 1),
-                ShutterSpeed(numerator: 30, denominator: 1)
+                ShutterSpeed(numerator: 30, denominator: 1),
+                .bulb
                 ], supported: []),
             whiteBalance: CameraEvent.WhiteBalanceInformation(shouldCheck: true, whitebalanceValue: WhiteBalance.Value(mode: .daylight, temperature: nil, rawInternal: ""), available: nil, supported: nil),
             touchAF: nil,
