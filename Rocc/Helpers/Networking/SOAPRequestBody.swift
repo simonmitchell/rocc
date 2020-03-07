@@ -9,11 +9,8 @@
 import os.log
 
 import Foundation
-#if os(iOS)
 import ThunderRequest
-#elseif os(macOS)
-import ThunderRequestMac
-#endif
+
 
 struct SOAPRequestBody {
     

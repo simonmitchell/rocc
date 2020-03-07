@@ -8,11 +8,7 @@
 
 import Foundation
 import os
-#if os(macOS)
-import ThunderRequestMac
-#else
 import ThunderRequest
-#endif
 import SystemConfiguration
 
 extension UserDefaults {

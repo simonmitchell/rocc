@@ -8,11 +8,7 @@
 
 import Foundation
 import os.log
-#if os(macOS)
-import ThunderRequestMac
-#elseif os(iOS)
 import ThunderRequest
-#endif
 
 /// A simple class for logging to a given file url
 public final class Logger {
