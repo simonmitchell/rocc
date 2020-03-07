@@ -370,9 +370,8 @@ extension SonyPTPIPDevice {
         case .getStorageInformation:
             //TODO: Implement
             callback(false, nil, nil)
-        case .lockHighFrameRateCaptureSettings, .unlockHighFrameRateCaptureSettings:
-            //TODO: HFR
-            getDevicePropDescFor(propCode: .exposureProgramMode, callback: { (result) in
+        case .getExposureSettingsLock, .setExposureSettingsLock:
+            getDevicePropDescFor(propCode: .exposureSettingsLockStatus, callback: { (result) in
                 switch result {
                 case .success(let property):
                     let event = CameraEvent.fromSonyDeviceProperties([property]).event

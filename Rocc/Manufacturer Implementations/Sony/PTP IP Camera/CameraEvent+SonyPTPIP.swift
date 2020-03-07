@@ -193,6 +193,7 @@ extension CameraEvent {
         var stillSizeInfo: StillSizeInformation?
         var exposureMode: (current: Exposure.Mode.Value, available: [Exposure.Mode.Value], supported: [Exposure.Mode.Value])?
         var exposureModeDialControl: (current: Exposure.Mode.DialControl.Value, available: [Exposure.Mode.DialControl.Value], supported: [Exposure.Mode.DialControl.Value])?
+        var exposureSettingsLockStatus: Exposure.SettingsLock.Status?
         var selfTimer: (current: TimeInterval, available: [TimeInterval], supported: [TimeInterval])?
         var shootMode: (current: ShootingMode, available: [ShootingMode], supported: [ShootingMode]) = (.photo, [], [])
         var exposureCompensation: (current: Exposure.Compensation.Value, available: [Exposure.Compensation.Value], supported: [Exposure.Compensation.Value])?
@@ -292,6 +293,13 @@ extension CameraEvent {
                 let supported = enumProperty.supported.compactMap({ Exposure.Mode.DialControl.Value(sonyValue: $0) })
                 
                 exposureModeDialControl = (control, available, supported)
+                
+            case .exposureSettingsLockStatus:
+                
+                guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
+                    return
+                }
+                exposureSettingsLockStatus = Exposure.SettingsLock.Status(sonyValue: enumProperty.currentValue)
                 
             case .focusFound:
                 
@@ -805,14 +813,14 @@ extension CameraEvent {
             }
             if exposureProgrammeMode.supported.contains(where: { $0.isHighFrameRate }), !shootMode.supported.contains(.highFrameRate) {
                 shootMode.supported.append(.highFrameRate)
-                supportedFunctions.append(contentsOf: [.startHighFrameRateCapture, .lockHighFrameRateCaptureSettings, .unlockHighFrameRateCaptureSettings])
+                supportedFunctions.append(contentsOf: [.startHighFrameRateCapture])
             }
             if exposureProgrammeMode.current.isVideo {
                 
                 shootMode.current = .video
                 shootMode.available = [.video]
                 availableFunctions.append(contentsOf: [.startVideoRecording, .endVideoRecording])
-                let videoDisabledFunctions: [_CameraFunction] = [.takePicture, .startBulbCapture, .endBulbCapture, .endContinuousShooting, .startContinuousShooting, .lockHighFrameRateCaptureSettings,. unlockHighFrameRateCaptureSettings, .startHighFrameRateCapture]
+                let videoDisabledFunctions: [_CameraFunction] = [.takePicture, .startBulbCapture, .endBulbCapture, .endContinuousShooting, .startContinuousShooting,  .startHighFrameRateCapture]
                 availableFunctions = availableFunctions.filter({
                     !videoDisabledFunctions.contains($0)
                 })
@@ -822,7 +830,10 @@ extension CameraEvent {
                 shootMode.current = .highFrameRate
                 shootMode.available = [.highFrameRate]
                 
-                //TODO: HFR - Append available functions
+                // If exposure lock status is locked then we can start HFR capture!
+                if exposureSettingsLockStatus == .locked {
+                    availableFunctions.append(.startHighFrameRateCapture)
+                }
             }
         }
     
@@ -843,6 +854,7 @@ extension CameraEvent {
             viewAngle: nil,
             exposureMode: exposureMode,
             exposureModeDialControl: exposureModeDialControl,
+            exposureSettingsLockStatus: exposureSettingsLockStatus,
             postViewImageSize: nil,
             selfTimer: selfTimer,
             shootMode: shootMode,

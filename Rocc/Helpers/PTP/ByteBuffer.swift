@@ -245,10 +245,16 @@ extension ByteBuffer {
             guard let length: Byte = read(offset: &offset) else { return nil }
             var string: String = ""
             for i in 0..<UInt(length) {
-                guard let character = self[wChar: offset + UInt(MemoryLayout<Word>.size) * i], character != "\u{0000}" else {
+                // If we can't parse the character then we must be at the end of the string
+                guard let character = self[wChar: offset + UInt(MemoryLayout<Word>.size) * i] else {
                     if string.count > 0 {
-                        offset += UInt(string.count * MemoryLayout<Word>.size) + UInt(MemoryLayout<Word>.size)
+                        // Don't append `UInt(MemoryLayout<Word>.size)` because we don't have a terminating \u{0000}
+                        offset += UInt(string.count * MemoryLayout<Word>.size)
                     }
+                    return string.count > 0 ? string : nil
+                }
+                guard character != "\u{0000}" else {
+                    offset += UInt(string.count * MemoryLayout<Word>.size) + UInt(MemoryLayout<Word>.size)
                     return string.count > 0 ? string : nil
                 }
                 string.append(character)
@@ -265,10 +271,16 @@ extension ByteBuffer {
             var string: String = ""
             var i = offset
             while i < bytes.count {
-                guard let character = self[wChar: i], character != "\u{0000}" else {
+                // If we can't parse the character then we must be at the end of the string
+                guard let character = self[wChar: offset + UInt(MemoryLayout<Word>.size) * i] else {
                     if string.count > 0 {
+                        // Don't append `UInt(MemoryLayout<Word>.size)` because we don't have a terminating \u{0000}
                         offset += UInt(string.count * MemoryLayout<Word>.size) + UInt(MemoryLayout<Word>.size)
                     }
+                    return string.count > 0 ? string : nil
+                }
+                guard character != "\u{0000}" else {
+                    offset += UInt(string.count * MemoryLayout<Word>.size) + UInt(MemoryLayout<Word>.size)
                     return string.count > 0 ? string : nil
                 }
                 string.append(character)

@@ -213,12 +213,6 @@ public struct HighFrameRateCapture: CameraFunction {
     
     public typealias ReturnType = Void
     
-    /// Locks in the high frame rate exposure settings, enabling the starting of recording
-    public static let lock = HighFrameRateCapture(function: .lockHighFrameRateCaptureSettings)
-    
-    /// Unlocks the high frame rate exposure settings, disabling the starting of recording
-    public static let unlock = HighFrameRateCapture(function: .unlockHighFrameRateCaptureSettings)
-    
     /// Starts high frame rate capture
     public static let start = ContinuousCapture(function: .startHighFrameRateCapture)
 }

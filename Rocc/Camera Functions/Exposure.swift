@@ -11,6 +11,27 @@ import Foundation
 /// Functions for interacting with the exposure settings of the camera
 public struct Exposure {
     
+    /// Functions for locking in exposure settings, this seems to only be used for HFR shooting
+    /// via PTP/IP on the RX100 VII, but may have other use-cases and therefore we've made it more generic for now.
+    public struct SettingsLock: CameraFunction {
+        
+        public enum Status {
+            case normal
+            case standby
+            case locked
+        }
+        
+        public var function: _CameraFunction
+
+        public typealias SendType = Status
+        
+        public typealias ReturnType = Status
+        
+        public static let set = SettingsLock(function: .setExposureSettingsLock)
+        
+        public static let get = SettingsLock(function: .getExposureSettingsLock)
+    }
+    
     /// Functions for configuring the exposure mode of the camera
     public struct Mode: CameraFunction {
         

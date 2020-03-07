@@ -183,6 +183,9 @@ public struct CameraEvent {
     /// Current and available exposure mode dial control mode.
     public let exposureModeDialControl: (current: Exposure.Mode.DialControl.Value, available: [Exposure.Mode.DialControl.Value], supported: [Exposure.Mode.DialControl.Value])?
     
+    /// The current state of exposure settings lock
+    public let exposureSettingsLockStatus: Exposure.SettingsLock.Status?
+    
     /// Current and available post view image size.
     public let postViewImageSize: (current: String, available: [String], supported: [String])?
     

@@ -837,6 +837,7 @@ fileprivate extension CameraEvent {
         selfTimer = _selfTimer
         shootMode = _shootMode
         exposureCompensation = _exposureCompensation
+        exposureSettingsLockStatus = nil
         flashMode = _flashMode
         aperture = _aperture
         focusMode = _focusMode

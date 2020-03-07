@@ -607,13 +607,23 @@ extension SonyPTPIPDevice {
                     callback(error, nil)
                 }
             })
-        case .lockHighFrameRateCaptureSettings, .unlockHighFrameRateCaptureSettings:
+        case .getExposureSettingsLock:
+            getDevicePropDescFor(propCode: .exposureSettingsLockStatus) { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                    callback(nil, event.exposureSettingsLockStatus as? T.ReturnType)
+                case .failure(let error):
+                    callback(error, nil)
+                }
+            }
+        case .setExposureSettingsLock:
+            guard let lock = payload as? Exposure.SettingsLock.Status else {
+                callback(FunctionError.invalidPayload, nil)
+                return
+            }
             ptpIPClient?.sendSetControlDeviceBValue(
-                PTP.DeviceProperty.Value(
-                    code: .highFrameRateLock,
-                    type: .uint16,
-                    value: function.function == .lockHighFrameRateCaptureSettings ? DWord(1) : DWord(2)
-                ),
+                PTP.DeviceProperty.Value(lock),
                 callback: { (response) in
                     callback(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil, nil)
                 }

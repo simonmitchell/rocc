@@ -88,6 +88,7 @@ extension CameraEvent {
             callback(true, nil, self.autoPowerOff?.supported as? [T.SendType])
         case .setBeepMode, .getBeepMode:
             callback(true, nil, self.beepMode?.supported as? [T.SendType])
+        //TODO: HFR
         default:
             // Some don't have supported values!
             callback(true, nil, nil)
@@ -172,6 +173,7 @@ extension CameraEvent {
             callback(true, nil, self.autoPowerOff?.available as? [T.SendType])
         case .setBeepMode, .getBeepMode:
             callback(true, nil, self.beepMode?.available as? [T.SendType])
+        //TODO: HFR
         default:
             // Some don't have supported values!
             callback(true, nil, nil)

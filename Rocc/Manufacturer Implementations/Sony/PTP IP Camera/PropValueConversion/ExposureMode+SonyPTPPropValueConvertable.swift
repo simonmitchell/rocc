@@ -92,24 +92,6 @@ extension Exposure.Mode.Value: SonyPTPPropValueConvertable {
         default:
             var byteBuffer = ByteBuffer()
             byteBuffer.appendValue(sonyValue, ofType: .uint32)
-            // Unknown values
-            // 0x00048001 Intelligent auto plus
-            // 0x00088081 highFrameRate?
-            // 0x00088082 highFrameRate?
-            // 0x00088083 highFrameRate?
-            // 0x00000007
-            // 0x00058011
-            // 0x00058012
-            // 0x00058013
-            // 0x00058014
-            // 0x00058015
-            // 0x00058016
-            // 0x00058017
-            // 0x00058018
-            // 0x00058019
-            // 0x0005801a
-            // 0x0005801b
-            // 0x0005801c
             print("[EXPOSURE MODE] Unknown exposure mode: \(byteBuffer.toHex)")
             return nil
         }

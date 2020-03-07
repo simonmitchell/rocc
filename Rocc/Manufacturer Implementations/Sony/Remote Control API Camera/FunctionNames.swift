@@ -110,7 +110,7 @@ extension _CameraFunction {
         case .getSelfTimerDuration:
             return "getSelfTimer"
             // Not supported apart from PTP/IP
-        case .setExposureModeDialControl, .getExposureModeDialControl, .startHighFrameRateCapture, .lockHighFrameRateCaptureSettings, .unlockHighFrameRateCaptureSettings:
+        case .setExposureModeDialControl, .getExposureModeDialControl, .startHighFrameRateCapture, .setExposureSettingsLock, .getExposureSettingsLock:
             return nil
         case .setExposureMode:
             return "setExposureMode"

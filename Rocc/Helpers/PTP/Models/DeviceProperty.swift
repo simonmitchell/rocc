@@ -143,8 +143,11 @@ extension PTP.DeviceProperty.Code {
             return [.setStillQuality]
         case .stillFormat:
             return [.setStillFormat]
-        case .highFrameRateLock:
-            return [.lockHighFrameRateCaptureSettings, .unlockHighFrameRateCaptureSettings]
+        case .exposureSettingsLockStatus:
+            return [.setExposureSettingsLock]
+            // This is a devie B value, so shouldn't appear here and may be used for some other A property
+        case .exposureSettingsLock:
+            return nil
         }
     }
     
@@ -284,8 +287,8 @@ extension PTP.DeviceProperty.Code {
             return .getStillQuality
         case .stillFormat:
             return .getStillFormat
-        case .highFrameRateLock:
-            return nil
+        case .exposureSettingsLockStatus, .exposureSettingsLock:
+            return .getExposureSettingsLock
         }
     }
 }
@@ -331,6 +334,12 @@ extension _CameraFunction {
             return [.autoFocus]
         case .takePicture:
             return [.capture]
+        // These are a bit strange, because setting the exposure lock uses a different parameter (setDeviceBProp)
+        // to getting the value!
+        case .getExposureSettingsLock:
+            return [.exposureSettingsLockStatus]
+        case .setExposureSettingsLock:
+            return [.exposureSettingsLock]
         default:
             return nil
         }
@@ -947,12 +956,13 @@ extension PTP {
             case stillImage = 0xD2C7
             case remainingShots = 0xd249
             case remainingCaptureTime = 0xd24a
-            case highFrameRateLock = 0xd2d5
+            case exposureSettingsLock = 0xd2d5
             case performZoom = 0xd2dd
             case exposureProgramModeControl = 0xd25a
             case zoomPosition = 0xd25d
             case stillQuality = 0xd252
             case stillFormat = 0xd253
+            case exposureSettingsLockStatus = 0xd22a
         }
     }
 }
