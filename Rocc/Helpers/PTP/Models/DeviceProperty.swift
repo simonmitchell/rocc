@@ -148,6 +148,8 @@ extension PTP.DeviceProperty.Code {
             // This is a devie B value, so shouldn't appear here and may be used for some other A property
         case .exposureSettingsLock:
             return nil
+        case .liveViewURL, .liveViewQuality:
+            return nil
         }
     }
     
@@ -289,6 +291,8 @@ extension PTP.DeviceProperty.Code {
             return .getStillFormat
         case .exposureSettingsLockStatus, .exposureSettingsLock:
             return .getExposureSettingsLock
+        case .liveViewURL, .liveViewQuality:
+            return nil
         }
     }
 }
@@ -963,6 +967,8 @@ extension PTP {
             case stillQuality = 0xd252
             case stillFormat = 0xd253
             case exposureSettingsLockStatus = 0xd22a
+            case liveViewURL = 0xd278
+            case liveViewQuality = 0xd26a
         }
     }
 }

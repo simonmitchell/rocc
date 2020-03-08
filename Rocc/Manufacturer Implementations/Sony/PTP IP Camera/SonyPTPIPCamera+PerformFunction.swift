@@ -434,7 +434,29 @@ extension SonyPTPIPDevice {
                 }
             }
         case .startLiveView, .startLiveViewWithSize, .endLiveView:
-            callback(nil, apiDeviceInfo.liveViewURL as? T.ReturnType)
+            getDevicePropDescFor(propCode: .liveViewURL) { [weak self] (result) in
+                guard let self = self else { return }
+                switch result {
+                case .success(let property):
+                    guard let string = property.currentValue as? String, let url = URL(string: string) else {
+                        callback(nil, self.apiDeviceInfo.liveViewURL as? T.ReturnType)
+                        return
+                    }
+                    callback(nil, url as? T.ReturnType)
+                    
+                    // After the callback set the live view quality
+                    self.ptpIPClient?.sendSetControlDeviceAValue(
+                        PTP.DeviceProperty.Value(
+                            code: .liveViewQuality,
+                            type: .uint8,
+                            value: Byte(0x01)
+                        )
+                    )
+                    
+                case .failure(_):
+                    callback(nil, self.apiDeviceInfo.liveViewURL as? T.ReturnType)
+                }
+            }
         case .getLiveViewSize:
             // Doesn't seem to be available via PTP/IP
             callback(FunctionError.notSupportedByAvailableVersion, nil)
@@ -618,16 +640,34 @@ extension SonyPTPIPDevice {
                 }
             }
         case .setExposureSettingsLock:
-            guard let lock = payload as? Exposure.SettingsLock.Status else {
-                callback(FunctionError.invalidPayload, nil)
-                return
-            }
+
+            // This may seem strange, that to move to standby we set this value twice, but this is what works!
+            // It doesn't seem like we actually need the value at all, it just toggles it on this camera...
             ptpIPClient?.sendSetControlDeviceBValue(
-                PTP.DeviceProperty.Value(lock),
-                callback: { (response) in
-                    callback(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil, nil)
+                PTP.DeviceProperty.Value(
+                    code: .exposureSettingsLock,
+                    type: .uint16,
+                    value: Word(0x01)
+                ),
+                callback: { [weak self] (response) in
+                    guard let self = self else { return }
+                    guard !response.code.isError else {
+                        callback(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil, nil)
+                        return
+                    }
+                    self.ptpIPClient?.sendSetControlDeviceBValue(
+                        PTP.DeviceProperty.Value(
+                            code: .exposureSettingsLock,
+                            type: .uint16,
+                            value: Word(0x02)
+                        ),
+                        callback: { (innerResponse) in
+                            callback(innerResponse.code.isError ? PTPError.commandRequestFailed(innerResponse.code) : nil, nil)
+                        }
+                    )
                 }
             )
+            
         case .startHighFrameRateCapture:
             //TODO: HFR
             break
