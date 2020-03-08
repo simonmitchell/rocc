@@ -488,6 +488,8 @@ public final class LiveViewStream: NSObject {
                     continue
                 }
                 offset += 1
+                // Set this back to nil so don't end up corrupting our data again
+                startImageOffset = nil
                 let payload = Payload(image: image, dataRange: imageRange)
                 payloads.append(payload)
             default:
