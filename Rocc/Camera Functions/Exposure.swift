@@ -19,6 +19,8 @@ public struct Exposure {
             case normal
             case standby
             case locked
+            case buffering
+            case recording
         }
         
         public var function: _CameraFunction

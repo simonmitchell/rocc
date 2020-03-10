@@ -374,7 +374,7 @@ extension SonyPTPIPDevice {
                         callback(false, error, nil)
                     }
                 })
-            case .startHighFrameRateCapture:
+            case .recordHighFrameRateCapture:
                 //TODO: HFR
                 callback(true, nil, nil)
             case .getEvent, .setCameraFunction, .getCameraFunction, .startRecordMode, .ping:

@@ -324,6 +324,7 @@ public final class DummyCamera: Camera {
             colorSetting: nil,
             videoFileFormat: nil,
             videoRecordingTime: nil,
+            highFrameRateCaptureStatus: nil,
             infraredRemoteControl: nil,
             tvColorSystem: nil,
             trackingFocusStatus: nil,

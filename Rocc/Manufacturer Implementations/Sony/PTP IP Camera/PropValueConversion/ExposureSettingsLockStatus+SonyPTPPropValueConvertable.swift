@@ -31,6 +31,10 @@ extension Exposure.SettingsLock.Status: SonyPTPPropValueConvertable {
             self = .standby
         case 0x03:
             self = .locked
+        case 0x04:
+            self = .buffering
+        case 0x05:
+            self = .recording
         default:
             return nil
         }
@@ -44,6 +48,10 @@ extension Exposure.SettingsLock.Status: SonyPTPPropValueConvertable {
             return Byte(0x02)
         case .locked:
             return Byte(0x03)
+        case .buffering:
+            return Byte(0x04)
+        case .recording:
+            return Byte(0x05)
         }
     }
 }

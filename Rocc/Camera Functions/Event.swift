@@ -261,6 +261,9 @@ public struct CameraEvent {
     /// Recording time of the video.
     public let videoRecordingTime: TimeInterval?
     
+    /// The status of high frame rate recording
+    public let highFrameRateCaptureStatus: HighFrameRateCapture.Status?
+    
     /// Current and available infrared remote control settings.
     public let infraredRemoteControl: (current: String, available: [String], supported: [String])?
     

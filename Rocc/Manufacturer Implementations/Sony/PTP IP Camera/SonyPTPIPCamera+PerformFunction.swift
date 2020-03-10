@@ -396,6 +396,34 @@ extension SonyPTPIPDevice {
                     callback(nil, nil)
                 }
             )
+        case .recordHighFrameRateCapture:
+            self.ptpIPClient?.sendSetControlDeviceBValue(
+                PTP.DeviceProperty.Value(
+                    code: .movie,
+                    type: .uint16,
+                    value: Word(2)
+                ),
+                callback: { [weak self] (videoResponse) in
+                    guard !videoResponse.code.isError else {
+                        callback(PTPError.commandRequestFailed(videoResponse.code), HighFrameRateCapture.Status.idle as? T.ReturnType)
+                        return
+                    }
+                    callback(nil, HighFrameRateCapture.Status.buffering as? T.ReturnType)
+                    guard let self = self else { return }
+                    self.highFrameRateCallback = { [weak self] result in
+                        switch result {
+                        case .success(let status):
+                            callback(nil, status as? T.ReturnType)
+                            if status == .idle {
+                                self?.highFrameRateCallback = nil
+                            }
+                        case .failure(let error):
+                            callback(error, nil)
+                            self?.highFrameRateCallback = nil
+                        }
+                    }
+                }
+            )
         case .endVideoRecording:
             self.ptpIPClient?.sendSetControlDeviceBValue(
                 PTP.DeviceProperty.Value(
@@ -667,10 +695,6 @@ extension SonyPTPIPDevice {
                     )
                 }
             )
-            
-        case .startHighFrameRateCapture:
-            //TODO: HFR
-            break
         }
     }
 }

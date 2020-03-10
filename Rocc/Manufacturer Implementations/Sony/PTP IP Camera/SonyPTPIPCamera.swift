@@ -42,6 +42,8 @@ internal final class SonyPTPIPDevice: SonyCamera {
     var onDisconnected: (() -> Void)?
     
     var zoomingDirection: Zoom.Direction?
+    
+    var highFrameRateCallback: ((Result<HighFrameRateCapture.Status, Error>) -> Void)?
         
     var eventPollingMode: PollingMode {
         guard let deviceInfo = deviceInfo else { return .timed }
@@ -355,6 +357,7 @@ extension SonyPTPIPDevice: Camera {
         lastEventPacket = nil
         lastStillCaptureModes = nil
         zoomingDirection = nil
+        highFrameRateCallback = nil
         
         ptpIPClient?.connect(callback: { [weak self] (error) in
             self?.sendStartSessionPacket(completion: completion)
@@ -644,6 +647,10 @@ extension SonyPTPIPDevice: Camera {
     }
     
     func handleEvent(event: CameraEvent) {
-        lastEvent = event
+        defer {
+            lastEvent = event
+        }
+        guard let highFrameRateStatus = event.highFrameRateCaptureStatus, highFrameRateStatus != lastEvent?.highFrameRateCaptureStatus else { return }
+        highFrameRateCallback?(Result.success(highFrameRateStatus))
     }
 }

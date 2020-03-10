@@ -310,7 +310,7 @@ extension SonyCamera {
                 _supportingModels.append(contentsOf: NEXSeries)
                 _supportingModels.append(.QX1)
                 return _supportingModels
-            case .setExposureModeDialControl, .getExposureModeDialControl, .startHighFrameRateCapture, .setExposureSettingsLock, .getExposureSettingsLock:
+            case .setExposureModeDialControl, .getExposureModeDialControl, .recordHighFrameRateCapture, .setExposureSettingsLock, .getExposureSettingsLock:
                 // No cameras seem to support this, as it's a PTP IP thing
                 return []
             }

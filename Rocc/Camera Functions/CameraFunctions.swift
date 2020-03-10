@@ -24,7 +24,7 @@ public enum _CameraFunction: String, CaseIterable {
     case takePicture
     case setExposureSettingsLock
     case getExposureSettingsLock
-    case startHighFrameRateCapture
+    case recordHighFrameRateCapture
     case startContinuousShooting
     case endContinuousShooting
     case startVideoRecording

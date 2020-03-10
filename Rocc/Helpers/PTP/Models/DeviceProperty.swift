@@ -150,6 +150,8 @@ extension PTP.DeviceProperty.Code {
             return nil
         case .liveViewURL, .liveViewQuality:
             return nil
+        case .recordingDuration:
+            return nil
         }
     }
     
@@ -292,6 +294,8 @@ extension PTP.DeviceProperty.Code {
         case .exposureSettingsLockStatus, .exposureSettingsLock:
             return .getExposureSettingsLock
         case .liveViewURL, .liveViewQuality:
+            return nil
+        case .recordingDuration:
             return nil
         }
     }
@@ -939,25 +943,25 @@ extension PTP {
             case artist = 0x501e
             case copyrightInfo = 0x501f
             /* Sony Extensions */
-            case DPCCompensation = 0xD200
-            case dRangeOptimize = 0xD201
-            case imageSizeSony = 0xD203
-            case shutterSpeed = 0xD20D
-            case unknown_0xd20e = 0xD20E
-            case colorTemp = 0xD20F
-            case cCFilter = 0xD210
-            case aspectRatio = 0xD211
-            case focusFound = 0xD213
-            case objectInMemory = 0xD215
-            case exposeIndex = 0xD216
-            case batteryLevelSony = 0xD218
-            case pictureEffect = 0xD21B
-            case ABFilter = 0xD21C
-            case ISO = 0xD21E
-            case autoFocus = 0xD2C1
-            case capture = 0xD2C2
-            case movie = 0xD2C8
-            case stillImage = 0xD2C7
+            case DPCCompensation = 0xd200
+            case dRangeOptimize = 0xd201
+            case imageSizeSony = 0xd203
+            case shutterSpeed = 0xd20d
+            case unknown_0xd20e = 0xd20e
+            case colorTemp = 0xd20f
+            case cCFilter = 0xd210
+            case aspectRatio = 0xd211
+            case focusFound = 0xd213
+            case objectInMemory = 0xd215
+            case exposeIndex = 0xd216
+            case batteryLevelSony = 0xd218
+            case pictureEffect = 0xd21b
+            case ABFilter = 0xd21c
+            case ISO = 0xd21e
+            case autoFocus = 0xd2c1
+            case capture = 0xd2c2
+            case movie = 0xd2c8
+            case stillImage = 0xd2c7
             case remainingShots = 0xd249
             case remainingCaptureTime = 0xd24a
             case exposureSettingsLock = 0xd2d5
@@ -968,6 +972,7 @@ extension PTP {
             case stillFormat = 0xd253
             case exposureSettingsLockStatus = 0xd22a
             case liveViewURL = 0xd278
+            case recordingDuration = 0xd261
             case liveViewQuality = 0xd26a
         }
     }

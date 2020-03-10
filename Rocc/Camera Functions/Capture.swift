@@ -207,14 +207,21 @@ public enum ContinuousShootingSpeed: String {
 /// Functions for interacting with the camera's high frame rate API
 public struct HighFrameRateCapture: CameraFunction {
     
+    /// The current status of the HFR capture
+    public enum Status {
+        case idle
+        case buffering
+        case recording
+    }
+    
     public var function: _CameraFunction
     
     public typealias SendType = Void
     
-    public typealias ReturnType = Void
+    public typealias ReturnType = Status
     
-    /// Starts high frame rate capture
-    public static let start = ContinuousCapture(function: .startHighFrameRateCapture)
+    /// Starts high frame rate capture, calling back with the current status of capture as it progresses (Also available via `CameraEvent`)
+    public static let record = HighFrameRateCapture(function: .recordHighFrameRateCapture)
 }
 
 /// Functions for interacting with the camera's video capture API

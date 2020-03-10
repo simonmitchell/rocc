@@ -209,7 +209,8 @@ extension CameraEvent {
         var batteryInfo: [BatteryInformation]?
         var stillQuality: (current: StillQuality, available: [StillQuality], supported: [StillQuality])?
         var stillFormat: (current: StillFormat, available: [StillFormat], supported: [StillFormat])?
-        
+        var recordingDuration: TimeInterval?
+        var recordingDurationGetSetAvailable: PTP.DeviceProperty.GetSetAvailable?
         var availableFunctions: [_CameraFunction] = []
         var supportedFunctions: [_CameraFunction] = []
         
@@ -665,6 +666,14 @@ extension CameraEvent {
                     supported: allSupportedSizes
                 )
                 
+            case .recordingDuration:
+                
+                recordingDurationGetSetAvailable = deviceProperty.getSetAvailable
+                
+                guard let duration = deviceProperty.currentValue.toInt else { return }
+                recordingDuration = TimeInterval(duration)
+                
+                
             case .remainingShots:
                 
                 guard let shots = deviceProperty.currentValue.toInt else { return }
@@ -805,6 +814,8 @@ extension CameraEvent {
             shootMode.current = .bulb
         }
         
+        var highFrameRateStatus: HighFrameRateCapture.Status?
+        
         // Manually handle certain exposure modes to make new functions available!
         if let exposureProgrammeMode = exposureMode {
             if exposureProgrammeMode.supported.contains(where: { $0.isVideo }), !shootMode.supported.contains(.video) {
@@ -813,14 +824,14 @@ extension CameraEvent {
             }
             if exposureProgrammeMode.supported.contains(where: { $0.isHighFrameRate }), !shootMode.supported.contains(.highFrameRate) {
                 shootMode.supported.append(.highFrameRate)
-                supportedFunctions.append(contentsOf: [.startHighFrameRateCapture])
+                supportedFunctions.append(contentsOf: [.recordHighFrameRateCapture])
             }
             if exposureProgrammeMode.current.isVideo {
                 
                 shootMode.current = .video
                 shootMode.available = [.video]
                 availableFunctions.append(contentsOf: [.startVideoRecording, .endVideoRecording])
-                let videoDisabledFunctions: [_CameraFunction] = [.takePicture, .startBulbCapture, .endBulbCapture, .endContinuousShooting, .startContinuousShooting,  .startHighFrameRateCapture]
+                let videoDisabledFunctions: [_CameraFunction] = [.takePicture, .startBulbCapture, .endBulbCapture, .endContinuousShooting, .startContinuousShooting,  .recordHighFrameRateCapture]
                 availableFunctions = availableFunctions.filter({
                     !videoDisabledFunctions.contains($0)
                 })
@@ -832,11 +843,19 @@ extension CameraEvent {
                 
                 // If exposure lock status is locked then we can start HFR capture!
                 if exposureSettingsLockStatus == .locked {
-                    availableFunctions.append(.startHighFrameRateCapture)
+                    availableFunctions.append(.recordHighFrameRateCapture)
+                }
+                
+                if recordingDurationGetSetAvailable == .getSet || exposureSettingsLockStatus == .recording {
+                    highFrameRateStatus = .recording
+                } else if exposureSettingsLockStatus == .buffering {
+                    highFrameRateStatus = .buffering
+                } else {
+                    highFrameRateStatus = .idle
                 }
             }
         }
-    
+            
         let event = CameraEvent(
             status: nil,
             liveViewInfo: nil,
@@ -879,7 +898,8 @@ extension CameraEvent {
             intervalTime: nil,
             colorSetting: nil,
             videoFileFormat: nil,
-            videoRecordingTime: nil,
+            videoRecordingTime: recordingDuration,
+            highFrameRateCaptureStatus: highFrameRateStatus,
             infraredRemoteControl: nil,
             tvColorSystem: nil,
             trackingFocusStatus: nil,
