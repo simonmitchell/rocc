@@ -24,6 +24,10 @@ extension SonyPTPIPDevice {
                     case .success(let properties):
                         let eventAndStillModes = CameraEvent.fromSonyDeviceProperties(properties)
                         var event = eventAndStillModes.event
+//                        print("""
+//                                GOT EVENT:
+//                                \(properties)
+//                                """)
                         self.lastStillCaptureModes = eventAndStillModes.stillCaptureModes
                         event.postViewPictureURLs = self.imageURLs[.photo].flatMap({ return [$0] })
                         event.continuousShootingURLS = self.imageURLs[.continuous]?.compactMap({ (url) -> (postView: URL, thumbnail: URL) in
@@ -392,6 +396,34 @@ extension SonyPTPIPDevice {
                     callback(nil, nil)
                 }
             )
+        case .recordHighFrameRateCapture:
+            self.ptpIPClient?.sendSetControlDeviceBValue(
+                PTP.DeviceProperty.Value(
+                    code: .movie,
+                    type: .uint16,
+                    value: Word(2)
+                ),
+                callback: { [weak self] (videoResponse) in
+                    guard !videoResponse.code.isError else {
+                        callback(PTPError.commandRequestFailed(videoResponse.code), HighFrameRateCapture.Status.idle as? T.ReturnType)
+                        return
+                    }
+                    callback(nil, HighFrameRateCapture.Status.buffering as? T.ReturnType)
+                    guard let self = self else { return }
+                    self.highFrameRateCallback = { [weak self] result in
+                        switch result {
+                        case .success(let status):
+                            callback(nil, status as? T.ReturnType)
+                            if status == .idle {
+                                self?.highFrameRateCallback = nil
+                            }
+                        case .failure(let error):
+                            callback(error, nil)
+                            self?.highFrameRateCallback = nil
+                        }
+                    }
+                }
+            )
         case .endVideoRecording:
             self.ptpIPClient?.sendSetControlDeviceBValue(
                 PTP.DeviceProperty.Value(
@@ -430,7 +462,29 @@ extension SonyPTPIPDevice {
                 }
             }
         case .startLiveView, .startLiveViewWithSize, .endLiveView:
-            callback(nil, apiDeviceInfo.liveViewURL as? T.ReturnType)
+            getDevicePropDescFor(propCode: .liveViewURL) { [weak self] (result) in
+                guard let self = self else { return }
+                switch result {
+                case .success(let property):
+                    guard let string = property.currentValue as? String, let url = URL(string: string) else {
+                        callback(nil, self.apiDeviceInfo.liveViewURL as? T.ReturnType)
+                        return
+                    }
+                    callback(nil, url as? T.ReturnType)
+                    
+                    // After the callback set the live view quality
+                    self.ptpIPClient?.sendSetControlDeviceAValue(
+                        PTP.DeviceProperty.Value(
+                            code: .liveViewQuality,
+                            type: .uint8,
+                            value: Byte(0x01)
+                        )
+                    )
+                    
+                case .failure(_):
+                    callback(nil, self.apiDeviceInfo.liveViewURL as? T.ReturnType)
+                }
+            }
         case .getLiveViewSize:
             // Doesn't seem to be available via PTP/IP
             callback(FunctionError.notSupportedByAvailableVersion, nil)
@@ -603,7 +657,44 @@ extension SonyPTPIPDevice {
                     callback(error, nil)
                 }
             })
-            return
+        case .getExposureSettingsLock:
+            getDevicePropDescFor(propCode: .exposureSettingsLockStatus) { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                    callback(nil, event.exposureSettingsLockStatus as? T.ReturnType)
+                case .failure(let error):
+                    callback(error, nil)
+                }
+            }
+        case .setExposureSettingsLock:
+
+            // This may seem strange, that to move to standby we set this value twice, but this is what works!
+            // It doesn't seem like we actually need the value at all, it just toggles it on this camera...
+            ptpIPClient?.sendSetControlDeviceBValue(
+                PTP.DeviceProperty.Value(
+                    code: .exposureSettingsLock,
+                    type: .uint16,
+                    value: Word(0x01)
+                ),
+                callback: { [weak self] (response) in
+                    guard let self = self else { return }
+                    guard !response.code.isError else {
+                        callback(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil, nil)
+                        return
+                    }
+                    self.ptpIPClient?.sendSetControlDeviceBValue(
+                        PTP.DeviceProperty.Value(
+                            code: .exposureSettingsLock,
+                            type: .uint16,
+                            value: Word(0x02)
+                        ),
+                        callback: { (innerResponse) in
+                            callback(innerResponse.code.isError ? PTPError.commandRequestFailed(innerResponse.code) : nil, nil)
+                        }
+                    )
+                }
+            )
         }
     }
 }

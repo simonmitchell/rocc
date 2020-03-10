@@ -43,7 +43,9 @@ extension PTPIPClient {
                 var offset: UInt = UInt(MemoryLayout<QWord>.size)
                 var properties: [PTPDeviceProperty] = []
                 for _ in 0..<numberOfProperties {
-                    guard let property = data.data.getDeviceProperty(at: offset) else { break }
+                    guard let property = data.data.getDeviceProperty(at: offset) else {
+                        break
+                    }
                     properties.append(property)
                     offset += property.length
                 }

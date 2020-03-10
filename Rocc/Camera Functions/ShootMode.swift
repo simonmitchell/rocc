@@ -28,6 +28,7 @@ public enum ShootingMode: String, CaseIterable {
     case continuous
     case loop
     case interval
+    case highFrameRate = "High Framerate"
 }
 
 /// Functions for configuring the shooting mode of the camera

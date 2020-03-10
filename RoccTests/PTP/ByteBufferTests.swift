@@ -15,8 +15,6 @@ class ByteBufferTests: XCTestCase {
 
         var byteBuffer = ByteBuffer(bytes: [])
         byteBuffer.append(Int64(1203))
-
-        print("Byte buffer", byteBuffer.toHex)
     }
 
     func testReadInt8() {

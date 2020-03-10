@@ -364,9 +364,44 @@ extension SonyPTPIPDevice {
             case .getStorageInformation:
                 //TODO: Implement
                 callback(false, nil, nil)
+            case .setExposureSettingsLock, .getExposureSettingsLock:
+                getDevicePropDescFor(propCode: .exposureSettingsLockStatus, callback: { (result) in
+                    switch result {
+                    case .success(let property):
+                        let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                        callback(event.availableFunctions?.contains(function.function), nil, nil)
+                    case .failure(let error):
+                        callback(false, error, nil)
+                    }
+                })
+            case .recordHighFrameRateCapture:
+                // Requires exposure programme mode and lock status to calculate accurately
+                getDevicePropDescFor(propCode: .exposureProgramMode) { [weak self] (exposureProgrammeResult) in
+                    
+                    guard let self = self else {
+                        callback(false, nil, nil)
+                        return
+                    }
+                    
+                    switch exposureProgrammeResult {
+                    case .success(let exposureModeProperty):
+                        self.getDevicePropDescFor(propCode: .exposureSettingsLockStatus, callback: { (exposureLockResult) in
+                            switch exposureLockResult {
+                            case .success(let exposureLockProperty):
+                                let event = CameraEvent.fromSonyDeviceProperties([exposureLockProperty, exposureModeProperty]).event
+                                callback(event.availableFunctions?.contains(function.function), nil, nil)
+                            case .failure(let error):
+                                callback(false, error, nil)
+                            }
+                        })
+                        
+                    case .failure(let error):
+                        callback(false, error, nil)
+                    }
+                }
+                callback(true, nil, nil)
             case .getEvent, .setCameraFunction, .getCameraFunction, .startRecordMode, .ping:
                 callback(true, nil, nil)
-                
             }
         }
 }

@@ -223,6 +223,9 @@ fileprivate extension ShootingMode {
             return "looprec"
         case .bulb:
             return "bulb"
+        case .highFrameRate:
+            // Not actually a thing... so should never be asked for this!
+            return "hfr"
         }
     }
 }
@@ -829,6 +832,7 @@ fileprivate extension CameraEvent {
         selfTimer = _selfTimer
         shootMode = _shootMode
         exposureCompensation = _exposureCompensation
+        exposureSettingsLockStatus = nil
         flashMode = _flashMode
         aperture = _aperture
         focusMode = _focusMode
@@ -863,8 +867,9 @@ fileprivate extension CameraEvent {
         bulbCapturingTime = _bulbCapturingTime
         bulbShootingUrl = _bulbShootingURL
         supportedFunctions = []
-        //PTP/IP thing!
+        //PTP/IP things!
         exposureModeDialControl = nil
+        highFrameRateCaptureStatus = nil
     }
 }
 

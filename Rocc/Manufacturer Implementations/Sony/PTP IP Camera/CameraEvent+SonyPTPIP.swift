@@ -23,6 +23,15 @@ extension Exposure.Mode.Value {
             return false
         }
     }
+    
+    var isHighFrameRate: Bool {
+        switch self {
+        case .highFrameRateManual, .highFrameRateProgrammedAuto, .highFrameRateShutterPriority, .highFrameRateAperturePriority:
+            return true
+        default:
+            return false
+        }
+    }
 }
 
 enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
@@ -184,6 +193,7 @@ extension CameraEvent {
         var stillSizeInfo: StillSizeInformation?
         var exposureMode: (current: Exposure.Mode.Value, available: [Exposure.Mode.Value], supported: [Exposure.Mode.Value])?
         var exposureModeDialControl: (current: Exposure.Mode.DialControl.Value, available: [Exposure.Mode.DialControl.Value], supported: [Exposure.Mode.DialControl.Value])?
+        var exposureSettingsLockStatus: Exposure.SettingsLock.Status?
         var selfTimer: (current: TimeInterval, available: [TimeInterval], supported: [TimeInterval])?
         var shootMode: (current: ShootingMode, available: [ShootingMode], supported: [ShootingMode]) = (.photo, [], [])
         var exposureCompensation: (current: Exposure.Compensation.Value, available: [Exposure.Compensation.Value], supported: [Exposure.Compensation.Value])?
@@ -199,7 +209,8 @@ extension CameraEvent {
         var batteryInfo: [BatteryInformation]?
         var stillQuality: (current: StillQuality, available: [StillQuality], supported: [StillQuality])?
         var stillFormat: (current: StillFormat, available: [StillFormat], supported: [StillFormat])?
-        
+        var recordingDuration: TimeInterval?
+        var recordingDurationGetSetAvailable: PTP.DeviceProperty.GetSetAvailable?
         var availableFunctions: [_CameraFunction] = []
         var supportedFunctions: [_CameraFunction] = []
         
@@ -283,6 +294,13 @@ extension CameraEvent {
                 let supported = enumProperty.supported.compactMap({ Exposure.Mode.DialControl.Value(sonyValue: $0) })
                 
                 exposureModeDialControl = (control, available, supported)
+                
+            case .exposureSettingsLockStatus:
+                
+                guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
+                    return
+                }
+                exposureSettingsLockStatus = Exposure.SettingsLock.Status(sonyValue: enumProperty.currentValue)
                 
             case .focusFound:
                 
@@ -648,6 +666,14 @@ extension CameraEvent {
                     supported: allSupportedSizes
                 )
                 
+            case .recordingDuration:
+                
+                recordingDurationGetSetAvailable = deviceProperty.getSetAvailable
+                
+                guard let duration = deviceProperty.currentValue.toInt else { return }
+                recordingDuration = TimeInterval(duration)
+                
+                
             case .remainingShots:
                 
                 guard let shots = deviceProperty.currentValue.toInt else { return }
@@ -788,23 +814,48 @@ extension CameraEvent {
             shootMode.current = .bulb
         }
         
-        // If we have exposure program mode, and is video, update current shoot mode
+        var highFrameRateStatus: HighFrameRateCapture.Status?
+        
+        // Manually handle certain exposure modes to make new functions available!
         if let exposureProgrammeMode = exposureMode {
             if exposureProgrammeMode.supported.contains(where: { $0.isVideo }), !shootMode.supported.contains(.video) {
                 shootMode.supported.append(.video)
                 supportedFunctions.append(contentsOf: [.startVideoRecording, .endVideoRecording])
             }
+            if exposureProgrammeMode.supported.contains(where: { $0.isHighFrameRate }), !shootMode.supported.contains(.highFrameRate) {
+                shootMode.supported.append(.highFrameRate)
+                supportedFunctions.append(contentsOf: [.recordHighFrameRateCapture])
+            }
             if exposureProgrammeMode.current.isVideo {
+                
                 shootMode.current = .video
                 shootMode.available = [.video]
                 availableFunctions.append(contentsOf: [.startVideoRecording, .endVideoRecording])
-                let videoDisabledFunctions: [_CameraFunction] = [.takePicture, .startBulbCapture, .endBulbCapture, .endContinuousShooting, .startContinuousShooting]
+                let videoDisabledFunctions: [_CameraFunction] = [.takePicture, .startBulbCapture, .endBulbCapture, .endContinuousShooting, .startContinuousShooting,  .recordHighFrameRateCapture]
                 availableFunctions = availableFunctions.filter({
                     !videoDisabledFunctions.contains($0)
                 })
+                
+            } else if exposureProgrammeMode.current.isHighFrameRate {
+                
+                shootMode.current = .highFrameRate
+                shootMode.available = [.highFrameRate]
+                
+                // If exposure lock status is locked then we can start HFR capture!
+                if exposureSettingsLockStatus == .locked {
+                    availableFunctions.append(.recordHighFrameRateCapture)
+                }
+                
+                if recordingDurationGetSetAvailable == .getSet || exposureSettingsLockStatus == .recording {
+                    highFrameRateStatus = .recording
+                } else if exposureSettingsLockStatus == .buffering {
+                    highFrameRateStatus = .buffering
+                } else {
+                    highFrameRateStatus = .idle
+                }
             }
         }
-    
+            
         let event = CameraEvent(
             status: nil,
             liveViewInfo: nil,
@@ -822,6 +873,7 @@ extension CameraEvent {
             viewAngle: nil,
             exposureMode: exposureMode,
             exposureModeDialControl: exposureModeDialControl,
+            exposureSettingsLockStatus: exposureSettingsLockStatus,
             postViewImageSize: nil,
             selfTimer: selfTimer,
             shootMode: shootMode,
@@ -846,7 +898,8 @@ extension CameraEvent {
             intervalTime: nil,
             colorSetting: nil,
             videoFileFormat: nil,
-            videoRecordingTime: nil,
+            videoRecordingTime: recordingDuration,
+            highFrameRateCaptureStatus: highFrameRateStatus,
             infraredRemoteControl: nil,
             tvColorSystem: nil,
             trackingFocusStatus: nil,

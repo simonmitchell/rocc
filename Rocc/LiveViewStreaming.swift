@@ -140,6 +140,9 @@ public final class LiveViewStream: NSObject {
     /// Whether the stream is currently running
     public var isStreaming: Bool = false
     
+    /// Whether the stream is currently starting
+    public var isStarting: Bool = false
+    
     /// The size of the stream (M/L)
     public var streamSize: String?
     
@@ -170,6 +173,8 @@ public final class LiveViewStream: NSObject {
             return
         }
         #endif
+        
+        isStarting = true
         
         Logger.log(message: "Starting live view stream", category: "LiveViewStreaming")
         os_log("Starting live view stream", log: log, type: .debug)
@@ -226,10 +231,14 @@ public final class LiveViewStream: NSObject {
         os_log("Beggining live view stream from %@", log: log, type: .debug, url.absoluteString)
         
         isPacketedStream = false
+        isStarting = false
         isStreaming = true
-        //TODO: CREATE AND SEND A DELEGATE QUEUE HERE
-        streamingSession = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
-        let request = URLRequest(url: url)
+        
+        let config = URLSessionConfiguration.ephemeral
+        config.requestCachePolicy = .reloadIgnoringLocalCacheData
+        config.urlCache = nil
+        streamingSession = URLSession(configuration: config, delegate: self, delegateQueue: nil)
+        let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData)
         
         receivedData = Data()
         dataTask = streamingSession?.dataTask(with: request)
@@ -443,7 +452,7 @@ public final class LiveViewStream: NSObject {
         guard data.count > 2 else { return nil }
         
         var offset: Int = 0
-        var startImageOffset: Int = 0
+        var startImageOffset: Int?
         
         var payloads: [Payload] = []
         
@@ -467,22 +476,32 @@ public final class LiveViewStream: NSObject {
                 offset += 1
                 // End of image marker!
             case 0xd9:
-                let imageRange: Range<Int> = startImageOffset..<offset+2
+                guard let _startImageOffset = startImageOffset else {
+                    offset += 1
+                    continue
+                }
+                let imageRange: Range<Int> = _startImageOffset..<offset+2
                 let imageData = Data(data[imageRange])
                 guard let image = Image(data: imageData) else {
                     offset += 1
                     continue
                 }
                 offset += 1
+                // Set this back to nil so don't end up corrupting our data again
+                startImageOffset = nil
                 let payload = Payload(image: image, dataRange: imageRange)
                 payloads.append(payload)
             default:
+                guard startImageOffset != nil else {
+                    offset += 1
+                    continue
+                }
                 // We're going to read two bytes, so make sure we won't get out of bounds!
                 guard offset < data.count -  4 else {
                     offset += 1
                     continue
                 }
-                guard let length = UInt16(data: data[offset+2..<offset+4]) else {
+                guard let length = UInt16(data: data[offset+2..<offset+4]), length > 2 else {
                     offset += 1
                     continue
                 }

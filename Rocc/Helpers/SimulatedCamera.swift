@@ -267,6 +267,7 @@ public final class DummyCamera: Camera {
             viewAngle: nil,
             exposureMode: nil,
             exposureModeDialControl: nil,
+            exposureSettingsLockStatus: nil,
             postViewImageSize: nil,
             selfTimer: (current: currentSelfTimer, available: [0.0, 2.0, 5.0], supported: [0.0, 2.0, 5.0]),
             shootMode: (current: currentShootMode, available: [.photo, .continuous, .timelapse, .video, .continuous, .bulb], supported: [.photo, .continuous, .timelapse, .video, .continuous, .bulb]),
@@ -323,6 +324,7 @@ public final class DummyCamera: Camera {
             colorSetting: nil,
             videoFileFormat: nil,
             videoRecordingTime: nil,
+            highFrameRateCaptureStatus: nil,
             infraredRemoteControl: nil,
             tvColorSystem: nil,
             trackingFocusStatus: nil,
@@ -339,9 +341,7 @@ public final class DummyCamera: Camera {
     }
     
     public func performFunction<T>(_ function: T, payload: T.SendType?, callback: @escaping ((Error?, T.ReturnType?) -> Void)) where T : CameraFunction {
-        
-        print("Performing Function: ", function.function)
-        
+                
         switch function.function {
         case .listSchemes:
             callback(nil, ["scheme"] as? T.ReturnType)

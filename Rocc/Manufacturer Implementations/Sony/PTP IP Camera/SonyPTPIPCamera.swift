@@ -42,6 +42,8 @@ internal final class SonyPTPIPDevice: SonyCamera {
     var onDisconnected: (() -> Void)?
     
     var zoomingDirection: Zoom.Direction?
+    
+    var highFrameRateCallback: ((Result<HighFrameRateCapture.Status, Error>) -> Void)?
         
     var eventPollingMode: PollingMode {
         guard let deviceInfo = deviceInfo else { return .timed }
@@ -104,15 +106,19 @@ internal final class SonyPTPIPDevice: SonyCamera {
         
         super.init(dictionary: dictionary)
         
-        name = dictionary["friendlyName"] as? String
-
-        if let model = model {
-            modelEnum = Model(rawValue: model)
+        let _name = dictionary["friendlyName"] as? String
+        let _modelEnum: SonyCamera.Model?
+        if let _name = _name {
+            _modelEnum = SonyCamera.Model(rawValue: _name)
         } else {
-            modelEnum = nil
+            _modelEnum = nil
         }
-
-        model = modelEnum?.friendlyName
+                
+        name = _modelEnum?.friendlyName ?? _name
+        manufacturer = dictionary["manufacturer"] as? String ?? "Sony"
+                
+        modelEnum = _modelEnum
+        model = modelEnum?.friendlyName        
     }
     
     var isConnected: Bool = false
@@ -351,6 +357,7 @@ extension SonyPTPIPDevice: Camera {
         lastEventPacket = nil
         lastStillCaptureModes = nil
         zoomingDirection = nil
+        highFrameRateCallback = nil
         
         ptpIPClient?.connect(callback: { [weak self] (error) in
             self?.sendStartSessionPacket(completion: completion)
@@ -450,7 +457,8 @@ extension SonyPTPIPDevice: Camera {
     func bestStillCaptureMode(for shootMode: ShootingMode) -> SonyStillCaptureMode? {
                 
         switch shootMode {
-        case .video:
+        case .video, .highFrameRate:
+            //TODO: Check if this is correct for HFR
             return .single
         case .audio, .loop, .interval:
             return nil
@@ -639,6 +647,10 @@ extension SonyPTPIPDevice: Camera {
     }
     
     func handleEvent(event: CameraEvent) {
-        lastEvent = event
+        defer {
+            lastEvent = event
+        }
+        guard let highFrameRateStatus = event.highFrameRateCaptureStatus, highFrameRateStatus != lastEvent?.highFrameRateCaptureStatus else { return }
+        highFrameRateCallback?(Result.success(highFrameRateStatus))
     }
 }

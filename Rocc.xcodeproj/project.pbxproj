@@ -124,6 +124,8 @@
 		B1D358F920AA34CF0069C698 /* LiveViewStreaming.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D358F820AA34CF0069C698 /* LiveViewStreaming.swift */; };
 		B1D3591120AADC810069C698 /* Data+Conversion.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D3591020AADC810069C698 /* Data+Conversion.swift */; };
 		B1D606542181225E001719EC /* UDPDeviceDiscoverer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1D606532181225E001719EC /* UDPDeviceDiscoverer.swift */; };
+		B1E0707D2413A66100760AC5 /* ExposureSettingsLockStatus+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1E0707C2413A66100760AC5 /* ExposureSettingsLockStatus+SonyPTPPropValueConvertable.swift */; };
+		B1E0707E2413A66100760AC5 /* ExposureSettingsLockStatus+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1E0707C2413A66100760AC5 /* ExposureSettingsLockStatus+SonyPTPPropValueConvertable.swift */; };
 		B1EADA2F23781AE9000B7B36 /* FocusMode+SonyPTPPropValueConvertable.swift.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EADA2E23781AE9000B7B36 /* FocusMode+SonyPTPPropValueConvertable.swift.swift */; };
 		B1EADA3923795401000B7B36 /* ExposureMode+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EADA3823795401000B7B36 /* ExposureMode+SonyPTPPropValueConvertable.swift */; };
 		B1EF4C8820A24B6300EEDE3E /* InfraredRemoteControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EF4C8220A24B6300EEDE3E /* InfraredRemoteControl.swift */; };
@@ -328,6 +330,7 @@
 		B1D358F820AA34CF0069C698 /* LiveViewStreaming.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveViewStreaming.swift; sourceTree = "<group>"; };
 		B1D3591020AADC810069C698 /* Data+Conversion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data+Conversion.swift"; sourceTree = "<group>"; };
 		B1D606532181225E001719EC /* UDPDeviceDiscoverer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UDPDeviceDiscoverer.swift; sourceTree = "<group>"; };
+		B1E0707C2413A66100760AC5 /* ExposureSettingsLockStatus+SonyPTPPropValueConvertable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ExposureSettingsLockStatus+SonyPTPPropValueConvertable.swift"; sourceTree = "<group>"; };
 		B1EADA2E23781AE9000B7B36 /* FocusMode+SonyPTPPropValueConvertable.swift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FocusMode+SonyPTPPropValueConvertable.swift.swift"; sourceTree = "<group>"; };
 		B1EADA3823795401000B7B36 /* ExposureMode+SonyPTPPropValueConvertable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ExposureMode+SonyPTPPropValueConvertable.swift"; sourceTree = "<group>"; };
 		B1EF4C8220A24B6300EEDE3E /* InfraredRemoteControl.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InfraredRemoteControl.swift; sourceTree = "<group>"; };
@@ -485,6 +488,7 @@
 			children = (
 				B182B8E3237FF97D0054539E /* ContinuousShootingSpeed+SonyPTPPropValueConvertable.swift */,
 				B1AEE51E2376C3DE00224152 /* ExposureCompensation+SonyPTPPropValueConvertable.swift */,
+				B1E0707C2413A66100760AC5 /* ExposureSettingsLockStatus+SonyPTPPropValueConvertable.swift */,
 				B1EADA3823795401000B7B36 /* ExposureMode+SonyPTPPropValueConvertable.swift */,
 				B1AEE50C2375D19A00224152 /* ApertureValue+SonyPTPPropValueConvertable.swift */,
 				B1AEE5062375CB5000224152 /* ISOValue+SonyPTPPropValueConvertable.swift */,
@@ -1029,6 +1033,7 @@
 				B1F7CEBA236CD326007E3921 /* PTPIPClient.swift in Sources */,
 				B19BD2962413C3C700111539 /* FunctionNames.swift in Sources */,
 				B1FB486F2092585400C33C86 /* SonyAPICamera.swift in Sources */,
+				B1E0707D2413A66100760AC5 /* ExposureSettingsLockStatus+SonyPTPPropValueConvertable.swift in Sources */,
 				B1FB48092090964100C33C86 /* BaseServiceClient.swift in Sources */,
 				B180A7DF236F320F001AAF5D /* DataPacket.swift in Sources */,
 				B1A25F2121ADE6CE00D9EE81 /* ShutterSpeedFormatter.swift in Sources */,
