@@ -341,9 +341,7 @@ public final class DummyCamera: Camera {
     }
     
     public func performFunction<T>(_ function: T, payload: T.SendType?, callback: @escaping ((Error?, T.ReturnType?) -> Void)) where T : CameraFunction {
-        
-        print("Performing Function: ", function.function)
-        
+                
         switch function.function {
         case .listSchemes:
             callback(nil, ["scheme"] as? T.ReturnType)

@@ -242,7 +242,6 @@ public final class LiveViewStream: NSObject {
         
         receivedData = Data()
         dataTask = streamingSession?.dataTask(with: request)
-        print("[LiveViewStreaming] data task \(dataTask)")
         dataTask?.resume()
     }
     

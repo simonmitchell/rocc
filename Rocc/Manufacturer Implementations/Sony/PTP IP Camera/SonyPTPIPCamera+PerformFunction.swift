@@ -24,10 +24,10 @@ extension SonyPTPIPDevice {
                     case .success(let properties):
                         let eventAndStillModes = CameraEvent.fromSonyDeviceProperties(properties)
                         var event = eventAndStillModes.event
-                        print("""
-                                GOT EVENT:
-                                \(properties)
-                                """)
+//                        print("""
+//                                GOT EVENT:
+//                                \(properties)
+//                                """)
                         self.lastStillCaptureModes = eventAndStillModes.stillCaptureModes
                         event.postViewPictureURLs = self.imageURLs[.photo].flatMap({ return [$0] })
                         event.continuousShootingURLS = self.imageURLs[.continuous]?.compactMap({ (url) -> (postView: URL, thumbnail: URL) in
