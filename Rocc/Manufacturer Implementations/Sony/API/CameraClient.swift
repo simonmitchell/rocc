@@ -202,6 +202,182 @@ fileprivate extension ISO.Value {
     }
 }
 
+fileprivate extension VideoCapture.Quality.Value {
+    
+    init?(sonyString: String) {
+        // Some cases are missing here as they are not documented by Sony...
+        switch sonyString.lowercased() {
+        case "ps":
+            self = .ps
+        case "hq":
+            self = .hq
+        case "std":
+            self = .std
+        case "vga":
+            self = .vga
+        case "slow":
+            self = .slow
+        case "sslow":
+            self = .sslow
+        case "hs120":
+            self = .hs120
+        case "hs100":
+            self = .hs100
+        case "hs240":
+            self = .hs240
+        case "hs200":
+            self = .hs200
+        case "50m 60p":
+            self = ._60p_50m
+        case "50m 50p":
+            self = ._50p_50m
+        case "50m 30p":
+            self = ._30p_50m
+        case "50m 25p":
+            self = ._25p_50m
+        case "50m 24p":
+            self = ._24p_50m
+        case "100m 120p":
+            self = ._120p_100m
+        case "100m 100p":
+            self = ._100p_100m
+        case "60m 120p":
+            self = ._120p_60m
+        case "60m 100p":
+            self = ._100p_60m
+        case "100m 240p":
+            self = ._240p_100m
+        case "100m 200p":
+            self = ._200p_100m
+        case "60m 240p":
+            self = ._240p_60m
+        case "60m 200p":
+            self = ._200p_60m
+        case "100m 30p":
+            self = ._30p_100m
+        case "100m 25p":
+            self = ._25p_100m
+        case "100m 24p":
+            self = ._24p_100m
+        case "60m 30p":
+            self = ._30p_60m
+        case "60m 25p":
+            self = ._25p_60m
+        case "60m 24p":
+            self = ._24p_60m
+            // Below are guesses based on the above formatting...
+        case "50m 120p":
+            self = ._120p_50m
+        case "50m 100p":
+            self = ._100p_50m
+        case "16m 30p":
+            self = ._30p_16m
+        case "16m 25p":
+            self = ._25p_16m
+        case "6m 30p":
+            self = ._30p_6m
+        case "6m 25p":
+            self = ._25p_6m
+        case "28m 60p":
+            self = ._60p_28m
+        case "28m 50p":
+            self = ._50p_28m
+        case "25m 60p":
+            self = ._60p_25m
+        case "25m 50p":
+            self = ._50p_25m
+        default:
+            return nil
+        }
+    }
+    
+    var sonyString: String {
+        switch self {
+            // Some cases are missing here as they are not documented by Sony...
+        case .none, ._24p_24m_fx, ._25p_24m_fx, ._50i_24m_fx, ._60i_24m_fx, ._50p_28m_ps, ._60p_28m_ps, ._24p_17m_fh, ._25p_17m_fh, ._50i_17m_fh, ._60i_17m_fh:
+            return ""
+        case .ps:
+            return "PS"
+        case .hq:
+            return "HQ"
+        case .std:
+            return "STD"
+        case .vga:
+            return "VGA"
+        case .slow:
+            return "SLOW"
+        case .sslow:
+            return "SSLOW"
+        case .hs120:
+            return "HS120"
+        case .hs100:
+            return "HS100"
+        case .hs240:
+            return "HS240"
+        case .hs200:
+            return "HS200"
+        case ._120p_50m:
+            return "50M 120p"
+        case ._100p_50m:
+            return "50M 100p"
+        case ._60p_50m:
+            return "50M 60p"
+        case ._50p_50m:
+            return "50M 50p"
+        case ._30p_50m:
+            return "50M 30p"
+        case ._25p_50m:
+            return "50M 25p"
+        case ._24p_50m:
+            return "50M 24p"
+        case ._120p_100m:
+            return "100M 120p"
+        case ._100p_100m:
+            return "100M 100p"
+        case ._120p_60m:
+            return "60M 120p"
+        case ._100p_60m:
+            return "60M 100p"
+        case ._240p_100m:
+            return "100M 240p"
+        case ._200p_100m:
+            return "100M 200p"
+        case ._240p_60m:
+            return "60M 240p"
+        case ._200p_60m:
+            return "60M 200p"
+        case ._30p_100m:
+            return "100M 30p"
+        case ._25p_100m:
+            return "100M 25p"
+        case ._24p_100m:
+            return "100M 24p"
+        case ._30p_60m:
+            return "60M 30p"
+        case ._25p_60m:
+            return "60M 25p"
+        case ._24p_60m:
+            return "60M 24p"
+        case ._60p_28m:
+            return "28M 60p"
+        case ._50p_28m:
+            return "28M 50p"
+        case ._60p_25m:
+            return "25M 60p"
+        case ._50p_25m:
+            return "25M 50p"
+        case ._30p_16m, ._30p_16m_alt:
+            return "16M 30p"
+        case ._25p_16m, ._25p_16m_alt:
+            return "16M 25p"
+        case ._30p_6m:
+            return "6M 30p"
+        case ._25p_6m:
+            return "6M 25p"
+        }
+    }
+}
+
 fileprivate extension VideoCapture.FileFormat.Value {
     
     init?(sonyString: String) {
@@ -550,7 +726,7 @@ fileprivate extension CameraEvent {
         var _beepMode: (current: String, available: [String], supported: [String])?
         var _function: (current: String, available: [String], supported: [String])?
         var _functionResult: Bool = false
-        var _videoQuality: (current: String, available: [String], supported: [String])?
+        var _videoQuality: (current: VideoCapture.Quality.Value, available: [VideoCapture.Quality.Value], supported: [VideoCapture.Quality.Value])?
         var _stillSizeInfo: StillSizeInformation?
         var _steadyMode: (current: String, available: [String], supported: [String])?
         var _viewAngle: (current: Double, available: [Double], supported: [Double])?
@@ -639,8 +815,9 @@ fileprivate extension CameraEvent {
                     guard let current = dictionaryElement["currentCameraFunction"] as? String, let candidates = dictionaryElement["cameraFunctionCandidates"] as? [String] else { return }
                     _function = (current, candidates, candidates)
                 case "movieQuality":
-                    guard let current = dictionaryElement["currentMovieQuality"] as? String, let candidates = dictionaryElement["movieQualityCandidates"] as? [String] else { return }
-                    _videoQuality = (current, candidates, candidates)
+                    guard let current = dictionaryElement["currentMovieQuality"] as? String, let candidates = dictionaryElement["movieQualityCandidates"] as? [String], let currentEnum = VideoCapture.Quality.Value(sonyString: current) else { return }
+                    let enumCandidates = candidates.compactMap({ VideoCapture.Quality.Value(sonyString: $0) })
+                    _videoQuality = (currentEnum, enumCandidates, enumCandidates)
                 case "stillSize":
                     guard let check = dictionaryElement["checkAvailability"] as? Bool, let currentAspect = dictionaryElement["currentAspect"] as? String, let currentSize = dictionaryElement["currentSize"] as? String else { return }
                     _stillSizeInfo = StillSizeInformation(shouldCheck: check, stillSize: StillCapture.Size.Value(aspectRatio: currentAspect, size: currentSize), available: nil, supported: nil)
@@ -3334,9 +3511,9 @@ internal class CameraClient: ServiceClient {
     
     //MARK: Quality
     
-    typealias MovieQualitiesCompletion = (_ result: Result<[String], Error>) -> Void
+    typealias MovieQualitiesCompletion = (_ result: Result<[VideoCapture.Quality.Value], Error>) -> Void
     
-    typealias MovieQualityCompletion = (_ result: Result<String, Error>) -> Void
+    typealias MovieQualityCompletion = (_ result: Result<VideoCapture.Quality.Value, Error>) -> Void
     
     func getSupportedMovieQualities(_ completion: @escaping MovieQualitiesCompletion) {
         
@@ -3354,7 +3531,7 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            completion(Result.success(supported))
+            completion(Result.success(supported.compactMap({ VideoCapture.Quality.Value(sonyString: $0) })))
         }
     }
     
@@ -3374,13 +3551,13 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            completion(Result.success(available))
+            completion(Result.success(available.compactMap({ VideoCapture.Quality.Value(sonyString: $0) })))
         }
     }
     
-    func setMovieQuality(_ quality: String, completion: @escaping GenericCompletion) {
+    func setMovieQuality(_ quality: VideoCapture.Quality.Value, completion: @escaping GenericCompletion) {
         
-        let body = SonyRequestBody(method: "setMovieQuality", params: [quality], id: 1, version: "1.0")
+        let body = SonyRequestBody(method: "setMovieQuality", params: [quality.sonyString], id: 1, version: "1.0")
         
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             completion(error ?? CameraError(responseDictionary: response?.dictionary, methodName: "setMovieQuality"))
@@ -3402,8 +3579,12 @@ internal class CameraClient: ServiceClient {
                 completion(Result.failure(CameraError.invalidResponse("getMovieQuality")))
                 return
             }
+            guard let qualityEnum = VideoCapture.Quality.Value(sonyString: quality) else {
+                completion(Result.failure(CameraError.invalidResponse("getMovieQuality")))
+                return
+            }
             
-            completion(Result.success(quality))
+            completion(Result.success(qualityEnum))
         }
     }
     

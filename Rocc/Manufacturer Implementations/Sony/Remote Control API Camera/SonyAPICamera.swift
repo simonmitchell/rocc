@@ -2506,7 +2506,7 @@ extension SonyAPICameraDevice: Camera {
                 
             case .setVideoQuality:
                 
-                guard let quality = payload as? String else {
+                guard let quality = payload as? VideoCapture.Quality.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }

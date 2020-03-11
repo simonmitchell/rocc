@@ -103,7 +103,7 @@ extension SonyPTPIPDevice {
         case .setContinuousShootingMode:
             // This isn't a thing via PTP according to Sony's app (Instead we just have multiple continuous shooting speeds) so we just don't do anything!
             callback(nil, nil)
-        case .setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setFocusMode, .setExposureMode, .setExposureModeDialControl, .setFlashMode, .setContinuousShootingSpeed, .setStillQuality, .setStillFormat, .setVideoFileFormat:
+        case .setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setFocusMode, .setExposureMode, .setExposureModeDialControl, .setFlashMode, .setContinuousShootingSpeed, .setStillQuality, .setStillFormat, .setVideoFileFormat, .setVideoQuality:
             guard let value = payload as? SonyPTPPropValueConvertable else {
                 callback(FunctionError.invalidPayload, nil)
                 return
@@ -569,12 +569,16 @@ extension SonyPTPIPDevice {
                     callback(error, nil)
                 }
             })
-        case .setVideoQuality:
-            //TODO: Implement
-            callback(nil, nil)
         case .getVideoQuality:
-            //TODO: Implement
-            callback(nil, nil)
+            getDevicePropDescFor(propCode: .movieQuality, callback: { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                    callback(nil, event.videoQuality?.current as? T.ReturnType)
+                case .failure(let error):
+                    callback(error, nil)
+                }
+            })
         case .setSteadyMode:
             //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(nil, nil)

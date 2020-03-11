@@ -166,7 +166,7 @@ public struct CameraEvent {
     public let functionResult: Bool
     
     /// The video quality the camera is setup to record in, and available values to set it to.
-    public let videoQuality: (current: String, available: [String], supported: [String])?
+    public let videoQuality: (current: VideoCapture.Quality.Value, available: [VideoCapture.Quality.Value], supported: [VideoCapture.Quality.Value])?
     
     /// Information about the still size the camera is shooting in.
     public let stillSizeInfo: StillSizeInformation?

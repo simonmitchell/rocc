@@ -448,6 +448,10 @@ extension SonyPTPIPDevice: Camera {
             setShutterSpeedAwayFromBulbIfRequired() { [weak self] (_) in
                 self?.setToShootModeIfRequired(.loop, callback)
             }
+        case .recordHighFrameRateCapture:
+            setShutterSpeedAwayFromBulbIfRequired() { [weak self] (_) in
+                self?.setToShootModeIfRequired(.highFrameRate, callback)
+            }
         default:
             callback(nil)
         }
@@ -456,10 +460,9 @@ extension SonyPTPIPDevice: Camera {
     func bestStillCaptureMode(for shootMode: ShootingMode) -> SonyStillCaptureMode? {
                 
         switch shootMode {
-        case .video, .highFrameRate:
-            //TODO: Check if this is correct for HFR
+        case .video:
             return .single
-        case .audio, .loop, .interval:
+        case .audio, .loop, .interval, .highFrameRate:
             return nil
         case .photo, .timelapse, .bulb:
             return .single

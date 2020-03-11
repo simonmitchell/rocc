@@ -326,8 +326,15 @@ extension SonyPTPIPDevice {
                 }
             }
         case .setVideoQuality, .getVideoQuality:
-            //TODO: Implement
-            callback(false, nil, nil)
+            getDevicePropDescFor(propCode: .movieQuality) { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                    callback(event.supportedFunctions?.contains(function.function), nil, event.videoQuality?.supported as? [T.SendType])
+                case .failure(let error):
+                    callback(false, error, nil)
+                }
+            }
         case .setSteadyMode, .getSteadyMode:
             //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(false, nil, nil)

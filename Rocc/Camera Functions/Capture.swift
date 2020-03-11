@@ -261,11 +261,67 @@ public struct VideoCapture: CameraFunction {
     /// Functions for controlling the quality of video recording
     public struct Quality: CameraFunction {
         
+        /// Values for Video Capture file quality
+        public enum Value {
+            case none
+            case ps
+            case hq
+            case std
+            case vga
+            case slow
+            case sslow
+            case hs120
+            case hs100
+            case hs240
+            case hs200
+            case _120p_50m
+            case _100p_50m
+            case _60p_50m
+            case _50p_50m
+            case _30p_50m
+            case _25p_50m
+            case _24p_50m
+            case _120p_100m
+            case _100p_100m
+            case _120p_60m
+            case _100p_60m
+            case _240p_100m
+            case _200p_100m
+            case _240p_60m
+            case _200p_60m
+            case _30p_100m
+            case _25p_100m
+            case _24p_100m
+            case _30p_60m
+            case _25p_60m
+            case _24p_60m
+            case _60p_28m
+            case _50p_28m
+            case _60p_25m
+            case _50p_25m
+            case _30p_16m
+            case _25p_16m
+            case _30p_16m_alt
+            case _25p_16m_alt
+            case _30p_6m
+            case _25p_6m
+            case _60i_24m_fx
+            case _50i_24m_fx
+            case _60i_17m_fh
+            case _50i_17m_fh
+            case _60p_28m_ps
+            case _50p_28m_ps
+            case _24p_24m_fx
+            case _25p_24m_fx
+            case _24p_17m_fh
+            case _25p_17m_fh
+        }
+        
         public var function: _CameraFunction
         
-        public typealias SendType = String
+        public typealias SendType = Value
         
-        public typealias ReturnType = String
+        public typealias ReturnType = Value
         
         /// Gets the current video recording quality
         public static let get = Quality(function: .setVideoQuality)
