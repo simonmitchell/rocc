@@ -89,7 +89,7 @@ enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
     case droBracketHigh = 0x00078029
     case droBracketLow = 0x00078019
     
-    var continuousShootingMode: ContinuousShootingMode? {
+    var continuousShootingMode: ContinuousCapture.Mode.Value? {
         switch self {
         case .continuous, .continuousS, .continuousLow, .continuousHigh, .continuousHighPlus:
             return .continuous
@@ -98,7 +98,7 @@ enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
         }
     }
     
-    var continuousShootingSpeed: ContinuousShootingSpeed? {
+    var continuousShootingSpeed: ContinuousCapture.Speed.Value? {
         switch self {
         case .continuous:
             return .regular
@@ -204,13 +204,14 @@ extension CameraEvent {
         var shutterSpeed: (current: ShutterSpeed, available: [ShutterSpeed], supported: [ShutterSpeed])?
         var whiteBalance: WhiteBalanceInformation?
         var focusStatus: FocusStatus?
-        var continuousShootingMode: (current: ContinuousShootingMode?, available: [ContinuousShootingMode], supported: [ContinuousShootingMode])?
-        var continuousShootingSpeed: (current: ContinuousShootingSpeed?, available: [ContinuousShootingSpeed], supported: [ContinuousShootingSpeed])?
+        var continuousShootingMode: (current: ContinuousCapture.Mode.Value?, available: [ContinuousCapture.Mode.Value], supported: [ContinuousCapture.Mode.Value])?
+        var continuousShootingSpeed: (current: ContinuousCapture.Speed.Value?, available: [ContinuousCapture.Speed.Value], supported: [ContinuousCapture.Speed.Value])?
         var batteryInfo: [BatteryInformation]?
-        var stillQuality: (current: StillQuality, available: [StillQuality], supported: [StillQuality])?
-        var stillFormat: (current: StillFormat, available: [StillFormat], supported: [StillFormat])?
+        var stillQuality: (current: StillCapture.Quality.Value, available: [StillCapture.Quality.Value], supported: [StillCapture.Quality.Value])?
+        var stillFormat: (current: StillCapture.Format.Value, available: [StillCapture.Format.Value], supported: [StillCapture.Format.Value])?
         var recordingDuration: TimeInterval?
         var recordingDurationGetSetAvailable: PTP.DeviceProperty.GetSetAvailable?
+        var videoFileFormat: (current: VideoCapture.FileFormat.Value, available: [VideoCapture.FileFormat.Value], supported: [VideoCapture.FileFormat.Value])?
         var availableFunctions: [_CameraFunction] = []
         var supportedFunctions: [_CameraFunction] = []
         
@@ -514,11 +515,11 @@ extension CameraEvent {
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
                 }
-                guard let value = StillFormat(sonyValue: deviceProperty.currentValue) else {
+                guard let value = StillCapture.Format.Value(sonyValue: deviceProperty.currentValue) else {
                     return
                 }
-                let available = enumProperty.available.compactMap({ StillFormat(sonyValue: $0) })
-                let supported = enumProperty.supported.compactMap({ StillFormat(sonyValue: $0) })
+                let available = enumProperty.available.compactMap({ StillCapture.Format.Value(sonyValue: $0) })
+                let supported = enumProperty.supported.compactMap({ StillCapture.Format.Value(sonyValue: $0) })
                 stillFormat = (value, available, supported)
                 
             case .stillQuality:
@@ -526,11 +527,11 @@ extension CameraEvent {
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
                 }
-                guard let value = StillQuality(sonyValue: deviceProperty.currentValue) else {
+                guard let value = StillCapture.Quality.Value(sonyValue: deviceProperty.currentValue) else {
                     return
                 }
-                let available = enumProperty.available.compactMap({ StillQuality(sonyValue: $0) })
-                let supported = enumProperty.supported.compactMap({ StillQuality(sonyValue: $0) })
+                let available = enumProperty.available.compactMap({ StillCapture.Quality.Value(sonyValue: $0) })
+                let supported = enumProperty.supported.compactMap({ StillCapture.Quality.Value(sonyValue: $0) })
                 stillQuality = (value, available, supported)
                 
             case .fNumber:
@@ -563,7 +564,7 @@ extension CameraEvent {
                     return
                 }
                 
-                var currentSize = StillSize(aspectRatio: nil, size: size)
+                var currentSize = StillCapture.Size.Value(aspectRatio: nil, size: size)
                 
                 let availableSizes: [String] = enumProperty.available.compactMap({
                     switch $0.toInt {
@@ -595,10 +596,10 @@ extension CameraEvent {
                     stillSizeInfo = StillSizeInformation(
                         shouldCheck: false,
                         stillSize: currentSize,
-                        available: availableSizes.compactMap({ StillSize(aspectRatio: nil, size: $0)
+                        available: availableSizes.compactMap({ StillCapture.Size.Value(aspectRatio: nil, size: $0)
                         }),
                         supported: supportedSizes.compactMap({
-                            StillSize(aspectRatio: nil, size: $0)
+                            StillCapture.Size.Value(aspectRatio: nil, size: $0)
                         })
                     )
                     return
@@ -616,7 +617,7 @@ extension CameraEvent {
                     ratio = nil
                 }
                 
-                currentSize = StillSize(aspectRatio: ratio, size: currentSize.size)
+                currentSize = StillCapture.Size.Value(aspectRatio: ratio, size: currentSize.size)
                 
                 let availableRatios: [String] = ratioProperty.available.compactMap({
                     switch $0.toInt {
@@ -644,18 +645,18 @@ extension CameraEvent {
                     }
                 })
                 
-                var allAvailableSizes: [StillSize] = []
-                var allSupportedSizes: [StillSize] = []
+                var allAvailableSizes: [StillCapture.Size.Value] = []
+                var allSupportedSizes: [StillCapture.Size.Value] = []
                 
                 availableSizes.forEach { (size) in
                     availableRatios.forEach { (ratio) in
-                        allAvailableSizes.append(StillSize(aspectRatio: ratio, size: size))
+                        allAvailableSizes.append(StillCapture.Size.Value(aspectRatio: ratio, size: size))
                     }
                 }
                 
                 supportedSizes.forEach { (size) in
                     supportedRatios.forEach { (ratio) in
-                        allSupportedSizes.append(StillSize(aspectRatio: ratio, size: size))
+                        allSupportedSizes.append(StillCapture.Size.Value(aspectRatio: ratio, size: size))
                     }
                 }
                 
@@ -804,6 +805,19 @@ extension CameraEvent {
                 }
                 zoomPosition = Double(uint16)/100
                 
+            case .movieFormat:
+                
+                guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
+                    return
+                }
+                guard let currentFormat = VideoCapture.FileFormat.Value(sonyValue: deviceProperty.currentValue) else {
+                    return
+                }
+                let availableFormats = enumProperty.available.compactMap({ VideoCapture.FileFormat.Value(sonyValue: $0) })
+                let supportedFormats = enumProperty.supported.compactMap({ VideoCapture.FileFormat.Value(sonyValue: $0) })
+                
+                videoFileFormat = (currentFormat, availableFormats, supportedFormats)
+                
             default:
                 break
             }
@@ -897,7 +911,7 @@ extension CameraEvent {
             scene: nil,
             intervalTime: nil,
             colorSetting: nil,
-            videoFileFormat: nil,
+            videoFileFormat: videoFileFormat,
             videoRecordingTime: recordingDuration,
             highFrameRateCaptureStatus: highFrameRateStatus,
             infraredRemoteControl: nil,

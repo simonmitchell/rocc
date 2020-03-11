@@ -312,13 +312,19 @@ extension SonyPTPIPDevice {
                     callback(false, error, nil)
                 }
             }
-            callback(false, nil, nil)
         case .getPostviewImageSize, .setPostviewImageSize:
             //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(false, nil, nil)
         case .setVideoFileFormat, .getVideoFileFormat:
-            //TODO: Implement
-            callback(false, nil, nil)
+            getDevicePropDescFor(propCode: .movieFormat) { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                    callback(event.supportedFunctions?.contains(function.function), nil, event.videoFileFormat?.supported as? [T.SendType])
+                case .failure(let error):
+                    callback(false, error, nil)
+                }
+            }
         case .setVideoQuality, .getVideoQuality:
             //TODO: Implement
             callback(false, nil, nil)
@@ -375,7 +381,7 @@ extension SonyPTPIPDevice {
                 switch result {
                 case .success(let property):
                     let event = CameraEvent.fromSonyDeviceProperties([property]).event
-                    callback(event.availableFunctions?.contains(function.function), nil, nil)
+                    callback(event.supportedFunctions?.contains(function.function), nil, nil)
                 case .failure(let error):
                     callback(false, error, nil)
                 }

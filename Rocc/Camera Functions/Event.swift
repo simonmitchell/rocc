@@ -108,13 +108,13 @@ public struct CameraEvent {
         public let shouldCheck: Bool
         
         /// The still size the camera is shooting in.
-        public let stillSize: StillSize
+        public let stillSize: StillCapture.Size.Value
         
         /// The currently available still sizes.
-        public let available: [StillSize]?
+        public let available: [StillCapture.Size.Value]?
                
         /// The currently supported still sizes.
-        public let supported: [StillSize]?
+        public let supported: [StillCapture.Size.Value]?
     }
     
     /// A structural representation of information about the white balance being used by the camera
@@ -229,16 +229,16 @@ public struct CameraEvent {
     public let zoomSetting: (current: String, available: [String], supported: [String])?
     
     /// The current and available still quality.
-    public let stillQuality: (current: StillQuality, available: [StillQuality], supported: [StillQuality])?
+    public let stillQuality: (current: StillCapture.Quality.Value, available: [StillCapture.Quality.Value], supported: [StillCapture.Quality.Value])?
     
     /// The current and available still formats
-    public let stillFormat: (current: StillFormat, available: [StillFormat], supported: [StillFormat])?
+    public let stillFormat: (current: StillCapture.Format.Value, available: [StillCapture.Format.Value], supported: [StillCapture.Format.Value])?
     
     /// The current and available continuous shooting modes.
-    public let continuousShootingMode: (current: ContinuousShootingMode?, available: [ContinuousShootingMode], supported: [ContinuousShootingMode])?
+    public let continuousShootingMode: (current: ContinuousCapture.Mode.Value?, available: [ContinuousCapture.Mode.Value], supported: [ContinuousCapture.Mode.Value])?
     
     /// The current and available continuous shooting speeds.
-    public let continuousShootingSpeed: (current: ContinuousShootingSpeed?, available: [ContinuousShootingSpeed], supported: [ContinuousShootingSpeed])?
+    public let continuousShootingSpeed: (current: ContinuousCapture.Speed.Value?, available: [ContinuousCapture.Speed.Value], supported: [ContinuousCapture.Speed.Value])?
     
     /// Array of URL of continuous shooting. When more than one URL notifies, the last one is the latest.
     public var continuousShootingURLS: [(postView: URL, thumbnail: URL)]?
@@ -256,7 +256,7 @@ public struct CameraEvent {
     public let colorSetting: (current: String, available: [String], supported: [String])?
     
     /// Current and available video file formats.
-    public let videoFileFormat: (current: String, available: [String], supported: [String])?
+    public let videoFileFormat: (current: VideoCapture.FileFormat.Value, available: [VideoCapture.FileFormat.Value], supported: [VideoCapture.FileFormat.Value])?
     
     /// Recording time of the video.
     public let videoRecordingTime: TimeInterval?

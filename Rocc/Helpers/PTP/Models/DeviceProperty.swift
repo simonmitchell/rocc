@@ -19,7 +19,6 @@ extension PTP.DeviceProperty.Code {
         case .batteryLevel:
             return nil
         case .functionalMode:
-            //TODO: Unsure
             return nil
         case .imageSize:
             return [.setStillSize]
@@ -131,6 +130,8 @@ extension PTP.DeviceProperty.Code {
             return [.setISO]
         case .movie:
             return [.startVideoRecording, .endVideoRecording]
+        case .movieFormat:
+            return [.setVideoFileFormat]
         case .stillImage:
             return nil
         case .autoFocus:
@@ -275,6 +276,8 @@ extension PTP.DeviceProperty.Code {
             return .getISO
         case .movie:
             return nil
+        case .movieFormat:
+            return .getVideoFileFormat
         case .stillImage:
             return nil
         case .autoFocus:
@@ -962,6 +965,7 @@ extension PTP {
             case capture = 0xd2c2
             case movie = 0xd2c8
             case stillImage = 0xd2c7
+            case movieFormat = 0xd241
             case remainingShots = 0xd249
             case remainingCaptureTime = 0xd24a
             case exposureSettingsLock = 0xd2d5

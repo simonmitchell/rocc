@@ -9,7 +9,7 @@
 import Foundation
 import ThunderRequest
 
-fileprivate extension StillQuality {
+fileprivate extension StillCapture.Quality.Value {
     
     init?(sonyString: String) {
         switch sonyString.lowercased() {
@@ -34,7 +34,7 @@ fileprivate extension StillQuality {
     }
 }
 
-fileprivate extension StillFormat {
+fileprivate extension StillCapture.Format.Value {
     
     init?(sonyString: String) {
         switch sonyString.lowercased() {
@@ -202,6 +202,65 @@ fileprivate extension ISO.Value {
     }
 }
 
+fileprivate extension VideoCapture.FileFormat.Value {
+    
+    init?(sonyString: String) {
+        switch sonyString.lowercased() {
+        case "none":
+            self = .none
+        case "mp4":
+            self = .mp4
+        case "xavc":
+            self = .xavc
+        case "xavc s":
+            self = .xavc_s
+        case "xavc s hd":
+            self = .xavc_s_hd
+        case "xavc s 4k":
+            self = .xavc_s_4k
+        case "dvd":
+            self = .dvd
+        case "dv":
+            self = .dv
+        case "mxf":
+            self = .mxf
+        case "avchd":
+            self = .avchd
+        case "m2ps":
+            self = .m2ps
+        default:
+            return nil
+        }
+    }
+    
+    var sonyString: String {
+        switch self {
+        case .none:
+            return "NONE"
+        case .dvd:
+            return "DVD"
+        case .m2ps:
+            return "M2PS"
+        case .avchd:
+            return "AVCHD"
+        case .mp4:
+            return "MP4"
+        case .dv:
+            return "DV"
+        case .xavc:
+            return "XAVC"
+        case .mxf:
+            return "MXF"
+        case .xavc_s_4k:
+            return "XAVC S 4K"
+        case .xavc_s_hd:
+            return "XAVC S HD"
+        case .xavc_s:
+            return "XAVC S"
+        }
+    }
+}
+
 fileprivate extension ShootingMode {
     
     init?(sonyString: String) {
@@ -230,7 +289,7 @@ fileprivate extension ShootingMode {
     }
 }
 
-fileprivate extension ContinuousShootingMode {
+fileprivate extension ContinuousCapture.Mode.Value {
     var sonyString: String {
         switch self {
         case .continuous, .single, .burst:
@@ -243,7 +302,7 @@ fileprivate extension ContinuousShootingMode {
     }
 }
 
-fileprivate extension ContinuousShootingSpeed {
+fileprivate extension ContinuousCapture.Speed.Value {
 
     var sonyString: String {
         switch self {
@@ -510,16 +569,16 @@ fileprivate extension CameraEvent {
         var _touchAF: TouchAF.Information?
         var _focusStatus: FocusStatus?
         var _zoomSetting: (current: String, available: [String], supported: [String])?
-        var _stillQuality: (current: StillQuality, available: [StillQuality], supported: [StillQuality])?
-        var _stillFormat: (current: StillFormat, available: [StillFormat], supported: [StillFormat])?
-        var _continuousShootingMode: (current: ContinuousShootingMode?, available: [ContinuousShootingMode], supported: [ContinuousShootingMode])?
-        var _continuousShootingSpeed: (current: ContinuousShootingSpeed, available: [ContinuousShootingSpeed], supported: [ContinuousShootingSpeed])?
+        var _stillQuality: (current: StillCapture.Quality.Value, available: [StillCapture.Quality.Value], supported: [StillCapture.Quality.Value])?
+        var _stillFormat: (current: StillCapture.Format.Value, available: [StillCapture.Format.Value], supported: [StillCapture.Format.Value])?
+        var _continuousShootingMode: (current: ContinuousCapture.Mode.Value?, available: [ContinuousCapture.Mode.Value], supported: [ContinuousCapture.Mode.Value])?
+        var _continuousShootingSpeed: (current: ContinuousCapture.Speed.Value, available: [ContinuousCapture.Speed.Value], supported: [ContinuousCapture.Speed.Value])?
         var _continuousShootingURLS: [(postView: URL, thumbnail: URL)]?
         var _flipSetting: (current: String, available: [String], supported: [String])?
         var _scene: (current: String, available: [String], supported: [String])?
         var _intervalTime: (current: TimeInterval, available: [TimeInterval], supported: [TimeInterval])?
         var _colorSetting: (current: String, available: [String], supported: [String])?
-        var _videoFileFormat: (current: String, available: [String], supported: [String])?
+        var _videoFileFormat: (current: VideoCapture.FileFormat.Value, available: [VideoCapture.FileFormat.Value], supported: [VideoCapture.FileFormat.Value])?
         var _videoRecordingTime: TimeInterval?
         var _infraredRemoteControl: (current: String, available: [String], supported: [String])?
         var _tvColorSystem: (current: String, available: [String], supported: [String])?
@@ -584,7 +643,7 @@ fileprivate extension CameraEvent {
                     _videoQuality = (current, candidates, candidates)
                 case "stillSize":
                     guard let check = dictionaryElement["checkAvailability"] as? Bool, let currentAspect = dictionaryElement["currentAspect"] as? String, let currentSize = dictionaryElement["currentSize"] as? String else { return }
-                    _stillSizeInfo = StillSizeInformation(shouldCheck: check, stillSize: StillSize(aspectRatio: currentAspect, size: currentSize), available: nil, supported: nil)
+                    _stillSizeInfo = StillSizeInformation(shouldCheck: check, stillSize: StillCapture.Size.Value(aspectRatio: currentAspect, size: currentSize), available: nil, supported: nil)
                 case "cameraFunctionResult":
                     guard let current = dictionaryElement["cameraFunctionResult"] as? String, current == "Success" || current == "Failure" else { return }
                     _functionResult = current == "Success"
@@ -654,25 +713,25 @@ fileprivate extension CameraEvent {
                     _zoomSetting = (current, candidates, candidates)
                 case "stillQuality":
                     guard let current = dictionaryElement["stillQuality"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
-                    if let currentQuality = StillQuality(sonyString: current) {
-                        let qualities = candidates.compactMap({ StillQuality(sonyString: $0) }).unique
+                    if let currentQuality = StillCapture.Quality.Value(sonyString: current) {
+                        let qualities = candidates.compactMap({ StillCapture.Quality.Value(sonyString: $0) }).unique
                         _stillQuality = (currentQuality, qualities, qualities)
                     }
-                    if let currentFormat = StillFormat(sonyString: current) {
+                    if let currentFormat = StillCapture.Format.Value(sonyString: current) {
                         //TODO: This may give us duplicate still formats, work out a way around!
-                        let formats = candidates.compactMap({ StillFormat(sonyString: $0) })
+                        let formats = candidates.compactMap({ StillCapture.Format.Value(sonyString: $0) })
                         _stillFormat = (currentFormat, formats, formats)
                     }
                 case "contShootingMode":
                     guard let current = dictionaryElement["contShootingMode"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
-                    guard let currentEnum = ContinuousShootingMode(rawValue: current.lowercased()) else { return }
-                    _continuousShootingMode = (currentEnum, candidates.compactMap({ ContinuousShootingMode(rawValue: $0.lowercased()) }), candidates.compactMap({ ContinuousShootingMode(rawValue: $0.lowercased()) }))
+                    guard let currentEnum = ContinuousCapture.Mode.Value(rawValue: current.lowercased()) else { return }
+                    _continuousShootingMode = (currentEnum, candidates.compactMap({ ContinuousCapture.Mode.Value(rawValue: $0.lowercased()) }), candidates.compactMap({ ContinuousCapture.Mode.Value(rawValue: $0.lowercased()) }))
                 case "contShootingSpeed":
                     guard let current = dictionaryElement["contShootingSpeed"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
-                    guard let currentEnum = ContinuousShootingSpeed(rawValue: current.lowercased()) else {
+                    guard let currentEnum = ContinuousCapture.Speed.Value(rawValue: current.lowercased()) else {
                         return
                     }
-                    _continuousShootingSpeed = (currentEnum, candidates.compactMap({ ContinuousShootingSpeed(rawValue: $0.lowercased()) }), candidates.compactMap({ ContinuousShootingSpeed(rawValue: $0.lowercased()) }))
+                    _continuousShootingSpeed = (currentEnum, candidates.compactMap({ ContinuousCapture.Speed.Value(rawValue: $0.lowercased()) }), candidates.compactMap({ ContinuousCapture.Speed.Value(rawValue: $0.lowercased()) }))
                 case "contShooting":
                     guard let urlDicts = dictionaryElement["contShootingUrl"] as? [[AnyHashable : Any]] else { return }
                     let urls: [(postView: URL, thumbnail: URL)] = urlDicts.compactMap({
@@ -702,8 +761,9 @@ fileprivate extension CameraEvent {
                     guard let current = dictionaryElement["colorSetting"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
                     _colorSetting = (current, candidates, candidates)
                 case "movieFileFormat":
-                    guard let current = dictionaryElement["movieFileFormat"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
-                    _videoFileFormat = (current, candidates, candidates)
+                    guard let current = dictionaryElement["movieFileFormat"] as? String, let candidates = dictionaryElement["candidate"] as? [String], let currentEnum = VideoCapture.FileFormat.Value(sonyString: current) else { return }
+                    let enumCandidates = candidates.compactMap({ VideoCapture.FileFormat.Value(sonyString: $0) })
+                    _videoFileFormat = (currentEnum, enumCandidates, enumCandidates)
                 case "infraredRemoteControl":
                     guard let current = dictionaryElement["infraredRemoteControl"] as? String, let candidates = dictionaryElement["candidate"] as? [String] else { return }
                     _infraredRemoteControl = (current, candidates, candidates)
@@ -896,7 +956,7 @@ fileprivate extension StorageInformation {
     }
 }
 
-fileprivate extension StillSize {
+fileprivate extension StillCapture.Size.Value {
     
     init?(dictionary: [AnyHashable : Any]) {
         
@@ -1650,9 +1710,9 @@ internal class CameraClient: ServiceClient {
     
     //MARK: Modes
     
-    typealias ContinuousShootingModesCompletion = (_ result: Result<[ContinuousShootingMode], Error>) -> Void
+    typealias ContinuousShootingModesCompletion = (_ result: Result<[ContinuousCapture.Mode.Value], Error>) -> Void
     
-    typealias ContinuousShootingModeCompletion = (_ result: Result<ContinuousShootingMode, Error>) -> Void
+    typealias ContinuousShootingModeCompletion = (_ result: Result<ContinuousCapture.Mode.Value, Error>) -> Void
     
     func getSupportedContinuousShootingModes(_ completion: @escaping ContinuousShootingModesCompletion) {
         
@@ -1670,7 +1730,7 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            let modes = supported.compactMap({ ContinuousShootingMode(rawValue: $0.lowercased()) })
+            let modes = supported.compactMap({ ContinuousCapture.Mode.Value(rawValue: $0.lowercased()) })
             completion(Result.success(modes))
         }
     }
@@ -1691,12 +1751,12 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            let modes = available.compactMap({ ContinuousShootingMode(rawValue: $0.lowercased()) })
+            let modes = available.compactMap({ ContinuousCapture.Mode.Value(rawValue: $0.lowercased()) })
             completion(Result.success(modes))
         }
     }
     
-    func setContinuousShootingMode(_ mode: ContinuousShootingMode, _ completion: @escaping GenericCompletion) {
+    func setContinuousShootingMode(_ mode: ContinuousCapture.Mode.Value, _ completion: @escaping GenericCompletion) {
         
         let body = SonyRequestBody(method: "setContShootingMode", params: [["contShootingMode" : mode.sonyString]], id: 1, version: "1.0")
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
@@ -1719,7 +1779,7 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            guard let mode = ContinuousShootingMode(rawValue: value.lowercased()) else {
+            guard let mode = ContinuousCapture.Mode.Value(rawValue: value.lowercased()) else {
                 completion(Result.failure(CameraError.invalidResponse("getContShootingMode")))
                 return
             }
@@ -1730,9 +1790,9 @@ internal class CameraClient: ServiceClient {
     
     //MARK: Speeds
     
-    typealias ContinuousShootingSpeedsCompletion = (_ result: Result<[ContinuousShootingSpeed], Error>) -> Void
+    typealias ContinuousShootingSpeedsCompletion = (_ result: Result<[ContinuousCapture.Speed.Value], Error>) -> Void
     
-    typealias ContinuousShootingSpeedCompletion = (_ result: Result<ContinuousShootingSpeed, Error>) -> Void
+    typealias ContinuousShootingSpeedCompletion = (_ result: Result<ContinuousCapture.Speed.Value, Error>) -> Void
     
     func getSupportedContinuousShootingSpeeds(_ completion: @escaping ContinuousShootingSpeedsCompletion) {
         
@@ -1750,7 +1810,7 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            let supportedEnums = supported.compactMap({ ContinuousShootingSpeed(rawValue: $0.lowercased()) })
+            let supportedEnums = supported.compactMap({ ContinuousCapture.Speed.Value(rawValue: $0.lowercased()) })
             
             completion(Result.success(supportedEnums))
         }
@@ -1772,12 +1832,12 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            let availableEnums = available.compactMap({ ContinuousShootingSpeed(rawValue: $0.lowercased()) })
+            let availableEnums = available.compactMap({ ContinuousCapture.Speed.Value(rawValue: $0.lowercased()) })
             completion(Result.success(availableEnums))
         }
     }
     
-    func setContinuousShootingSpeed(_ speed: ContinuousShootingSpeed, _ completion: @escaping GenericCompletion) {
+    func setContinuousShootingSpeed(_ speed: ContinuousCapture.Speed.Value, _ completion: @escaping GenericCompletion) {
         
         let body = SonyRequestBody(method: "setContShootingSpeed", params: [["contShootingSpeed" : speed.sonyString]], id: 1, version: "1.0")
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
@@ -1800,7 +1860,7 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            guard let enumValue = ContinuousShootingSpeed(rawValue: value.lowercased()) else {
+            guard let enumValue = ContinuousCapture.Speed.Value(rawValue: value.lowercased()) else {
                 completion(Result.failure(CameraError.invalidResponse("getContShootingSpeed")))
                 return
             }
@@ -2876,9 +2936,9 @@ internal class CameraClient: ServiceClient {
     
     //MARK: Size
     
-    typealias StillSizesCompletion = (_ result: Result<[StillSize], Error>) -> Void
+    typealias StillSizesCompletion = (_ result: Result<[StillCapture.Size.Value], Error>) -> Void
     
-    typealias StillSizeCompletion = (_ result: Result<StillSize, Error>) -> Void
+    typealias StillSizeCompletion = (_ result: Result<StillCapture.Size.Value, Error>) -> Void
     
     func getSupportedStillSizes(_ completion: @escaping StillSizesCompletion) {
         
@@ -2896,7 +2956,7 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            let _supported = supported.compactMap({ StillSize(dictionary: $0) })
+            let _supported = supported.compactMap({ StillCapture.Size.Value(dictionary: $0) })
             
             completion(Result.success(_supported))
         }
@@ -2918,13 +2978,13 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            let _available = available.compactMap({ StillSize(dictionary: $0) })
+            let _available = available.compactMap({ StillCapture.Size.Value(dictionary: $0) })
             
             completion(Result.success(_available))
         }
     }
     
-    func setStillSize(_ stillSize: StillSize, completion: @escaping GenericCompletion) {
+    func setStillSize(_ stillSize: StillCapture.Size.Value, completion: @escaping GenericCompletion) {
         
         let body = SonyRequestBody(method: "setStillSize", params: [stillSize.aspectRatio ?? "", stillSize.size], id: 1, version: "1.0")
         
@@ -2944,7 +3004,7 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let size = result.first, let stillSize = StillSize(dictionary: size) else {
+            guard let result = response?.dictionary?["result"] as? [[AnyHashable : Any]], let size = result.first, let stillSize = StillCapture.Size.Value(dictionary: size) else {
                 completion(Result.failure(CameraError.invalidResponse("getStillSize")))
                 return
             }
@@ -2955,9 +3015,9 @@ internal class CameraClient: ServiceClient {
     
     //MARK: Quality
     
-    typealias StillQualitiesCompletion = (_ result: Result<[StillQuality], Error>) -> Void
+    typealias StillQualitiesCompletion = (_ result: Result<[StillCapture.Quality.Value], Error>) -> Void
     
-    typealias StillQualityCompletion = (_ result: Result<StillQuality, Error>) -> Void
+    typealias StillQualityCompletion = (_ result: Result<StillCapture.Quality.Value, Error>) -> Void
     
     func getSupportedStillQualities(_ completion: @escaping StillQualitiesCompletion) {
         
@@ -2975,7 +3035,7 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            completion(Result.success(supported.compactMap({ StillQuality(sonyString: $0) })))
+            completion(Result.success(supported.compactMap({ StillCapture.Quality.Value(sonyString: $0) })))
         }
     }
     
@@ -2995,11 +3055,11 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            completion(Result.success(available.compactMap({ StillQuality(sonyString: $0) })))
+            completion(Result.success(available.compactMap({ StillCapture.Quality.Value(sonyString: $0) })))
         }
     }
     
-    func setStillQuality(_ quality: StillQuality, completion: @escaping GenericCompletion) {
+    func setStillQuality(_ quality: StillCapture.Quality.Value, completion: @escaping GenericCompletion) {
         
         let body = SonyRequestBody(method: "setStillQuality", params: [["stillQuality": quality.sonyString]], id: 1, version: "1.0")
         
@@ -3023,7 +3083,7 @@ internal class CameraClient: ServiceClient {
                 completion(Result.failure(CameraError.invalidResponse("getStillQuality")))
                 return
             }
-            guard let quality = StillQuality(sonyString: qualityString) else {
+            guard let quality = StillCapture.Quality.Value(sonyString: qualityString) else {
                 completion(Result.failure(CameraError.invalidResponse("getStillQuality")))
                 return
             }
@@ -3034,9 +3094,9 @@ internal class CameraClient: ServiceClient {
     
     //MARK: Format
     
-    typealias StillFormatsCompletion = (_ result: Result<[StillFormat], Error>) -> Void
+    typealias StillFormatsCompletion = (_ result: Result<[StillCapture.Format.Value], Error>) -> Void
     
-    typealias StillFormatCompletion = (_ result: Result<StillFormat, Error>) -> Void
+    typealias StillFormatCompletion = (_ result: Result<StillCapture.Format.Value, Error>) -> Void
     
     func getSupportedStillFormats(_ completion: @escaping StillFormatsCompletion) {
         
@@ -3056,7 +3116,7 @@ internal class CameraClient: ServiceClient {
             }
             
             //TODO: This could give duplicate values, find a way to counteract!
-            completion(Result.success(supported.compactMap({ StillFormat(sonyString: $0) })))
+            completion(Result.success(supported.compactMap({ StillCapture.Format.Value(sonyString: $0) })))
         }
     }
     
@@ -3078,11 +3138,11 @@ internal class CameraClient: ServiceClient {
             }
             
             //TODO: This could give duplicate values, find a way to counteract!
-            completion(Result.success(available.compactMap({ StillFormat(sonyString: $0) })))
+            completion(Result.success(available.compactMap({ StillCapture.Format.Value(sonyString: $0) })))
         }
     }
     
-    func setStillFormat(_ quality: StillFormat, completion: @escaping GenericCompletion) {
+    func setStillFormat(_ quality: StillCapture.Format.Value, completion: @escaping GenericCompletion) {
         
         // Sony rest camera doesn't support this, so we munge to still quality instead!
         let body = SonyRequestBody(method: "setStillQuality", params: [["stillQuality": quality.sonyString]], id: 1, version: "1.0")
@@ -3108,7 +3168,7 @@ internal class CameraClient: ServiceClient {
                 completion(Result.failure(CameraError.invalidResponse("getStillQuality")))
                 return
             }
-            guard let format = StillFormat(sonyString: qualityString) else {
+            guard let format = StillCapture.Format.Value(sonyString: qualityString) else {
                 completion(Result.failure(CameraError.invalidResponse("getStillQuality")))
                 return
             }
@@ -3195,9 +3255,9 @@ internal class CameraClient: ServiceClient {
     //MARK: - Movie -
     //MARK: File Format
     
-    typealias MovieFileFormatsCompletion = (_ result: Result<[String], Error>) -> Void
+    typealias MovieFileFormatsCompletion = (_ result: Result<[VideoCapture.FileFormat.Value], Error>) -> Void
     
-    typealias MovieFileFormatCompletion = (_ result: Result<String, Error>) -> Void
+    typealias MovieFileFormatCompletion = (_ result: Result<VideoCapture.FileFormat.Value, Error>) -> Void
     
     func getSupportedMovieFileFormats(_ completion: @escaping MovieFileFormatsCompletion) {
         
@@ -3215,7 +3275,7 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            completion(Result.success(supported))
+            completion(Result.success(supported.compactMap({ VideoCapture.FileFormat.Value(sonyString: $0) })))
         }
     }
     
@@ -3235,13 +3295,13 @@ internal class CameraClient: ServiceClient {
                 return
             }
             
-            completion(Result.success(available))
+            completion(Result.success(available.compactMap({ VideoCapture.FileFormat.Value(sonyString: $0) })))
         }
     }
     
-    func setMovieFileFormat(_ format: String, completion: @escaping GenericCompletion) {
+    func setMovieFileFormat(_ format: VideoCapture.FileFormat.Value, completion: @escaping GenericCompletion) {
         
-        let body = SonyRequestBody(method: "setMovieFileFormat", params: [["movieFileFormat":format]], id: 1, version: "1.0")
+        let body = SonyRequestBody(method: "setMovieFileFormat", params: [["movieFileFormat":format.sonyString]], id: 1, version: "1.0")
         
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in
             completion(error ?? CameraError(responseDictionary: response?.dictionary, methodName: "setMovieFileFormat"))
@@ -3263,8 +3323,12 @@ internal class CameraClient: ServiceClient {
                 completion(Result.failure(CameraError.invalidResponse("getMovieFileFormat")))
                 return
             }
+            guard let enumFormat = VideoCapture.FileFormat.Value(sonyString: format) else {
+                completion(Result.failure(CameraError.invalidResponse("getMovieFileFormat")))
+                return
+            }
             
-            completion(Result.success(format))
+            completion(Result.success(enumFormat))
         }
     }
     

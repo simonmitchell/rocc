@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension ContinuousShootingSpeed: SonyPTPPropValueConvertable {
+extension ContinuousCapture.Speed.Value: SonyPTPPropValueConvertable {
     
     var sonyPTPValue: PTPDevicePropertyDataType {
         switch self {

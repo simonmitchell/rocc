@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension StillFormat: SonyPTPPropValueConvertable {
+extension StillCapture.Format.Value: SonyPTPPropValueConvertable {
     
     var sonyPTPValue: PTPDevicePropertyDataType {
         switch self {

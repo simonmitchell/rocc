@@ -187,7 +187,6 @@ internal final class SonyPTPIPDevice: SonyCamera {
         
     private func performSdioConnect(completion: @escaping (Error?) -> Void, number: DWord, transactionId: DWord) {
         
-        //TODO: Try and find out what the arguments are for this!
         let packet = Packet.commandRequestPacket(code: .sdioConnect, arguments: [number, 0x0000, 0x0000], transactionId: transactionId)
         ptpIPClient?.sendCommandRequestPacket(packet, callback: { (response) in
             guard response.code == .okay else {
@@ -476,19 +475,33 @@ extension SonyPTPIPDevice: Camera {
         
         var modes: [Exposure.Mode.Value]?
         let defaultModes: [Exposure.Mode.Value] = [.intelligentAuto, .programmedAuto, .aperturePriority, .shutterPriority, .manual, .superiorAuto, .slowAndQuickProgrammedAuto, .slowAndQuickAperturePriority, .slowAndQuickShutterPriority, .slowAndQuickManual]
-        let defaultVideoModes: [Exposure.Mode.Value] = [.videoProgrammedAuto, .videoAperturePriority, .videoShutterPriority, .videoManual]
         
         // For Video -> Photo or Photo -> Video there are equivalents, so Aperture Priority has Video Aperture Priority e.t.c. so we should prioritise these...
         switch shootMode {
-        case .video:
+        case .highFrameRate:
+            let defaultHFRModes: [Exposure.Mode.Value] = [.highFrameRateProgrammedAuto, .highFrameRateAperturePriority, .highFrameRateShutterPriority, .highFrameRateManual]
             switch currentExposureProgrammeMode {
-            case .aperturePriority, .slowAndQuickAperturePriority:
+            case .aperturePriority, .slowAndQuickAperturePriority, .videoAperturePriority:
+                modes = defaultHFRModes.bringingToFront(.videoAperturePriority)
+            case .programmedAuto, .intelligentAuto, .slowAndQuickProgrammedAuto, .videoProgrammedAuto:
+                modes = defaultHFRModes.bringingToFront(.videoProgrammedAuto)
+            case .shutterPriority, .slowAndQuickShutterPriority, .videoShutterPriority:
+                modes = defaultHFRModes.bringingToFront(.videoShutterPriority)
+            case .manual, .slowAndQuickManual, .videoManual:
+                modes = defaultHFRModes.bringingToFront(.videoManual)
+            default:
+                modes = defaultHFRModes
+            }
+        case .video:
+            let defaultVideoModes: [Exposure.Mode.Value] = [.videoProgrammedAuto, .videoAperturePriority, .videoShutterPriority, .videoManual]
+            switch currentExposureProgrammeMode {
+            case .aperturePriority, .slowAndQuickAperturePriority, .highFrameRateAperturePriority:
                 modes = defaultVideoModes.bringingToFront(.videoAperturePriority)
-            case .programmedAuto, .intelligentAuto, .slowAndQuickProgrammedAuto:
+            case .programmedAuto, .intelligentAuto, .slowAndQuickProgrammedAuto, .highFrameRateProgrammedAuto:
                 modes = defaultVideoModes.bringingToFront(.videoProgrammedAuto)
-            case .shutterPriority, .slowAndQuickShutterPriority:
+            case .shutterPriority, .slowAndQuickShutterPriority, .highFrameRateShutterPriority:
                 modes = defaultVideoModes.bringingToFront(.videoShutterPriority)
-            case .manual, .slowAndQuickManual:
+            case .manual, .slowAndQuickManual, .highFrameRateManual:
                 modes = defaultVideoModes.bringingToFront(.videoManual)
             default:
                 modes = defaultVideoModes

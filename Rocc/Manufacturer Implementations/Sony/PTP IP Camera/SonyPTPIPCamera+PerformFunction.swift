@@ -103,7 +103,7 @@ extension SonyPTPIPDevice {
         case .setContinuousShootingMode:
             // This isn't a thing via PTP according to Sony's app (Instead we just have multiple continuous shooting speeds) so we just don't do anything!
             callback(nil, nil)
-        case .setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setFocusMode, .setExposureMode, .setExposureModeDialControl, .setFlashMode, .setContinuousShootingSpeed, .setStillQuality, .setStillFormat:
+        case .setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setFocusMode, .setExposureMode, .setExposureModeDialControl, .setFlashMode, .setContinuousShootingSpeed, .setStillQuality, .setStillFormat, .setVideoFileFormat:
             guard let value = payload as? SonyPTPPropValueConvertable else {
                 callback(FunctionError.invalidPayload, nil)
                 return
@@ -195,7 +195,7 @@ extension SonyPTPIPDevice {
                 }
             })
         case .setStillSize:
-            guard let stillSize = payload as? StillSize else {
+            guard let stillSize = payload as? StillCapture.Size.Value else {
                 callback(FunctionError.invalidPayload, nil)
                 return
             }
@@ -559,12 +559,16 @@ extension SonyPTPIPDevice {
         case .setPostviewImageSize:
             //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(nil, nil)
-        case .setVideoFileFormat:
-            //TODO: Implement
-            callback(nil, nil)
         case .getVideoFileFormat:
-            //TODO: Implement
-            callback(nil, nil)
+            getDevicePropDescFor(propCode: .movieFormat, callback: { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                    callback(nil, event.videoFileFormat?.current as? T.ReturnType)
+                case .failure(let error):
+                    callback(error, nil)
+                }
+            })
         case .setVideoQuality:
             //TODO: Implement
             callback(nil, nil)

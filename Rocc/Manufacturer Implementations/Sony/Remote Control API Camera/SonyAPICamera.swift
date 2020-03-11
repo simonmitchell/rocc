@@ -2074,7 +2074,7 @@ extension SonyAPICameraDevice: Camera {
                 
             case .setContinuousShootingMode:
                 
-                guard let mode = payload as? ContinuousShootingMode else {
+                guard let mode = payload as? ContinuousCapture.Mode.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2096,7 +2096,7 @@ extension SonyAPICameraDevice: Camera {
                 
             case .setContinuousShootingSpeed:
                 
-                guard let speed = payload as? ContinuousShootingSpeed else {
+                guard let speed = payload as? ContinuousCapture.Speed.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2396,7 +2396,7 @@ extension SonyAPICameraDevice: Camera {
                 
             case .setStillSize:
                 
-                guard let size = payload as? StillSize else {
+                guard let size = payload as? StillCapture.Size.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2418,7 +2418,7 @@ extension SonyAPICameraDevice: Camera {
                 
             case .setStillQuality:
                 
-                guard let quality = payload as? StillQuality else {
+                guard let quality = payload as? StillCapture.Quality.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2440,7 +2440,7 @@ extension SonyAPICameraDevice: Camera {
                 
             case .setStillFormat:
                 
-                guard let format = payload as? StillFormat else {
+                guard let format = payload as? StillCapture.Format.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2484,7 +2484,7 @@ extension SonyAPICameraDevice: Camera {
                 
             case .setVideoFileFormat:
                 
-                guard let format = payload as? String else {
+                guard let format = payload as? VideoCapture.FileFormat.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
