@@ -57,13 +57,39 @@ fileprivate extension File {
             created = nil
         }
         
+        kind = dictionary["contentKind"] as? String
+        
         if let contentDict = dictionary["content"] as? [AnyHashable : Any] {
-            content = File.Content(dictionary: contentDict)
+            
+            let tempContent = File.Content(dictionary: contentDict)
+            var originals: [File.Content.Original] = []
+            // For some reason using `map` here causes a compiler error... so back to good old for in!
+            // Something to do with capturing `self.content` before it's been initialised, pretty
+            // sure it's a red-herring but this fixes it for now!
+            for tempOriginal in tempContent.originals {
+                // If file type is missing (Only normally for video) then fill it in!
+                if (tempOriginal.fileType ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    originals.append(File.Content.Original(
+                        fileName: tempOriginal.fileName,
+                        fileType: kind?.split(separator: "_").map({ String($0) }).last, // Should result in mp4 or xavcs
+                        url: tempOriginal.url
+                    ))
+                } else {
+                    originals.append(tempOriginal)
+                }
+            }
+            content = File.Content(
+                originals: originals,
+                largeURL: tempContent.largeURL,
+                smallURL: tempContent.smallURL,
+                thumbnailURL: tempContent.thumbnailURL
+            )
+            
         } else {
+            
             content = nil
         }
         
-        kind = dictionary["contentKind"] as? String
         folderNo = dictionary["folderNo"] as? String
         fileNo = dictionary["fileNo"] as? String
         isPlayable = dictionary["isPlayable"] as? Bool
