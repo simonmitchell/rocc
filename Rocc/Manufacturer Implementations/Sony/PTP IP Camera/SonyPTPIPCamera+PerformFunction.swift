@@ -643,8 +643,30 @@ extension SonyPTPIPDevice {
             //TODO: Implement
             callback(nil, nil)
         case .getStorageInformation:
-            //TODO: Implement
-            callback(nil, nil)
+            // Requires either remaining shots or remaining capture time to function
+            getDevicePropDescFor(propCode: .remainingShots) { [weak self] (shotsResult) in
+                
+                guard let self = self else {
+                    callback(nil, nil)
+                    return
+                }
+                
+                switch shotsResult {
+                case .success(let shotsProperty):
+                    self.getDevicePropDescFor(propCode: .remainingCaptureTime, callback: { (captureTimeResult) in
+                        switch captureTimeResult {
+                        case .success(let captureTimeProperty):
+                            let event = CameraEvent.fromSonyDeviceProperties([shotsProperty, captureTimeProperty]).event
+                            callback(nil, event.storageInformation as? T.ReturnType)
+                        case .failure(let error):
+                            callback(error, nil)
+                        }
+                    })
+                    
+                case .failure(let error):
+                    callback(error, nil)
+                }
+            }
         case .setCameraFunction:
             callback(CameraError.noSuchMethod("setCameraFunction"), nil)
         case .getCameraFunction:

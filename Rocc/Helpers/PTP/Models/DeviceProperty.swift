@@ -289,7 +289,7 @@ extension PTP.DeviceProperty.Code {
         case .capture:
             return nil
         case .remainingShots, .remainingCaptureTime:
-            return nil
+            return .getStorageInformation
         case .performZoom:
             return nil
         case .zoomPosition:
