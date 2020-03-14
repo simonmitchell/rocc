@@ -60,6 +60,7 @@
 		B16BFD1121F5F0E600AF3F24 /* SimplePing.m in Sources */ = {isa = PBXBuildFile; fileRef = B16BFD0F21F5F0E600AF3F24 /* SimplePing.m */; };
 		B16BFD1321F5F0E600AF3F24 /* SimplePing.h in Headers */ = {isa = PBXBuildFile; fileRef = B16BFD1021F5F0E600AF3F24 /* SimplePing.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		B16BFD1621F5F0F100AF3F24 /* Pinger.swift in Sources */ = {isa = PBXBuildFile; fileRef = B16BFD1521F5F0F100AF3F24 /* Pinger.swift */; };
+		B17D74A5241D010500C75498 /* String+Truncate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17D74A4241D010500C75498 /* String+Truncate.swift */; };
 		B180A7CC236F17EE001AAF5D /* PTP.swift in Sources */ = {isa = PBXBuildFile; fileRef = B180A7CB236F17EE001AAF5D /* PTP.swift */; };
 		B180A7D6236F1B9D001AAF5D /* CommandResponsePacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = B180A7D5236F1B9D001AAF5D /* CommandResponsePacket.swift */; };
 		B180A7D9236F1D0F001AAF5D /* CommandRequestPacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = B180A7D8236F1D0F001AAF5D /* CommandRequestPacket.swift */; };
@@ -270,6 +271,7 @@
 		B16BFD1021F5F0E600AF3F24 /* SimplePing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SimplePing.h; sourceTree = "<group>"; };
 		B16BFD1521F5F0F100AF3F24 /* Pinger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pinger.swift; sourceTree = "<group>"; };
 		B1751E7320A316C2001D05F1 /* SystemClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SystemClient.swift; sourceTree = "<group>"; };
+		B17D74A4241D010500C75498 /* String+Truncate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Truncate.swift"; sourceTree = "<group>"; };
 		B180A7CB236F17EE001AAF5D /* PTP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PTP.swift; sourceTree = "<group>"; };
 		B180A7D5236F1B9D001AAF5D /* CommandResponsePacket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandResponsePacket.swift; sourceTree = "<group>"; };
 		B180A7D8236F1D0F001AAF5D /* CommandRequestPacket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandRequestPacket.swift; sourceTree = "<group>"; };
@@ -580,6 +582,7 @@
 				B182B9232383520B0054539E /* DispatchQueue+AsyncWhile.swift */,
 				B128D0DE23F9D60D007B37F8 /* Array+Unique.swift */,
 				B117F52A24027F560055ADF5 /* Array+BringToFront.swift */,
+				B17D74A4241D010500C75498 /* String+Truncate.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -993,6 +996,7 @@
 				B154535521EFDC1700C59096 /* Countable.swift in Sources */,
 				B1FB47FC209088FD00C33C86 /* SonyCameraAPIClient.swift in Sources */,
 				B1FB4802209089D800C33C86 /* AVContentClient.swift in Sources */,
+				B17D74A5241D010500C75498 /* String+Truncate.swift in Sources */,
 				B16BFBC820A49F92006BD081 /* Storage.swift in Sources */,
 				B1EF626524197E17006BE4C2 /* VideoCaptureQuality_SonyPTPPropValueConvertable.swift in Sources */,
 				B1AEE51F2376C3DE00224152 /* ExposureCompensation+SonyPTPPropValueConvertable.swift in Sources */,

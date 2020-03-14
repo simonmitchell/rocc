@@ -48,7 +48,7 @@ struct DataPacket: Packetable {
             length: \(length)
             code: \(name)
             transactionId: \(transactionId)
-            data: \(data.toHex)
+            data: \(data.toHex.trunc(length: 50))
         }
         """
     }

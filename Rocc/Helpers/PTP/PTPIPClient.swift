@@ -441,13 +441,13 @@ final class PTPIPClient: NSObject {
         
         switch stream {
         case eventReadStream:
-            Logger.log(message: "Read event available bytes:\n\n\(eventLoopByteBuffer.toHex)", category: "PTPIPClient")
-            os_log("Read event available bytes:\n\n%@", log: ptpClientLog, type: .debug, eventLoopByteBuffer.toHex)
+            Logger.log(message: "Read event available bytes (\(eventLoopByteBuffer.length))", category: "PTPIPClient")
+            os_log("Read event available bytes (%i)", log: ptpClientLog, type: .debug, eventLoopByteBuffer.length)
             packets = eventLoopByteBuffer.parsePackets()
         case controlReadStream:
             
-            Logger.log(message: "Read control available bytes:\n\n\(mainLoopByteBuffer.toHex)", category: "PTPIPClient")
-            os_log("Read control available bytes:\n\n%@", log: ptpClientLog, type: .debug, mainLoopByteBuffer.toHex)
+            Logger.log(message: "Read control available bytes (\(mainLoopByteBuffer.length))", category: "PTPIPClient")
+            os_log("Read control available bytes (%i)", log: ptpClientLog, type: .debug, mainLoopByteBuffer.length)
             
             // If we have a command response packet awaiting further data
             if var awaitingCommandResponsePacket = awaitingFurtherDataCommandResponsePacket {
