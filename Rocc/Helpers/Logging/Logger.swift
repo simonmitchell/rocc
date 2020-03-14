@@ -115,7 +115,7 @@ public final class Logger {
         }
         
         let fileSize = attrs.fileSize()
-        guard fileSize * 1064 > maxFileSize else {
+        guard fileSize * 1024 > maxFileSize else {
             return
         }
         
