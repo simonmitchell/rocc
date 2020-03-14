@@ -38,4 +38,7 @@ public struct StorageInformation {
     
     /// The unique ID of the storage
     public let id: String?
+    
+    /// Whether the storage has no SD card or other media inserted
+    public let noMedia: Bool
 }
