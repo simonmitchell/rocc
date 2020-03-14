@@ -418,7 +418,7 @@ fileprivate struct Res {
         
         init?(protocolInfo: String) {
             guard let firstMatching = ProtocolInfo.allCases.first(where: { (size) -> Bool in
-                protocolInfo.uppercased().contains(size.rawValue)
+                protocolInfo.uppercased().contains(size.rawValue.uppercased())
             }) else {
                 return nil
             }
