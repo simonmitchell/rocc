@@ -1015,15 +1015,8 @@ fileprivate extension CameraEvent {
                         
                     case "storageInformation":
                         
-                       let info = StorageInformation(
-                            description: element["storageDescription"] as? String,
-                            spaceForImages: element["numberOfRecordableImages"] as? Int,
-                            recordTarget: element["recordTarget"] as? Bool ?? false,
-                            recordableTime: element["recordableTime"] as? Int,
-                            id: element["storageID"] as? String
-                        )
-                        
-                        _storageInfo.append(info)
+                       let info = StorageInformation(dictionary: element)
+                       _storageInfo.append(info)
                         
                     default:
                         return
@@ -1124,6 +1117,7 @@ fileprivate extension StorageInformation {
         
         recordTarget = dictionary["recordTarget"] as? Bool ?? false
         id = dictionary["storageID"] as? String
+        noMedia = id?.lowercased() == "no media"
         
         if let time = dictionary["recordableTime"] as? Int, time != -1 {
             recordableTime = time

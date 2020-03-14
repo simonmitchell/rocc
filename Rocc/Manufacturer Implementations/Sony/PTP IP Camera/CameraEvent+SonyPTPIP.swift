@@ -685,7 +685,8 @@ extension CameraEvent {
                     spaceForImages: shots,
                     recordTarget: true,
                     recordableTime: info?.recordableTime,
-                    id: nil
+                    id: nil,
+                    noMedia: false
                 )
                 storageInformation = [
                     storageInfo
@@ -703,7 +704,8 @@ extension CameraEvent {
                     spaceForImages: info?.spaceForImages,
                     recordTarget: true,
                     recordableTime: seconds,
-                    id: nil
+                    id: nil,
+                    noMedia: false
                 )
                 storageInformation = [
                     storageInfo
