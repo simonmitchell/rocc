@@ -555,7 +555,7 @@ extension File {
         self.isBrowsable = true
         self.folderNo = nil
         self.fileNo = nil
-        self.uri = ""
+        self.uri = upnpDictionary["id"] as? String ?? ""
         
         if let createdString = upnpDictionary["dc:date"] as? String {
             created = dateFormatter.date(from: createdString)
