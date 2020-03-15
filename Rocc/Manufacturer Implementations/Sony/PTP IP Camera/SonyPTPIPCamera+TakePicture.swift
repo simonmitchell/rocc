@@ -262,6 +262,27 @@ extension SonyPTPIPDevice {
         Logger.log(message: "Got object data!: \(data.length). Attempting to save as image", category: "SonyPTPIPCamera")
         os_log("Got object data! Attempting to save as image", log: self.log, type: .debug)
         
+        // Check for a new object, in-case we missed the event for it!
+        getDevicePropDescFor(propCode: .objectInMemory, callback: { [weak self] (result) in
+            
+            guard let self = self else { return }
+            
+            switch result {
+            case .failure(_):
+                break
+            case .success(let property):
+                // if prop 0xd215 > 0x8000, the object in RAM is available at location 0xffffc001
+                // This variable also turns to 1 , but downloading then will crash the firmware
+                // we seem to need to wait for 0x8000 (See https://github.com/gphoto/libgphoto2/blob/de98b151bce6b0aa70157d6c0ebb7f59b4da3792/camlibs/ptp2/library.c#L4330)
+                guard let value = property.currentValue.toInt, value >= 0x8000 else {
+                    return
+                }
+                self.handleObjectId(objectID: 0xffffc001, shootingMode: shootingMode) { (_) in
+                    
+                }
+            }
+        })
+        
         let imageData = Data(data)
         guard UIImage(data: imageData) != nil else {
             Logger.log(message: "Image data not valid", category: "SonyPTPIPCamera")
