@@ -674,6 +674,23 @@ extension CameraEvent {
                 guard let duration = deviceProperty.currentValue.toInt else { return }
                 recordingDuration = TimeInterval(duration)
                 
+            case .storageState:
+                
+                guard let state = deviceProperty.currentValue.toInt else { return }
+                
+                let info = storageInformation?.first
+                
+                let storageInfo = StorageInformation(
+                    description: info?.description,
+                    spaceForImages: info?.spaceForImages,
+                    recordTarget: true,
+                    recordableTime: info?.recordableTime,
+                    id: nil,
+                    noMedia: state == 0x02
+                )
+                storageInformation = [
+                    storageInfo
+                ]
                 
             case .remainingShots:
                 
@@ -686,7 +703,7 @@ extension CameraEvent {
                     recordTarget: true,
                     recordableTime: info?.recordableTime,
                     id: nil,
-                    noMedia: false
+                    noMedia: info?.noMedia ?? false
                 )
                 storageInformation = [
                     storageInfo
@@ -705,7 +722,7 @@ extension CameraEvent {
                     recordTarget: true,
                     recordableTime: seconds,
                     id: nil,
-                    noMedia: false
+                    noMedia: info?.noMedia ?? false
                 )
                 storageInformation = [
                     storageInfo
