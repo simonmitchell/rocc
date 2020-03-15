@@ -184,7 +184,7 @@ extension SonyPTPIPDevice {
                 return
             }
             
-            self.getDevicePropDescFor(propCode: .objectInMemory, callback: { (result) in
+            self.getDevicePropDescriptionFor(propCode: .objectInMemory, callback: { (result) in
                 
                 switch result {
                 case .failure(_):
@@ -263,7 +263,7 @@ extension SonyPTPIPDevice {
         os_log("Got object data! Attempting to save as image", log: self.log, type: .debug)
         
         // Check for a new object, in-case we missed the event for it!
-        getDevicePropDescFor(propCode: .objectInMemory, callback: { [weak self] (result) in
+        getDevicePropDescriptionFor(propCode: .objectInMemory, callback: { [weak self] (result) in
             
             guard let self = self else { return }
             

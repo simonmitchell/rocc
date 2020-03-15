@@ -151,9 +151,7 @@ extension PTP.DeviceProperty.Code {
             // This is a devie B value, so shouldn't appear here and may be used for some other A property
         case .exposureSettingsLock:
             return nil
-        case .liveViewURL, .liveViewQuality:
-            return nil
-        case .recordingDuration:
+        case .recordingDuration, .storageState, .liveViewURL, .liveViewQuality:
             return nil
         }
     }
@@ -288,7 +286,7 @@ extension PTP.DeviceProperty.Code {
             return nil
         case .capture:
             return nil
-        case .remainingShots, .remainingCaptureTime:
+        case .remainingShots, .remainingCaptureTime, .storageState:
             return .getStorageInformation
         case .performZoom:
             return nil
@@ -971,6 +969,7 @@ extension PTP {
             case stillImage = 0xd2c7
             case movieFormat = 0xd241
             case movieQuality = 0xd242
+            case storageState = 0xd248
             case remainingShots = 0xd249
             case remainingCaptureTime = 0xd24a
             case exposureSettingsLock = 0xd2d5

@@ -266,7 +266,86 @@ internal final class SonyPTPIPDevice: SonyCamera {
         })
     }
     
-    func getDevicePropDescFor(propCode: PTP.DeviceProperty.Code,  callback: @escaping PTPIPClient.DevicePropertyDescriptionCompletion) {
+    func getDevicePropDescriptionsFor(propCodes: [PTP.DeviceProperty.Code], callback: @escaping PTPIPClient.AllDevicePropertyDescriptionsCompletion) {
+        
+        guard let ptpIPClient = ptpIPClient else { return }
+        
+        if deviceInfo?.supportedOperations.contains(.getAllDevicePropData) ?? false {
+            
+            ptpIPClient.getAllDevicePropDesc(callback: { (result) in
+                switch result {
+                case .success(let properties):
+                    let returnProperties = properties.filter({ propCodes.contains($0.code) })
+                    guard !returnProperties.isEmpty else {
+                        callback(Result.failure(PTPError.propCodeNotFound))
+                        return
+                    }
+                    callback(Result.success(returnProperties))
+                case .failure(let error):
+                    callback(Result.failure(error))
+                }
+            })
+            
+        } else if deviceInfo?.supportedOperations.contains(.sonyGetDevicePropDesc) ?? false {
+            
+            var remainingCodes = propCodes
+            var returnProperties: [PTPDeviceProperty] = []
+            
+            propCodes.forEach { (propCode) in
+                
+                let packet = Packet.commandRequestPacket(code: .sonyGetDevicePropDesc, arguments: [DWord(propCode.rawValue)], transactionId: ptpIPClient.getNextTransactionId())
+                ptpIPClient.awaitDataFor(transactionId: packet.transactionId) { (dataResult) in
+                    
+                    remainingCodes.removeAll(where: { $0 == propCode })
+                    
+                    switch dataResult {
+                    case .success(let data):
+                        guard let property = data.data.getDeviceProperty(at: 0) else {
+                            callback(Result.failure(PTPIPClientError.invalidResponse))
+                            return
+                        }
+                        returnProperties.append(property)
+                    case .failure(_):
+                        break
+                    }
+                    
+                    guard remainingCodes.isEmpty else { return }
+                    callback(returnProperties.count == propCodes.count ? Result.success(returnProperties) : Result.failure(PTPError.propCodeNotFound))
+                }
+                ptpIPClient.sendCommandRequestPacket(packet, callback: nil)
+            }
+            
+            
+        } else if deviceInfo?.supportedOperations.contains(.getDevicePropDesc) ?? false {
+            
+            var remainingCodes = propCodes
+            var returnProperties: [PTPDeviceProperty] = []
+            
+            propCodes.forEach { (propCode) in
+                
+                ptpIPClient.getDevicePropDescFor(propCode: propCode) { (result) in
+                    
+                    remainingCodes.removeAll(where: { $0 == propCode })
+
+                    switch result {
+                    case .success(let property):
+                        returnProperties.append(property)
+                    case .failure(_):
+                        break
+                    }
+                    
+                    guard remainingCodes.isEmpty else { return }
+                    callback(returnProperties.count == propCodes.count ? Result.success(returnProperties) : Result.failure(PTPError.propCodeNotFound))
+                }
+            }
+                        
+        } else {
+            
+            callback(Result.failure(PTPError.operationNotSupported))
+        }
+    }
+    
+    func getDevicePropDescriptionFor(propCode: PTP.DeviceProperty.Code,  callback: @escaping PTPIPClient.DevicePropertyDescriptionCompletion) {
         
         guard let ptpIPClient = ptpIPClient else { return }
         
@@ -379,7 +458,7 @@ extension SonyPTPIPDevice: Camera {
                 guard let self = self else { return }
                 
                 // On PTP IP cameras still capture mode gives us both continuous shooting speed, and it's mode too
-                self.getDevicePropDescFor(propCode: .stillCaptureMode, callback: { [weak self] (result) in
+                self.getDevicePropDescriptionFor(propCode: .stillCaptureMode, callback: { [weak self] (result) in
                     
                     guard let self = self else { return }
                     
@@ -633,7 +712,7 @@ extension SonyPTPIPDevice: Camera {
         }
         
         // Get available shutter speeds
-        getDevicePropDescFor(propCode: .shutterSpeed) { [weak self] (result) in
+        getDevicePropDescriptionFor(propCode: .shutterSpeed) { [weak self] (result) in
             
             guard let self = self else { return }
             
