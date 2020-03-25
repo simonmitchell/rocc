@@ -77,6 +77,7 @@
 		B182B9002381E2510054539E /* SonyPTPIPCamera+FunctionSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B182B8FF2381E2510054539E /* SonyPTPIPCamera+FunctionSupport.swift */; };
 		B182B9242383520B0054539E /* DispatchQueue+AsyncWhile.swift in Sources */ = {isa = PBXBuildFile; fileRef = B182B9232383520B0054539E /* DispatchQueue+AsyncWhile.swift */; };
 		B182B92E23836C0B0054539E /* AsyncWhileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B182B92D23836C0B0054539E /* AsyncWhileTests.swift */; };
+		B184CAEC242BF105000B13E9 /* ThunderRequest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B184CAEB242BF105000B13E9 /* ThunderRequest.framework */; };
 		B185A4EE2394FCB400B87BC7 /* PainInTheArsePacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = B185A4ED2394FCB400B87BC7 /* PainInTheArsePacket.swift */; };
 		B18AEB6323D8E0AB007B916A /* SonyPTPIPCamera+TakePicture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B18AEB6223D8E0AB007B916A /* SonyPTPIPCamera+TakePicture.swift */; };
 		B18AEB6D23D8E451007B916A /* PTPIPClient+Objects.swift in Sources */ = {isa = PBXBuildFile; fileRef = B18AEB6C23D8E451007B916A /* PTPIPClient+Objects.swift */; };
@@ -107,7 +108,6 @@
 		B1AEE51C237612DE00224152 /* WhiteBalanceValue+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AEE514237612DE00224152 /* WhiteBalanceValue+SonyPTPPropValueConvertable.swift */; };
 		B1AEE51F2376C3DE00224152 /* ExposureCompensation+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AEE51E2376C3DE00224152 /* ExposureCompensation+SonyPTPPropValueConvertable.swift */; };
 		B1AF502A208A51D00029336B /* NetworkInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AF5029208A51D00029336B /* NetworkInterface.swift */; };
-		B1AF504B208D345A0029336B /* ThunderRequest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1AF5041208D34510029336B /* ThunderRequest.framework */; };
 		B1B38047239EE90A0088E254 /* LiveViewStreamingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B38046239EE9090088E254 /* LiveViewStreamingTests.swift */; };
 		B1B4342A20939EF500A81B9D /* FileSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B4342920939EF500A81B9D /* FileSystem.swift */; };
 		B1B43450209746B000A81B9D /* CameraFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B4344F209746B000A81B9D /* CameraFunctions.swift */; };
@@ -156,61 +156,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		B115EFBF21ECF88200667FB7 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = B1AF5038208D34510029336B /* ThunderRequest.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = B120EE3D207B895800A4A7CA;
-			remoteInfo = ThunderRequestWatch;
-		};
 		B1316A582089C08F006BD136 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = B1316A442089C08E006BD136 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = B1316A4C2089C08F006BD136;
 			remoteInfo = CCKit;
-		};
-		B1AF5040208D34510029336B /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = B1AF5038208D34510029336B /* ThunderRequest.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = C2E5088219C835A300350F00;
-			remoteInfo = ThunderRequest;
-		};
-		B1AF5042208D34510029336B /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = B1AF5038208D34510029336B /* ThunderRequest.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = C2E5088D19C835A300350F00;
-			remoteInfo = ThunderRequestTests;
-		};
-		B1AF5044208D34510029336B /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = B1AF5038208D34510029336B /* ThunderRequest.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = B1177ED81BBAF18E00372D4D;
-			remoteInfo = ThunderRequestMac;
-		};
-		B1AF5046208D34510029336B /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = B1AF5038208D34510029336B /* ThunderRequest.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = B1177EE21BBAF18E00372D4D;
-			remoteInfo = ThunderRequestMacTests;
-		};
-		B1AF5048208D34510029336B /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = B1AF5038208D34510029336B /* ThunderRequest.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 49084FD11BD13DBD0012F636;
-			remoteInfo = ThunderRequestTV;
-		};
-		B1F7CEB2236CD304007E3921 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = B1AF5038208D34510029336B /* ThunderRequest.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = B190A829228DBA3A00E44821;
-			remoteInfo = "ThunderRequestTests-tvOS";
 		};
 /* End PBXContainerItemProxy section */
 
@@ -288,6 +239,7 @@
 		B182B8FF2381E2510054539E /* SonyPTPIPCamera+FunctionSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SonyPTPIPCamera+FunctionSupport.swift"; sourceTree = "<group>"; };
 		B182B9232383520B0054539E /* DispatchQueue+AsyncWhile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DispatchQueue+AsyncWhile.swift"; sourceTree = "<group>"; };
 		B182B92D23836C0B0054539E /* AsyncWhileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncWhileTests.swift; sourceTree = "<group>"; };
+		B184CAEB242BF105000B13E9 /* ThunderRequest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ThunderRequest.framework; path = Carthage/Build/iOS/ThunderRequest.framework; sourceTree = "<group>"; };
 		B185A4ED2394FCB400B87BC7 /* PainInTheArsePacket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PainInTheArsePacket.swift; sourceTree = "<group>"; };
 		B18AEB6223D8E0AB007B916A /* SonyPTPIPCamera+TakePicture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SonyPTPIPCamera+TakePicture.swift"; sourceTree = "<group>"; };
 		B18AEB6C23D8E451007B916A /* PTPIPClient+Objects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PTPIPClient+Objects.swift"; sourceTree = "<group>"; };
@@ -312,7 +264,6 @@
 		B1AEE514237612DE00224152 /* WhiteBalanceValue+SonyPTPPropValueConvertable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "WhiteBalanceValue+SonyPTPPropValueConvertable.swift"; sourceTree = "<group>"; };
 		B1AEE51E2376C3DE00224152 /* ExposureCompensation+SonyPTPPropValueConvertable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ExposureCompensation+SonyPTPPropValueConvertable.swift"; sourceTree = "<group>"; };
 		B1AF5029208A51D00029336B /* NetworkInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkInterface.swift; sourceTree = "<group>"; };
-		B1AF5038208D34510029336B /* ThunderRequest.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ThunderRequest.xcodeproj; path = ThunderRequest/ThunderRequest.xcodeproj; sourceTree = "<group>"; };
 		B1AF508A208DC3A80029336B /* RoccMac.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RoccMac.h; sourceTree = "<group>"; };
 		B1AF508B208DC3A80029336B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B1AF5095208DC3A80029336B /* RoccMacTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoccMacTests.swift; sourceTree = "<group>"; };
@@ -368,7 +319,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B1AF504B208D345A0029336B /* ThunderRequest.framework in Frameworks */,
+				B184CAEC242BF105000B13E9 /* ThunderRequest.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -386,7 +337,6 @@
 		B1316A432089C08E006BD136 = {
 			isa = PBXGroup;
 			children = (
-				B1AF5038208D34510029336B /* ThunderRequest.xcodeproj */,
 				B1316A4F2089C08F006BD136 /* Rocc */,
 				B1316A5A2089C08F006BD136 /* RoccTests */,
 				B1AF5089208DC3A80029336B /* RoccMac */,
@@ -510,23 +460,10 @@
 			path = PropValueConversion;
 			sourceTree = "<group>";
 		};
-		B1AF5039208D34510029336B /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				B1AF5041208D34510029336B /* ThunderRequest.framework */,
-				B1AF5043208D34510029336B /* ThunderRequestTests.xctest */,
-				B1AF5045208D34510029336B /* ThunderRequest.framework */,
-				B1AF5047208D34510029336B /* ThunderRequestMacTests.xctest */,
-				B1AF5049208D34510029336B /* ThunderRequest.framework */,
-				B1F7CEB3236CD304007E3921 /* ThunderRequestTests-tvOS.xctest */,
-				B115EFC021ECF88200667FB7 /* ThunderRequest.framework */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		B1AF504A208D345A0029336B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				B184CAEB242BF105000B13E9 /* ThunderRequest.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -854,12 +791,6 @@
 			mainGroup = B1316A432089C08E006BD136;
 			productRefGroup = B1316A4E2089C08F006BD136 /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = B1AF5039208D34510029336B /* Products */;
-					ProjectRef = B1AF5038208D34510029336B /* ThunderRequest.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				B1316A4C2089C08F006BD136 /* Rocc */,
@@ -867,58 +798,6 @@
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXReferenceProxy section */
-		B115EFC021ECF88200667FB7 /* ThunderRequest.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = ThunderRequest.framework;
-			remoteRef = B115EFBF21ECF88200667FB7 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		B1AF5041208D34510029336B /* ThunderRequest.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = ThunderRequest.framework;
-			remoteRef = B1AF5040208D34510029336B /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		B1AF5043208D34510029336B /* ThunderRequestTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = ThunderRequestTests.xctest;
-			remoteRef = B1AF5042208D34510029336B /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		B1AF5045208D34510029336B /* ThunderRequest.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = ThunderRequest.framework;
-			remoteRef = B1AF5044208D34510029336B /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		B1AF5047208D34510029336B /* ThunderRequestMacTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = ThunderRequestMacTests.xctest;
-			remoteRef = B1AF5046208D34510029336B /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		B1AF5049208D34510029336B /* ThunderRequest.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = ThunderRequest.framework;
-			remoteRef = B1AF5048208D34510029336B /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		B1F7CEB3236CD304007E3921 /* ThunderRequestTests-tvOS.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = "ThunderRequestTests-tvOS.xctest";
-			remoteRef = B1F7CEB2236CD304007E3921 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		B1316A4B2089C08F006BD136 /* Resources */ = {
@@ -1255,6 +1134,10 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = Rocc/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
@@ -1284,6 +1167,10 @@
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = Rocc/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
