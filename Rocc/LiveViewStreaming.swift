@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import os.log
 
 #if os(iOS)
 public typealias Image = UIImage
@@ -16,7 +17,7 @@ public typealias Image = NSImage
 
 /// A delegation protocol which is used to provide updates on frame information
 public protocol LiveViewStreamDelegate {
-    
+        
     /// Called when the stream receives a new image frame from the camera
     ///
     /// - Parameters:
@@ -128,6 +129,8 @@ public struct FrameInfo {
 /// them back to the callee through a delegate based approach
 public final class LiveViewStream: NSObject {
     
+    private let log = OSLog(subsystem: "com.yellow-brick-bear.rocc", category: "LiveViewStreaming")
+    
     /// The delegate which will have live stream updates passed to it
     public var delegate: LiveViewStreamDelegate?
     
@@ -136,6 +139,9 @@ public final class LiveViewStream: NSObject {
     
     /// Whether the stream is currently running
     public var isStreaming: Bool = false
+    
+    /// Whether the stream is currently starting
+    public var isStarting: Bool = false
     
     /// The size of the stream (M/L)
     public var streamSize: String?
@@ -168,6 +174,11 @@ public final class LiveViewStream: NSObject {
         }
         #endif
         
+        isStarting = true
+        
+        Logger.log(message: "Starting live view stream", category: "LiveViewStreaming")
+        os_log("Starting live view stream", log: log, type: .debug)
+        
         camera.performFunction(LiveView.start, payload: nil) { [weak self] (error, streamURL) in
             
             guard let strongSelf = self else { return }
@@ -175,14 +186,21 @@ public final class LiveViewStream: NSObject {
             guard let streamURL = streamURL else {
                 
                 guard let sonyError = error as? CameraError, case .alreadyRunningPollingAPI(_) = sonyError else {
+                    Logger.log(message: "Starting live view stream errored \((error ?? StreamingError.unknown).localizedDescription)", category: "LiveViewStreaming")
+                    os_log("Starting live view stream errored %@", log: strongSelf.log, type: .error, (error ?? StreamingError.unknown).localizedDescription)
                     strongSelf.delegate?.liveViewStream(strongSelf, didError: error ?? StreamingError.unknown)
                     return
                 }
+                
+                Logger.log(message: "Got already running polling API error, restarting live stream", category: "LiveViewStreaming")
+                os_log("Got already running polling API error, restarting live stream", log: strongSelf.log, type: .debug)
                 
                 strongSelf.camera.performFunction(LiveView.stop, payload: nil, callback: { [weak strongSelf] (error, response) in
                     
                     guard let _strongSelf = strongSelf else { return }
                     guard error == nil else {
+                        Logger.log(message: "Stopping live view stream errored \((error ?? StreamingError.unknown).localizedDescription)", category: "LiveViewStreaming")
+                        os_log("Stopping live view stream errored %@", log: _strongSelf.log, type: .error, (error ?? StreamingError.unknown).localizedDescription)
                         _strongSelf.delegate?.liveViewStream(_strongSelf, didError: error ?? StreamingError.unknown)
                         return
                     }
@@ -205,12 +223,22 @@ public final class LiveViewStream: NSObject {
     
     private var dataTask: URLSessionDataTask?
     
+    var isPacketedStream: Bool = false
+        
     private func streamFrom(url: URL) {
         
+        Logger.log(message: "Beggining live view stream from \(url.absoluteString)", category: "LiveViewStreaming")
+        os_log("Beggining live view stream from %@", log: log, type: .debug, url.absoluteString)
+        
+        isPacketedStream = false
+        isStarting = false
         isStreaming = true
-        //TODO: CREATE AND SEND A DELEGATE QUEUE HERE
-        streamingSession = URLSession(configuration: .default, delegate: self, delegateQueue: nil)
-        let request = URLRequest(url: url)
+        
+        let config = URLSessionConfiguration.ephemeral
+        config.requestCachePolicy = .reloadIgnoringLocalCacheData
+        config.urlCache = nil
+        streamingSession = URLSession(configuration: config, delegate: self, delegateQueue: nil)
+        let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData)
         
         receivedData = Data()
         dataTask = streamingSession?.dataTask(with: request)
@@ -219,6 +247,9 @@ public final class LiveViewStream: NSObject {
     
     /// Stops the stream
     public func stop() {
+        
+        Logger.log(message: "Stopping live view stream", category: "LiveViewStreaming")
+        os_log("Stopping live view stream", log: log, type: .debug)
         
         isStreaming = false
         streamingSession?.invalidateAndCancel()
@@ -230,7 +261,7 @@ public final class LiveViewStream: NSObject {
         }
     }
     
-    private struct Payload {
+    internal struct Payload {
         
         enum Content: UInt8 {
             case image = 0x01
@@ -248,6 +279,16 @@ public final class LiveViewStream: NSObject {
         let image: Image?
         
         let frames: [FrameInfo]?
+        
+        init(image: Image, dataRange: Range<Int>) {
+            
+            self.image = image
+            self.type = .image
+            self.timestamp = 0
+            self.sequence = 0
+            self.dataRange = dataRange
+            self.frames = nil
+        }
         
         init?(data: Data) {
             
@@ -327,7 +368,7 @@ public final class LiveViewStream: NSObject {
         }
     }
     
-    private func attemptImageParse() {
+    @discardableResult internal func attemptImageParse() -> [Payload]? {
         
         // Re-case as Data in-case we've received a DataSlice, which seems to be an issue somewhere!
         receivedData = Data(receivedData)
@@ -335,19 +376,28 @@ public final class LiveViewStream: NSObject {
         // If for some reason our data doesn't start with the "Start Byte", then delete up to that point!
         if receivedData.count > 0, receivedData[0] != 0xFF {
             
+            Logger.log(message: "Received data didn't start with 0xFF deleting up to that point", category: "LiveViewStreaming")
+            os_log("Received data didn't start with 0xFF deleting up to that point", log: log, type: .debug)
+            
             // If we have a start byte, discard everything before it
             if receivedData.contains(0xFF) {
+                Logger.log(message: "Discarding data up to first 0xFF", category: "LiveViewStreaming")
+                os_log("Discarding data up to first 0xFF", log: log, type: .debug)
                 receivedData = Data(receivedData.split(separator: 0xFF, maxSplits: 1, omittingEmptySubsequences: false).last ?? Data())
-            } else {
-                receivedData = Data()
+                // Add back in the 0xff byte as this is required to parse a JPEG!
+                receivedData.insert(0xFF, at: 0)
             }
         }
         
-        guard let payloads = payloads(), !payloads.isEmpty else {
-            return
+        var payloads = parsePayloads()
+        // Only do JPEG fallback if we haven't manged to parse packeted payloads already in this streaming session
+        if payloads == nil && !isPacketedStream {
+            payloads = parseJPEGs()
+        } else if !isPacketedStream {
+            isPacketedStream = true
         }
         
-        payloads.forEach { (payload) in
+        payloads?.forEach({ (payload) in
             
             if let image = payload.image {
                 delegate?.liveViewStream(self, didReceive: image)
@@ -356,7 +406,9 @@ public final class LiveViewStream: NSObject {
             if let frames = payload.frames {
                 delegate?.liveViewStream(self, didReceive: frames)
             }
-        }
+        })
+        
+        return payloads
     }
     
     enum PayloadType {
@@ -364,7 +416,7 @@ public final class LiveViewStream: NSObject {
         case frameInfo
     }
     
-    private func payloads() -> [Payload]? {
+    private func parsePayloads() -> [Payload]? {
         
         var payload = Payload(data: receivedData)
         
@@ -390,6 +442,82 @@ public final class LiveViewStream: NSObject {
         
         return payloads.isEmpty ? nil : payloads
     }
+    
+    private func parseJPEGs() -> [Payload]? {
+        
+        // Keep local copy so not mutated whilst we're doing this
+        let data = Data(receivedData)
+        
+        // No point if data length < 2, also we may crash in that case...
+        guard data.count > 2 else { return nil }
+        
+        var offset: Int = 0
+        var startImageOffset: Int?
+        
+        var payloads: [Payload] = []
+        
+        // Search for next ff xx
+        while offset < data.count - 1 {
+            
+            // Find 0xff 0xx (ignoring multiple chained 0xff 0xff 0xff which is valid)
+            guard data[offset] == 0xff, data[offset + 1] != 0xff else {
+                offset += 1
+                continue
+            }
+            
+            switch data[offset + 1] {
+                // If any of these bytes follow the 0xff marker we don't get a length next
+                // so we just offset ++ and then continue
+            case 0x00, 0x01, 0xd0, 0xd1, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd7, 0xdb:
+                offset += 1
+                // Start of image marker!
+            case 0xd8:
+                startImageOffset = offset
+                offset += 1
+                // End of image marker!
+            case 0xd9:
+                guard let _startImageOffset = startImageOffset else {
+                    offset += 1
+                    continue
+                }
+                let imageRange: Range<Int> = _startImageOffset..<offset+2
+                let imageData = Data(data[imageRange])
+                guard let image = Image(data: imageData) else {
+                    offset += 1
+                    continue
+                }
+                offset += 1
+                // Set this back to nil so don't end up corrupting our data again
+                startImageOffset = nil
+                let payload = Payload(image: image, dataRange: imageRange)
+                payloads.append(payload)
+            default:
+                guard startImageOffset != nil else {
+                    offset += 1
+                    continue
+                }
+                // We're going to read two bytes, so make sure we won't get out of bounds!
+                guard offset < data.count -  4 else {
+                    offset += 1
+                    continue
+                }
+                guard let length = UInt16(data: data[offset+2..<offset+4]), length > 2 else {
+                    offset += 1
+                    continue
+                }
+                offset += Int(length) - 2
+                continue
+            }
+        }
+        
+        if let payloadsMinBound = payloads.first?.dataRange.startIndex, let payloadsMaxBound = payloads.last?.dataRange.endIndex {
+            let fullRange: Range<Int> = payloadsMinBound..<payloadsMaxBound
+            let range = fullRange.clamped(to: receivedData.startIndex..<receivedData.endIndex)
+            receivedData.removeSubrange(range)
+        }
+        
+        return payloads.isEmpty ? nil : payloads
+    }
 }
 
 extension LiveViewStream: URLSessionDataDelegate {
@@ -400,6 +528,8 @@ extension LiveViewStream: URLSessionDataDelegate {
     }
     
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        Logger.log(message: "Live view stream did error, restarting...", category: "LiveViewStreaming")
+        os_log("Live view stream did error, restarting...", log: log, type: .error)
         receivedData = Data()
         guard error != nil else { return }
         start()

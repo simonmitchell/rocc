@@ -109,6 +109,9 @@ extension _CameraFunction {
             return "setSelfTimer"
         case .getSelfTimerDuration:
             return "getSelfTimer"
+            // Not supported apart from PTP/IP
+        case .setExposureModeDialControl, .getExposureModeDialControl, .recordHighFrameRateCapture, .setExposureSettingsLock, .getExposureSettingsLock:
+            return nil
         case .setExposureMode:
             return "setExposureMode"
         case .getExposureMode:
@@ -133,9 +136,9 @@ extension _CameraFunction {
             return "setStillSize"
         case .getStillSize:
             return "getStillSize"
-        case .setStillQuality:
+        case .setStillQuality, .setStillFormat:
             return "setStillQuality"
-        case .getStillQuality:
+        case .getStillQuality, .getStillFormat:
             return "getStillQuality"
         case .getPostviewImageSize:
             return "getPostviewImageSize"

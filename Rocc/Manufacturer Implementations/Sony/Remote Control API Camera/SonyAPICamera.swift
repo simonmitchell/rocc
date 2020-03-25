@@ -31,13 +31,17 @@ fileprivate extension CountRequest {
     static let sonyDefault = CountRequest(uri: "storage:memoryCard1", view: .flat, target: "all", types: nil)
 }
 
-internal final class SonyCameraDevice {
+internal final class SonyAPICameraDevice: SonyCamera {
     
     private let apiClient: SonyCameraAPIClient
     
     fileprivate var lastShutterSpeed: ShutterSpeed?
     
     fileprivate var lastShootMode: ShootingMode?
+    
+    var lastEvent: CameraEvent? {
+        return nil
+    }
     
     struct ApiDeviceInfo {
         
@@ -49,7 +53,7 @@ internal final class SonyCameraDevice {
             
             let accessType: String?
             
-            init?(dictionary: [AnyHashable : Any], model: Model?) {
+            init?(dictionary: [AnyHashable : Any], model: SonyCamera.Model?) {
                 
                 guard let _type = dictionary["av:X_ScalarWebAPI_ServiceType"] as? String else {
                     return nil
@@ -75,7 +79,7 @@ internal final class SonyCameraDevice {
         
         let services: [Service]
         
-        init?(dictionary: [AnyHashable : Any], model: Model?) {
+        init?(dictionary: [AnyHashable : Any], model: SonyCamera.Model?) {
             
             guard let versionString = dictionary["av:X_ScalarWebAPI_Version"] as? String else { return nil }
             version = versionString
@@ -102,30 +106,24 @@ internal final class SonyCameraDevice {
         }
     }
     
-    var focusMode: String?
+    var focusMode: Focus.Mode.Value?
         
     var type: String?
+    
+    public var onEventAvailable: (() -> Void)?
+    
+    public var onDisconnected: (() -> Void)?
     
     public var apiVersion: String?
     
     public var name: String?
-    
-    public var identifier: String
-    
-    var modelEnum: Model?
-    
+        
     public var model: String?
     
     public var manufacturer: String
     
     public var ipAddress: sockaddr_in?
-    
-    let manufacturerURL: URL?
-    
-    let udn: String?
-    
-    let services: [UPnPService]?
-    
+                
     let apiDeviceInfo: ApiDeviceInfo
     
     public var firmwareVersion: String?
@@ -143,23 +141,26 @@ internal final class SonyCameraDevice {
     public var lensModelName: String?
     
     public var baseURL: URL? {
-        return apiDeviceInfo.services.first?.url
+        get {
+            return apiDeviceInfo.services.first?.url
+        }
+        set { }
     }
-    
+        
     var connectionMode: ConnectionMode {
         return .remoteControl
     }
     
-    init?(dictionary: [AnyHashable : Any]) {
+    override init?(dictionary: [AnyHashable : Any]) {
         
         let _name = dictionary["friendlyName"] as? String
-        let _modelEnum: Model?
+        let _modelEnum: SonyCamera.Model?
         if let _name = _name {
-            _modelEnum = Model(rawValue: _name)
+            _modelEnum = SonyCamera.Model(rawValue: _name)
         } else {
             _modelEnum = nil
         }
-        
+                
         guard let apiDeviceInfoDict = dictionary["av:X_ScalarWebAPI_DeviceInfo"] as? [AnyHashable : Any], let apiInfo = ApiDeviceInfo(dictionary: apiDeviceInfoDict, model: _modelEnum) else {
             return nil
         }
@@ -169,35 +170,28 @@ internal final class SonyCameraDevice {
         apiVersion = apiDeviceInfo.version
         
         name = _modelEnum?.friendlyName ?? _name
-        udn = dictionary["UDN"] as? String
-        
-        identifier = udn ?? NSUUID().uuidString
-        
-        if let name = name {
-            modelEnum = Model(rawValue: name)
-        } else {
-            modelEnum = nil
-        }
-        
-        model = modelEnum?.friendlyName
         manufacturer = dictionary["manufacturer"] as? String ?? "Sony"
         
-        if let manufacturerURLString = dictionary["manufacturerURL"] as? String {
-            manufacturerURL = URL(string: manufacturerURLString)
-        } else {
-            manufacturerURL = nil
-        }
+        super.init(dictionary: dictionary)
         
-        if let serviceDictionaries = dictionary["serviceList"] as? [[AnyHashable : Any]] {
-            services = serviceDictionaries.compactMap({ UPnPService(dictionary: $0) })
-        } else {
-            services = nil
-        }
+        modelEnum = _modelEnum
+        model = modelEnum?.friendlyName
+    }
+    
+    override func update(with deviceInfo: SonyDeviceInfo?) {
+        
+        // Keep name if modelEnum currently nil as user has renamed camera!
+        name = modelEnum == nil ? name : (deviceInfo?.model?.friendlyName ?? name)
+        modelEnum = deviceInfo?.model ?? modelEnum
+        model = modelEnum?.friendlyName ?? model
+        lensModelName = deviceInfo?.lensModelName
+        firmwareVersion = deviceInfo?.firmwareVersion
+        remoteAppVersion = deviceInfo?.installedPlayMemoriesApps.first(where :{ $0.name == "Smart Remote Control" })?.version
     }
 }
 
-extension SonyCameraDevice: Camera {
-    
+extension SonyAPICameraDevice: Camera {
+        
     func finishTransfer(callback: @escaping ((Error?) -> Void)) {
         callback(CameraError.noSuchMethod("Finish Transfer"))
     }
@@ -217,11 +211,11 @@ extension SonyCameraDevice: Camera {
         focusChangeAwaitingCallbacks.append(callback)
     }
     
-    public var supportsPolledEvents: Bool {
-        return true
+    var eventPollingMode: PollingMode {
+        return .continuous
     }
     
-    private func getInTransferMode(callback: @escaping (Result<Bool>) -> Void) {
+    private func getInTransferMode(callback: @escaping (Result<Bool, Error>) -> Void) {
         
         guard let cameraClient = apiClient.camera else {
             callback(Result.failure(CameraError.cameraNotReady("getVersions")))
@@ -234,12 +228,12 @@ extension SonyCameraDevice: Camera {
         } else {
             cameraClient.getVersions { (result) in
                 
-                // Ignore 404 as this just means we're a legacy camera
+                // Ignore 404 in case we're on an unknown camera or user has renamed camera
                 if case let .failure(error) = result, (error as NSError).code != 404 {
                     callback(Result.failure(error))
                     return
                 }
-                
+                    
                 guard let avClient = self.apiClient.avContent else {
                     callback(Result.success(false))
                     return
@@ -247,12 +241,12 @@ extension SonyCameraDevice: Camera {
                 
                 avClient.getVersions { (avResult) in
                     
-                    // Ignore 404 as this just means we're a legacy camera
+                    // Ignore 404 in case we're on an unknown camera or user has renamed camera
                     if case let .failure(error) = avResult, (error as NSError).code != 404 {
                         callback(Result.failure(error))
                         return
                     }
-                    
+                        
                     cameraClient.getCameraFunction({ (functionResult) in
                         
                         switch functionResult {
@@ -299,7 +293,7 @@ extension SonyCameraDevice: Camera {
                 completion(error, false)
             case .success(let inTransferMode):
                 
-                guard self.modelEnum == nil || Model.supporting(function: .startRecordMode).contains(self.modelEnum!) else {
+                guard self.modelEnum == nil || SonyCamera.Model.supporting(function: .startRecordMode).contains(self.modelEnum!) else {
                     completion(nil, inTransferMode)
                     return
                 }
@@ -500,7 +494,7 @@ extension SonyCameraDevice: Camera {
         }
         
         // Ignore models which don't require/support this...
-        guard let model = modelEnum, Model.supporting(function: .getCameraFunction).contains(model) else {
+        guard let model = modelEnum, SonyCamera.Model.supporting(function: .getCameraFunction).contains(model) else {
             callback(nil)
             return
         }
@@ -555,7 +549,7 @@ extension SonyCameraDevice: Camera {
         }
         
         // If not supported, don't bother getting values
-        if let model = modelEnum, !Model.supporting(function: function.function).contains(model) && !function.function.requiresAPICheckForSupport {
+        if let model = modelEnum, !SonyCamera.Model.supporting(function: function.function).contains(model) && !function.function.requiresAPICheckForSupport {
             callback(false, nil, nil)
             return
         }
@@ -768,11 +762,19 @@ extension SonyCameraDevice: Camera {
             })
         case .getStillQuality, .setStillQuality:
             apiClient.camera?.getSupportedStillQualities({ (result) in
-                guard case let .success(shutterSpeeds) = result else {
+                guard case let .success(stillQualities) = result else {
                     callback(true, nil, nil)
                     return
                 }
-                callback(true, nil, shutterSpeeds as? [T.SendType])
+                callback(true, nil, stillQualities as? [T.SendType])
+            })
+        case .getStillFormat, .setStillFormat:
+            apiClient.camera?.getSupportedStillFormats({ (result) in
+                guard case let .success(stillQualities) = result else {
+                    callback(true, nil, nil)
+                    return
+                }
+                callback(true, nil, stillQualities as? [T.SendType])
             })
         case .getPostviewImageSize, .setPostviewImageSize:
             apiClient.camera?.getSupportedPostviewImageSizes({ (result) in
@@ -922,7 +924,7 @@ extension SonyCameraDevice: Camera {
             return
         }
         
-        if let model = modelEnum, !Model.supporting(function: function.function).contains(model) && !function.function.requiresAPICheckForSupport {
+        if let model = modelEnum, !SonyCamera.Model.supporting(function: function.function).contains(model) && !function.function.requiresAPICheckForSupport {
             callback(false, nil, nil)
             return
         }
@@ -1278,6 +1280,16 @@ extension SonyCameraDevice: Camera {
                         return
                     }
                     callback(true, nil, qualities as? [T.SendType])
+                })
+                
+            case .setStillFormat:
+                
+                self.apiClient.camera?.getAvailableStillFormats({ (result) in
+                    guard case let .success(formats) = result else {
+                        callback(true, nil, nil)
+                        return
+                    }
+                    callback(true, nil, formats as? [T.SendType])
                 })
                 
             case .setPostviewImageSize:
@@ -1779,7 +1791,7 @@ extension SonyCameraDevice: Camera {
                     return
                 }
                 
-                guard focusMode == nil || focusMode!.lowercased().contains("af") else {
+                guard focusMode == nil || focusMode!.isAutoFocus else {
                     Logger.shared.log("Camera not in AF mode, skipping half-press shutter", category: "SonyCamera", level: .debug)
                     takePicture(false, nil)
                     return
@@ -2062,7 +2074,7 @@ extension SonyCameraDevice: Camera {
                 
             case .setContinuousShootingMode:
                 
-                guard let mode = payload as? ContinuousShootingMode else {
+                guard let mode = payload as? ContinuousCapture.Mode.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2084,7 +2096,7 @@ extension SonyCameraDevice: Camera {
                 
             case .setContinuousShootingSpeed:
                 
-                guard let speed = payload as? ContinuousShootingSpeed else {
+                guard let speed = payload as? ContinuousCapture.Speed.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2128,7 +2140,7 @@ extension SonyCameraDevice: Camera {
                 
             case .setExposureMode:
                 
-                guard let mode = payload as? String else {
+                guard let mode = payload as? Exposure.Mode.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2150,7 +2162,7 @@ extension SonyCameraDevice: Camera {
                 
             case .setExposureCompensation:
                 
-                guard let compensation = payload as? Double else {
+                guard let compensation = payload as? Exposure.Compensation.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2163,13 +2175,13 @@ extension SonyCameraDevice: Camera {
                         
                         // Find the zero-based index of the compensation we are trying to set.
                         guard let index = availableCompensations.firstIndex(where: {
-                            Double.equal($0, compensation, precision: 2)
+                            Double.equal($0.value, compensation.value, precision: 2)
                         }) else {
                             callback(FunctionError.invalidPayload, nil)
                             return
                         }
                         guard let zeroIndex = availableCompensations.firstIndex(where: {
-                            Double.equal($0, 0.0, precision: 4)
+                            Double.equal($0.value, 0.0, precision: 4)
                         }) else {
                             callback(FunctionError.invalidPayload, nil)
                             return
@@ -2204,7 +2216,7 @@ extension SonyCameraDevice: Camera {
                                 callback(error, nil)
                             case .success(let compensationIndex):
                                 
-                                guard let zeroIndex = availableCompensations.firstIndex(of: 0.0) else {
+                                guard let zeroIndex = availableCompensations.firstIndex(where: { $0.value == 0.0 }) else {
                                     callback(FunctionError.invalidResponse, nil)
                                     return
                                 }
@@ -2230,7 +2242,7 @@ extension SonyCameraDevice: Camera {
                 
             case .setFocusMode:
                 
-                guard let mode = payload as? String else {
+                guard let mode = payload as? Focus.Mode.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2252,7 +2264,7 @@ extension SonyCameraDevice: Camera {
                 
             case .setAperture:
                 
-                guard let aperture = payload as? String else {
+                guard let aperture = payload as? Aperture.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2274,7 +2286,7 @@ extension SonyCameraDevice: Camera {
                 
             case .setISO:
                 
-                guard let ISO = payload as? String else {
+                guard let ISO = payload as? ISO.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2384,7 +2396,7 @@ extension SonyCameraDevice: Camera {
                 
             case .setStillSize:
                 
-                guard let size = payload as? StillSize else {
+                guard let size = payload as? StillCapture.Size.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2406,7 +2418,7 @@ extension SonyCameraDevice: Camera {
                 
             case .setStillQuality:
                 
-                guard let quality = payload as? String else {
+                guard let quality = payload as? StillCapture.Quality.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2418,6 +2430,28 @@ extension SonyCameraDevice: Camera {
             case .getStillQuality:
                 
                 camera.getStillQuality() { (result) in
+                    switch result {
+                    case .failure(let error):
+                        callback(error, nil)
+                    case .success(let quality):
+                        callback(nil, quality as? T.ReturnType)
+                    }
+                }
+                
+            case .setStillFormat:
+                
+                guard let format = payload as? StillCapture.Format.Value else {
+                    callback(FunctionError.invalidPayload, nil)
+                    return
+                }
+                
+                camera.setStillFormat(format) { (error) in
+                    callback(error, nil)
+                }
+                
+            case .getStillFormat:
+                
+                camera.getStillFormat() { (result) in
                     switch result {
                     case .failure(let error):
                         callback(error, nil)
@@ -2450,7 +2484,7 @@ extension SonyCameraDevice: Camera {
                 
             case .setVideoFileFormat:
                 
-                guard let format = payload as? String else {
+                guard let format = payload as? VideoCapture.FileFormat.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2472,7 +2506,7 @@ extension SonyCameraDevice: Camera {
                 
             case .setVideoQuality:
                 
-                guard let quality = payload as? String else {
+                guard let quality = payload as? VideoCapture.Quality.Value else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -2829,7 +2863,7 @@ extension SonyCameraDevice: Camera {
                         // Check if shutterSpeed has changed away from Bulb! Sony doesn't have a "Bulb" shooting mode, so
                         // we need to do this automatically!
                         if let shutterSpeed = informations.shutterSpeed, let lastShootMode = self.lastShootMode, !shutterSpeed.current.isBulb && self.lastShutterSpeed?.isBulb == true {
-                            event.shootMode = (current: lastShootMode, available: informations.shootMode?.available)
+                            event.shootMode = (current: lastShootMode, available: informations.shootMode?.available ?? [], supported: informations.shootMode?.supported ?? [])
                         }
                         
                         // Only track this if we're not bulb shooting

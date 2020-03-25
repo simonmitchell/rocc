@@ -108,7 +108,13 @@ public struct CameraEvent {
         public let shouldCheck: Bool
         
         /// The still size the camera is shooting in.
-        public let stillSize: StillSize
+        public let stillSize: StillCapture.Size.Value
+        
+        /// The currently available still sizes.
+        public let available: [StillCapture.Size.Value]?
+               
+        /// The currently supported still sizes.
+        public let supported: [StillCapture.Size.Value]?
     }
     
     /// A structural representation of information about the white balance being used by the camera
@@ -119,6 +125,12 @@ public struct CameraEvent {
         
         /// The current white balance value.
         public let whitebalanceValue: WhiteBalance.Value
+        
+        /// The currently available white balance values.
+        public let available: [WhiteBalance.Value]?
+        
+        /// The currently supported white balance values.
+        public let supported: [WhiteBalance.Value]?
     }
     
     /// The current status of the camera.
@@ -131,68 +143,78 @@ public struct CameraEvent {
     public let zoomPosition: Double?
     
     /// The functions that are currently available to the camera.
-    /// This can be used to check availability of APIs instead of the `Camera.isFunctionAvailable` method, although this doesn't return accepted values.
+    /// This can be used to check availability of functions instead of the `Camera.isFunctionAvailable` method, although this doesn't return accepted values.
     public let availableFunctions: [_CameraFunction]?
     
+    /// The functions that are supported by the camera.
+    /// This can be used to check whether functions are available instead of `Camera.isFunctionSupported` method, although this doesn't contain supported values.
+    public let supportedFunctions: [_CameraFunction]?
+    
     /// URLs for postView images that the camera has taken.
-    public let postViewPictureURLs: [[URL]]?
+    public var postViewPictureURLs: [[URL]]?
     
     /// Storage information for each of the camera's storage capabilities.
     public let storageInformation: [StorageInformation]?
     
     /// Current and available `Beep Mode` of the camera.
-    public let beepMode: (current: String, available: [String])?
+    public let beepMode: (current: String, available: [String], supported: [String])?
     
     /// The current function the camera is setup for using, and the available values to set it to.
-    public let function: (current: String, available: [String])?
+    public let function: (current: String, available: [String], supported: [String])?
     
     /// The result of setting the camera function.
     public let functionResult: Bool
     
     /// The video quality the camera is setup to record in, and available values to set it to.
-    public let videoQuality: (current: String, available: [String])?
+    public let videoQuality: (current: VideoCapture.Quality.Value, available: [VideoCapture.Quality.Value], supported: [VideoCapture.Quality.Value])?
     
     /// Information about the still size the camera is shooting in.
     public let stillSizeInfo: StillSizeInformation?
     
     /// Current and available steady modes of the camera.
-    public let steadyMode: (current: String, available: [String])?
+    public let steadyMode: (current: String, available: [String], supported: [String])?
     
     /// Current and available view angles of the camera.
-    public let viewAngle: (current: Double, available: [Double])?
+    public let viewAngle: (current: Double, available: [Double], supported: [Double])?
     
     /// Current and available exposure modes.
-    public let exposureMode: (current: String, available: [String])?
+    public let exposureMode: (current: Exposure.Mode.Value, available: [Exposure.Mode.Value], supported: [Exposure.Mode.Value])?
+    
+    /// Current and available exposure mode dial control mode.
+    public let exposureModeDialControl: (current: Exposure.Mode.DialControl.Value, available: [Exposure.Mode.DialControl.Value], supported: [Exposure.Mode.DialControl.Value])?
+    
+    /// The current state of exposure settings lock
+    public let exposureSettingsLockStatus: Exposure.SettingsLock.Status?
     
     /// Current and available post view image size.
-    public let postViewImageSize: (current: String, available: [String])?
+    public let postViewImageSize: (current: String, available: [String], supported: [String])?
     
     /// Current and available self timer durations.
-    public let selfTimer: (current: TimeInterval, available: [TimeInterval])?
+    public let selfTimer: (current: TimeInterval, available: [TimeInterval], supported: [TimeInterval])?
     
     /// Current and available shoot mode.
-    public var shootMode: (current: ShootingMode, available: [ShootingMode]?)?
+    public var shootMode: (current: ShootingMode, available: [ShootingMode]?, supported: [ShootingMode])?
     
     /// Current and available exposure compensation.
-    public let exposureCompensation: (current: Double, available: [Double])?
+    public let exposureCompensation: (current: Exposure.Compensation.Value, available: [Exposure.Compensation.Value], supported: [Exposure.Compensation.Value])?
     
     /// Current and available flash modes.
-    public let flashMode: (current: String, available: [String])?
+    public let flashMode: (current: Flash.Mode.Value, available: [Flash.Mode.Value], supported: [Flash.Mode.Value])?
     
     /// Current and available apertures.
-    public let aperture: (current: String, available: [String])?
+    public let aperture: (current: Aperture.Value, available: [Aperture.Value], supported: [Aperture.Value])?
     
     /// Current and available focus modes.
-    public let focusMode: (current: String, available: [String])?
+    public let focusMode: (current: Focus.Mode.Value, available: [Focus.Mode.Value], supported: [Focus.Mode.Value])?
     
     /// Current and available ISO.
-    public let ISO: (current: String, available: [String])?
+    public let iso: (current: ISO.Value, available: [ISO.Value], supported: [ISO.Value])?
     
     /// Whether or not the camera is program shifted.
     public let isProgramShifted: Bool?
     
     /// Current and available shutter speeds.
-    public let shutterSpeed: (current: ShutterSpeed, available: [ShutterSpeed])?
+    public let shutterSpeed: (current: ShutterSpeed, available: [ShutterSpeed], supported: [ShutterSpeed]?)?
     
     /// Current white balance and whether need to re-poll for available white balances.
     public let whiteBalance: WhiteBalanceInformation?
@@ -204,49 +226,55 @@ public struct CameraEvent {
     public let focusStatus: FocusStatus?
     
     /// The current and available zoom settings.
-    public let zoomSetting: (current: String, available: [String])?
+    public let zoomSetting: (current: String, available: [String], supported: [String])?
     
     /// The current and available still quality.
-    public let stillQuality: (current: String, available: [String])?
+    public let stillQuality: (current: StillCapture.Quality.Value, available: [StillCapture.Quality.Value], supported: [StillCapture.Quality.Value])?
+    
+    /// The current and available still formats
+    public let stillFormat: (current: StillCapture.Format.Value, available: [StillCapture.Format.Value], supported: [StillCapture.Format.Value])?
     
     /// The current and available continuous shooting modes.
-    public let continuousShootingMode: (current: ContinuousShootingMode, available: [ContinuousShootingMode])?
+    public let continuousShootingMode: (current: ContinuousCapture.Mode.Value?, available: [ContinuousCapture.Mode.Value], supported: [ContinuousCapture.Mode.Value])?
     
     /// The current and available continuous shooting speeds.
-    public let continuousShootingSpeed: (current: ContinuousShootingSpeed, available: [ContinuousShootingSpeed])?
+    public let continuousShootingSpeed: (current: ContinuousCapture.Speed.Value?, available: [ContinuousCapture.Speed.Value], supported: [ContinuousCapture.Speed.Value])?
     
     /// Array of URL of continuous shooting. When more than one URL notifies, the last one is the latest.
-    public let continuousShootingURLS: [(postView: URL, thumbnail: URL)]?
+    public var continuousShootingURLS: [(postView: URL, thumbnail: URL)]?
     
     /// Current and available flip settings.
-    public let flipSetting: (current: String, available: [String])?
+    public let flipSetting: (current: String, available: [String], supported: [String])?
     
     /// Current and available scenes.
-    public let scene: (current: String, available: [String])?
+    public let scene: (current: String, available: [String], supported: [String])?
     
     /// Current and available time intervals.
-    public let intervalTime: (current: TimeInterval, available: [TimeInterval])?
+    public let intervalTime: (current: TimeInterval, available: [TimeInterval], supported: [TimeInterval])?
     
     /// Current and available color settings.
-    public let colorSetting: (current: String, available: [String])?
+    public let colorSetting: (current: String, available: [String], supported: [String])?
     
     /// Current and available video file formats.
-    public let videoFileFormat: (current: String, available: [String])?
+    public let videoFileFormat: (current: VideoCapture.FileFormat.Value, available: [VideoCapture.FileFormat.Value], supported: [VideoCapture.FileFormat.Value])?
     
     /// Recording time of the video.
     public let videoRecordingTime: TimeInterval?
     
+    /// The status of high frame rate recording
+    public let highFrameRateCaptureStatus: HighFrameRateCapture.Status?
+    
     /// Current and available infrared remote control settings.
-    public let infraredRemoteControl: (current: String, available: [String])?
+    public let infraredRemoteControl: (current: String, available: [String], supported: [String])?
     
     /// Current and available tv color systems.
-    public let tvColorSystem: (current: String, available: [String])?
+    public let tvColorSystem: (current: String, available: [String], supported: [String])?
     
     /// The status of tracking focus.
     public let trackingFocusStatus: String?
     
     /// The current and available tracking focusses.
-    public let trackingFocus: (current: String, available: [String])?
+    public let trackingFocus: (current: String, available: [String], supported: [String])?
     
     /// Information about the camera's battery/batteries.
     public let batteryInfo: [BatteryInformation]?
@@ -255,16 +283,16 @@ public struct CameraEvent {
     public let numberOfShots: Int?
     
     /// Current and available auto power off intervals.
-    public let autoPowerOff: (current: TimeInterval, available: [TimeInterval])?
+    public let autoPowerOff: (current: TimeInterval, available: [TimeInterval], supported: [TimeInterval])?
     
     /// Current and available loop recording times.
-    public let loopRecordTime: (current: TimeInterval, available: [TimeInterval])?
+    public let loopRecordTime: (current: TimeInterval, available: [TimeInterval], supported: [TimeInterval])?
     
     /// Current and available audio recording modes for video.
-    public let audioRecording: (current: String, available: [String])?
+    public let audioRecording: (current: String, available: [String], supported: [String])?
     
     /// Current and available wind noise reduction modes.
-    public let windNoiseReduction: (current: String, available: [String])?
+    public let windNoiseReduction: (current: String, available: [String], supported: [String])?
     
     /// The url for final bulb shooting
     public let bulbShootingUrl: URL?

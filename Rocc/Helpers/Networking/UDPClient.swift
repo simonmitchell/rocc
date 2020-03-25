@@ -244,9 +244,7 @@ class UDPClient {
                 Logger.log(message: "listenSocket listening", category: "UDPClient")
                 os_log("listenSocket listening", log: strongSelf.log, type: .debug)
             }
-            
-            //TODO: Wrap above in @synchronised
-            
+                        
             CFRunLoopRun()
         }
     }
@@ -367,10 +365,6 @@ class UDPClient {
             Logger.log(message: "Got device from socket with ddURL: \(ddURL.absoluteString), uuid: \(uuid)", category: "UDPClient")
             os_log("Got device from socket with ddURL: %@, uuid: %@", log: log, type: .debug, ddURL.absoluteString, uuid)
             
-            //TODO: Find out how to do @synchronized in swift
-//            @synchronized(self)
-//            {
-            
             let device = Device(uuid: uuid, ddURL: ddURL)
             if !devices.contains(where: { $0.uuid == uuid }) {
                 devices.append(device)
@@ -378,15 +372,6 @@ class UDPClient {
             }
             
             callCompletionHandlers(with: device, error: nil)
-            
-            
-//            }
-            
-//            @synchronized(self)
-//            {
-//            guard let socket = socket, CFSocketIsValid(socket) else { return }
-//            CFSocketInvalidate(socket)
-//            }
         
         default:
             break

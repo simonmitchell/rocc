@@ -24,6 +24,10 @@ public final class Logger {
     /// The file that logs should be saved to
     public var fileURL: URL?
     
+    /// The maximum size that the log file will be allowed to reach in kilobytes.
+    /// Default is 2Mb
+    public var maxFileSize: UInt64 = 1024*2
+    
     private let formatter = ISO8601DateFormatter()
     
     private var logQueue: DispatchQueue?
@@ -69,7 +73,10 @@ public final class Logger {
         
         guard let fileURL = fileURL, let logQueue = logQueue else { return }
         
-        logQueue.sync {
+        logQueue.sync { [weak self] in
+            
+            // Trim will simply delete the file (For now) if it's already too big, which will then be re-created below
+            self?.trimLog()
             
             let fm = FileManager.default
             if !fm.fileExists(atPath: fileURL.isFileURL ? fileURL.path : fileURL.absoluteString) {
@@ -95,6 +102,27 @@ public final class Logger {
                     print("Failed to write to log url")
                 }
             }
+        }
+    }
+    
+    private func trimLog() {
+        
+        guard let fileURL = fileURL else { return }
+        
+        let fileManager = FileManager.default
+        guard let attrs: NSDictionary = try? fileManager.attributesOfItem(atPath: fileURL.path) as NSDictionary else {
+            return
+        }
+        
+        let fileSize = attrs.fileSize()
+        guard fileSize > maxFileSize * 1024 else {
+            return
+        }
+        
+        do {
+            try fileManager.removeItem(at: fileURL)
+        } catch _ {
+            print("Failed to delete over-sized log file")
         }
     }
 }

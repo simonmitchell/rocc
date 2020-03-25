@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension SonyCameraDevice {
+extension SonyCamera {
     
     enum Model: String, CaseIterable {
         case a7 = "ILCE-7"
@@ -49,6 +49,7 @@ extension SonyCameraDevice {
         case cyberShot_RX100M4 = "DSC-RX100M4"
         case cyberShot_RX100M5 = "DSC-RX100M5"
         case cyberShot_RX100M6 = "DSC-RX100M6"
+        case cyberShot_RX100M7 = "DSC-RX100M7"
         case FDR_X1000V = "FDR-X1000V"
         case FDR_X3000 = "FDR-X3000"
         case HDR_AS100V = "HDR-AS100V"
@@ -105,7 +106,8 @@ extension SonyCameraDevice {
             case .cyberShot_RX100M3: return "Cyber-Shot RX100 III"
             case .cyberShot_RX100M4: return "Cyber-Shot RX100 IV"
             case .cyberShot_RX100M5: return "Cyber-Shot RX100 V"
-            case .cyberShot_RX100M6: return "Cybter-Shot RX100 VI"
+            case .cyberShot_RX100M6: return "Cyber-Shot RX100 VI"
+            case .cyberShot_RX100M7: return "Cyber-Shot RX100 VII"
             case .cyberShot_RX0: return "RX0"
             case .cyberShot_RX0M2: return "RX0 II"
             case .FDR_X1000V: return "FDR-X1000V"
@@ -130,7 +132,7 @@ extension SonyCameraDevice {
         }
         
         internal var usesLegacyAPI: Bool {
-            return [.cyberShot_RX100M2, .cyberShot_HX50V, .cyberShot_HX50].contains(self)
+            return [.cyberShot_RX100M2, .cyberShot_HX50, .cyberShot_HX50V].contains(self)
         }
         
         internal static func supporting(function: _CameraFunction) -> [Model] {
@@ -182,7 +184,7 @@ extension SonyCameraDevice {
                 _supportingModels.append(contentsOf: cyberShotSeries)
                 _supportingModels.append(contentsOf: QXSeries)
                 return _supportingModels
-            case .setTrackingFocus, .getTrackingFocus, .getStillQuality, .setStillQuality:
+            case .setTrackingFocus, .getTrackingFocus, .getStillQuality, .setStillQuality, .setStillFormat, .getStillFormat:
                 return [.QX1, .QX30]
             case .setContinuousShootingMode, .getContinuousShootingMode, .startContinuousShooting, .endContinuousShooting:
                 var _supportingModels = alphaSeries
@@ -308,6 +310,9 @@ extension SonyCameraDevice {
                 _supportingModels.append(contentsOf: NEXSeries)
                 _supportingModels.append(.QX1)
                 return _supportingModels
+            case .setExposureModeDialControl, .getExposureModeDialControl, .recordHighFrameRateCapture, .setExposureSettingsLock, .getExposureSettingsLock:
+                // No cameras seem to support this, as it's a PTP IP thing
+                return []
             }
         }
         
@@ -324,7 +329,7 @@ extension SonyCameraDevice {
         }
         
         static var cyberShotSeries: [Model] {
-            return [.cyberShot_HX50, .cyberShot_HX50V, .cyberShot_HX60, .cyberShot_HX60V, .cyberShot_HX80, .cyberShot_HX90, .cyberShot_HX90V, .cyberShot_HX400, .cyberShot_HX400V, .cyberShot_WX500, .cyberShot_RX10M2, .cyberShot_RX10M3, .cyberShot_RX100M2, .cyberShot_RX100M3, .cyberShot_RX100M4, .cyberShot_RX100M5, .cyberShot_RX100M6, .cyberShot_RX0, .cyberShot_RX0M2]
+            return [.cyberShot_HX50, .cyberShot_HX50V, .cyberShot_HX60, .cyberShot_HX60V, .cyberShot_HX80, .cyberShot_HX90, .cyberShot_HX90V, .cyberShot_HX400, .cyberShot_HX400V, .cyberShot_WX500, .cyberShot_RX10M2, .cyberShot_RX10M3, .cyberShot_RX100M2, .cyberShot_RX100M3, .cyberShot_RX100M4, .cyberShot_RX100M5, .cyberShot_RX100M6, .cyberShot_RX100M7, .cyberShot_RX0, .cyberShot_RX0M2]
         }
         
         static var fdrSeries: [Model] {
@@ -387,7 +392,8 @@ extension SonyCameraDevice {
                 .cyberShot_RX0,
                 .cyberShot_RX0M2,
                 .cyberShot_RX100M5,
-                .cyberShot_RX100M6
+                .cyberShot_RX100M6,
+                .cyberShot_RX100M7
             ]
             return modelsWhichRequireHalfPressToCapture.contains(self)
         }

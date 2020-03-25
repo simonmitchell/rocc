@@ -22,6 +22,9 @@ public enum _CameraFunction: String, CaseIterable {
     case setProgramShift
     case getProgramShift
     case takePicture
+    case setExposureSettingsLock
+    case getExposureSettingsLock
+    case recordHighFrameRateCapture
     case startContinuousShooting
     case endContinuousShooting
     case startVideoRecording
@@ -61,6 +64,8 @@ public enum _CameraFunction: String, CaseIterable {
     case getSelfTimerDuration
     case setExposureMode
     case getExposureMode
+    case setExposureModeDialControl
+    case getExposureModeDialControl
     case setFocusMode
     case getFocusMode
     case setExposureCompensation
@@ -73,6 +78,8 @@ public enum _CameraFunction: String, CaseIterable {
     case getStillSize
     case setStillQuality
     case getStillQuality
+    case setStillFormat
+    case getStillFormat
     case getPostviewImageSize
     case setPostviewImageSize
     case setVideoFileFormat

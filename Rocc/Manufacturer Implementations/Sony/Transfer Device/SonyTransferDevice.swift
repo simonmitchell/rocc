@@ -23,7 +23,7 @@ internal final class SonyTransferDevice {
     
     var model: String?
     
-    var modelEnum: SonyCameraDevice.Model?
+    var modelEnum: SonyCamera.Model?
     
     var firmwareVersion: String?
     
@@ -51,6 +51,10 @@ internal final class SonyTransferDevice {
     
     var pushContentDevice: UPnPDevice?
     
+    var onEventAvailable: (() -> Void)?
+    
+    var onDisconnected: (() -> Void)?
+    
     init?(dictionary: [AnyHashable : Any]) {
         
         guard let serviceDictionaries = dictionary["serviceList"] as? [[AnyHashable : Any]] else {
@@ -65,7 +69,7 @@ internal final class SonyTransferDevice {
         identifier = udn ?? NSUUID().uuidString
         
         if let model = model {
-            modelEnum = SonyCameraDevice.Model(rawValue: model)
+            modelEnum = SonyCamera.Model(rawValue: model)
         } else {
             modelEnum = nil
         }
@@ -95,6 +99,14 @@ extension UPnPFolder: Countable {
 }
 
 extension SonyTransferDevice: Camera {
+    
+    var lastEvent: CameraEvent? {
+        return nil
+    }
+    
+    var eventPollingMode: PollingMode {
+        return .none
+    }
     
     func handleEvent(event: CameraEvent) {
         
@@ -177,10 +189,6 @@ extension SonyTransferDevice: Camera {
     
     var lensModelName: String? {
         return nil
-    }
-    
-    var supportsPolledEvents: Bool {
-        return false
     }
     
     func supportsFunction<T>(_ function: T, callback: @escaping ((Bool?, Error?, [T.SendType]?) -> Void)) where T : CameraFunction {

@@ -11,14 +11,36 @@ import Foundation
 /// Functions for configuring the camera's white balance
 public struct WhiteBalance: CameraFunction {
     
+    /// An enumeration representing the white balance mode
+    public enum Mode {
+        case auto
+        case daylight
+        case shade
+        case cloudy
+        case incandescent
+        case fluorescentWarmWhite
+        case fluorescentCoolWhite
+        case fluorescentDayWhite
+        case fluorescentDaylight
+        case flash
+        case underwaterAuto
+        case colorTemp
+        case custom
+        case custom1
+        case custom2
+        case custom3
+    }
+    
     /// A structural representation of white balance information
     public struct Value {
         
         /// The white balance mode (incandescent, sunlight e.t.c.)
-        public let mode: String
+        public let mode: Mode
         
         /// The colour temperature of the white balance
         public let temperature: Int?
+        
+        let rawInternal: String
     }
     
     public var function: _CameraFunction

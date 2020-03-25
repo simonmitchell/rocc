@@ -8,17 +8,6 @@
 
 import Foundation
 
-/// A structural representation of still image size configuration
-public struct StillSize {
-    
-    /// The aspect ratio of the size
-    let aspectRatio: String
-    
-    /// The size itself
-    let size: String
-}
-
-
 /// Functions for interacting with the camera's still capture API.
 public struct StillCapture: CameraFunction {
     
@@ -34,11 +23,21 @@ public struct StillCapture: CameraFunction {
     /// Functions for configuring the still capture size setting
     public struct Size: CameraFunction {
         
+        /// A structural representation of still image size configuration
+        public struct Value {
+            
+            /// The aspect ratio of the size
+            let aspectRatio: String?
+            
+            /// The size itself
+            let size: String
+        }
+        
         public var function: _CameraFunction
         
-        public typealias SendType = StillSize
+        public typealias SendType = Value
         
-        public typealias ReturnType = StillSize
+        public typealias ReturnType = Value
         
         /// Sets the still image capture size setting
         public static let set = Size(function: .setStillSize)
@@ -50,17 +49,47 @@ public struct StillCapture: CameraFunction {
     /// Functions for configuring the still capture quality setting
     public struct Quality: CameraFunction {
         
+        /// A structural representation of image still quality
+        public enum Value {
+            case standard
+            case fine
+            case extraFine
+        }
+        
         public var function: _CameraFunction
         
-        public typealias SendType = String
+        public typealias SendType = Value
         
-        public typealias ReturnType = String
+        public typealias ReturnType = Value
         
         /// Sets the still image capture quality
         public static let set = Quality(function: .setStillQuality)
         
         /// Returns the current still image capture quality
         public static let get = Quality(function: .getStillQuality)
+    }
+    
+    /// Functions for configuring the still capture format setting
+    public struct Format: CameraFunction {
+        
+        /// A structural representation of image still format
+        public enum Value {
+            case jpeg(String)
+            case raw
+            case rawAndJpeg
+        }
+        
+        public var function: _CameraFunction
+        
+        public typealias SendType = Value
+        
+        public typealias ReturnType = Value
+        
+        /// Sets the still image format
+        public static let set = Format(function: .setStillFormat)
+        
+        /// Returns the current still image format
+        public static let get = Format(function: .getStillFormat)
     }
 }
 
@@ -114,67 +143,113 @@ public struct ContinuousCapture: CameraFunction {
     /// Functions for interacting with the continuous shooting mode
     public struct Mode: CameraFunction {
         
+        /// Enumeration representing the shooting mode which a camera is using
+        ///
+        /// - single: A single shot for each shutter press
+        /// - continuous: Shoot continuously whilst the shutter button is pressed
+        /// - spdPriorityContinuous: Shoots continuously (At higher speed than continuous) whilst the shutter button is pressed
+        /// - burst: Shoots a burst
+        /// - motionShot: Takes shots using Sony's "MotionShot" technology
+        public enum Value: String {
+            case single
+            case continuous
+            case spdPriorityContinuous = "spd priority cont."
+            case burst
+            case motionShot = "motionshot"
+        }
+        
         public var function: _CameraFunction
         
-        public typealias SendType = ContinuousShootingMode
+        public typealias SendType = Value
         
-        public typealias ReturnType = ContinuousShootingMode
+        public typealias ReturnType = Value
         
         /// Sets the continous shooting mode
-        public static let set = ContinuousCapture(function: .setContinuousShootingMode)
+        public static let set = ContinuousCapture.Mode(function: .setContinuousShootingMode)
         
         /// Returns the current continuous shooting mode
-        public static let get = ContinuousCapture(function: .getContinuousShootingMode)
+        public static let get = ContinuousCapture.Mode(function: .getContinuousShootingMode)
     }
     
     /// Functions for interacting with the continuous shooting speed
     public struct Speed: CameraFunction {
         
+        /// Enumeration representing the shooting speed for continuous shooting
+        ///
+        /// - high: High speed
+        /// - low: Low speed
+        public enum Value: String {
+            case regular
+            case high = "hi"
+            case highPlus
+            case low
+            case tenFps1Sec = "10fps 1 sec"
+            case eightFps1Sec = "8fps 1 sec"
+            case fiveFps2Sec = "5fps 2 sec"
+            case twoFps5Sec = "2fps 5 sec"
+            case s
+        }
+        
         public var function: _CameraFunction
         
-        public typealias SendType = ContinuousShootingSpeed
+        public typealias SendType = Value
         
-        public typealias ReturnType = ContinuousShootingSpeed
+        public typealias ReturnType = Value
         
         /// Sets the continuous shooting speed
-        public static let set = ContinuousCapture(function: .setContinuousShootingSpeed)
+        public static let set = ContinuousCapture.Speed(function: .setContinuousShootingSpeed)
         
         /// Returns the current continuous shooting speed
-        public static let get = ContinuousCapture(function: .getContinuousShootingSpeed)
+        public static let get = ContinuousCapture.Speed(function: .getContinuousShootingSpeed)
     }
 }
 
-/// Enumeration representing the shooting mode which a camera is using
-///
-/// - single: A single shot for each shutter press
-/// - continuous: Shoot continuously whilst the shutter button is pressed
-/// - spdPriorityContinuous: Shoots continuously (At higher speed than continuous) whilst the shutter button is pressed
-public enum ContinuousShootingMode: String {
-    case single
-    case continuous
-    case spdPriorityContinuous = "spd priority cont."
-}
-
-/// Enumeration representing the shooting speed for continuous shooting
-///
-/// - high: High speed
-/// - low: Low speed
-public enum ContinuousShootingSpeed: String {
-    case high
-    case low
+/// Functions for interacting with the camera's high frame rate API
+public struct HighFrameRateCapture: CameraFunction {
+    
+    /// The current status of the HFR capture
+    public enum Status {
+        case idle
+        case buffering
+        case recording
+    }
+    
+    public var function: _CameraFunction
+    
+    public typealias SendType = Void
+    
+    public typealias ReturnType = Status
+    
+    /// Starts high frame rate capture, calling back with the current status of capture as it progresses (Also available via `CameraEvent`)
+    public static let record = HighFrameRateCapture(function: .recordHighFrameRateCapture)
 }
 
 /// Functions for interacting with the camera's video capture API
 public struct VideoCapture: CameraFunction {
     
     /// Functions for controlling the file format that the video will be captured in
-    struct FileFormat: CameraFunction {
+    public struct FileFormat: CameraFunction {
+        
+        /// Values for Video Capture file format
+        public enum Value: Int {
+            case none
+            case dvd
+            case m2ps
+            case avchd
+            case mp4
+            case dv
+            case xavc
+            case mxf
+            case xavc_s_4k
+            case xavc_s_hd
+            case xavc_s
+        }
         
         public var function: _CameraFunction
         
-        public typealias SendType = String
+        public typealias SendType = Value
         
-        public typealias ReturnType = String
+        public typealias ReturnType = Value
         
         /// Sets the file format for video recording
         public static let set = FileFormat(function: .setVideoFileFormat)
@@ -184,13 +259,69 @@ public struct VideoCapture: CameraFunction {
     }
     
     /// Functions for controlling the quality of video recording
-    struct Quality: CameraFunction {
+    public struct Quality: CameraFunction {
+        
+        /// Values for Video Capture file quality
+        public enum Value {
+            case none
+            case ps
+            case hq
+            case std
+            case vga
+            case slow
+            case sslow
+            case hs120
+            case hs100
+            case hs240
+            case hs200
+            case _120p_50m
+            case _100p_50m
+            case _60p_50m
+            case _50p_50m
+            case _30p_50m
+            case _25p_50m
+            case _24p_50m
+            case _120p_100m
+            case _100p_100m
+            case _120p_60m
+            case _100p_60m
+            case _240p_100m
+            case _200p_100m
+            case _240p_60m
+            case _200p_60m
+            case _30p_100m
+            case _25p_100m
+            case _24p_100m
+            case _30p_60m
+            case _25p_60m
+            case _24p_60m
+            case _60p_28m
+            case _50p_28m
+            case _60p_25m
+            case _50p_25m
+            case _30p_16m
+            case _25p_16m
+            case _30p_16m_alt
+            case _25p_16m_alt
+            case _30p_6m
+            case _25p_6m
+            case _60i_24m_fx
+            case _50i_24m_fx
+            case _60i_17m_fh
+            case _50i_17m_fh
+            case _60p_28m_ps
+            case _50p_28m_ps
+            case _24p_24m_fx
+            case _25p_24m_fx
+            case _24p_17m_fh
+            case _25p_17m_fh
+        }
         
         public var function: _CameraFunction
         
-        public typealias SendType = String
+        public typealias SendType = Value
         
-        public typealias ReturnType = String
+        public typealias ReturnType = Value
         
         /// Gets the current video recording quality
         public static let get = Quality(function: .setVideoQuality)

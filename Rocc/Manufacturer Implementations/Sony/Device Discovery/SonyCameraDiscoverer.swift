@@ -10,20 +10,6 @@ import Foundation
 import ThunderRequest
 import os
 
-extension SonyCameraDevice {
-    
-    func update(with deviceInfo: SonyDeviceInfo?) {
-        
-        // Keep name if modelEnum currently nil as user has renamed camera!
-        name = modelEnum == nil ? name : (deviceInfo?.model?.friendlyName ?? name)
-        modelEnum = deviceInfo?.model ?? modelEnum
-        model = modelEnum?.friendlyName ?? model
-        lensModelName = deviceInfo?.lensModelName
-        firmwareVersion = deviceInfo?.firmwareVersion
-        remoteAppVersion = deviceInfo?.installedPlayMemoriesApps.first(where :{ $0.name == "Smart Remote Control" })?.version
-    }
-}
-
 extension SonyTransferDevice {
     
     func updated(with deviceInfo: SonyDeviceInfo?) -> SonyTransferDevice {
@@ -171,6 +157,11 @@ internal final class SonyCameraDiscoverer: UDPDeviceDiscoverer {
         let parser = SonyCameraParser(xmlString: string)
         parser.parse { [weak self] (cameraDevice, error) in
             
+            guard let camera = cameraDevice as? Camera else {
+                callback(false)
+                return
+            }
+            
             guard let strongSelf = self else {
                 return
             }
@@ -181,9 +172,15 @@ internal final class SonyCameraDiscoverer: UDPDeviceDiscoverer {
                 return
             }
             
+            // Some cameras we can't get the base URL from the device description XML files, so set it here
+            if camera.baseURL == nil {
+                camera.baseURL = baseURL
+            }
+            
             callback(true)
+            
             guard let digitalImagingService = device.services?.first(where: { $0.type == .digitalImaging }) else {
-                strongSelf.sendDeviceToDelegate(device, isCached: isCached)
+                strongSelf.sendDeviceToDelegate(camera, isCached: isCached)
                 return
             }
             
@@ -196,7 +193,7 @@ internal final class SonyCameraDiscoverer: UDPDeviceDiscoverer {
                 }
                 
                 guard let string = response?.string else {
-                    _strongSelf.sendDeviceToDelegate(device, isCached: isCached)
+                    _strongSelf.sendDeviceToDelegate(camera, isCached: isCached)
                     return
                 }
                 
@@ -208,7 +205,7 @@ internal final class SonyCameraDiscoverer: UDPDeviceDiscoverer {
                     }
                     
                     device.update(with: deviceInfo)
-                    __strongSelf.sendDeviceToDelegate(device, isCached: isCached)
+                    __strongSelf.sendDeviceToDelegate(camera, isCached: isCached)
                 })
             })
             

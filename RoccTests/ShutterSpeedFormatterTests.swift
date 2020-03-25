@@ -114,4 +114,23 @@ class ShutterSpeedFormatterTests: XCTestCase {
         let formatted = formatter.string(from: shutterSpeed!)
         XCTAssertEqual(formatted, string)
     }
+    
+    func testLargerThan1FormatsCorrectly() {
+        
+        let formatter = ShutterSpeedFormatter()
+        
+        let speeds: [ShutterSpeed] = [
+            .init(numerator: 1, denominator: 8000), .init(numerator: 1, denominator: 6400), .init(numerator: 1, denominator: 5000),
+            .init(numerator: 1, denominator: 4000), .init(numerator: 1, denominator: 3200), .init(numerator: 1, denominator: 2500),
+            .init(numerator: 1, denominator: 2000), .init(numerator: 1, denominator: 1600), .init(numerator: 4, denominator: 10),
+            .init(numerator: 10, denominator: 10), .init(numerator: 13, denominator: 10), .init(numerator: 16, denominator: 10),
+            .init(numerator: 20, denominator: 10), .init(numerator: 80, denominator: 10), .init(numerator: 100, denominator: 10),
+            .init(numerator: 130, denominator: 10), .init(numerator: 250, denominator: 10), .init(numerator: 300, denominator: 10)
+        ]
+        let formatted = speeds.map({ formatter.string(from: $0) })
+        XCTAssertEqual(formatted, [
+            "1/8000", "1/6400", "1/5000", "1/4000", "1/3200", "1/2500", "1/2000", "1/1600", "4/10", "1\"", "1.3\"", "1.6\"", "2\"",
+            "8\"", "10\"", "13\"","25\"", "30\""
+        ])
+    }
 }
