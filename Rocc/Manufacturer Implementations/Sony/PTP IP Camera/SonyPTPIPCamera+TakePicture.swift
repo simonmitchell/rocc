@@ -100,6 +100,7 @@ extension SonyPTPIPDevice {
         os_log("Focus mode is AF variant awaiting focus...", log: self.log, type: .debug)
         
         var newObject: DWord?
+        self.isAwaitingObject = true
                     
         DispatchQueue.global().asyncWhile({ [weak self] (continueClosure) in
             
@@ -109,12 +110,12 @@ extension SonyPTPIPDevice {
                 
                 // If code is property changed, and first variable == "Focus Found"
                 if lastEvent.code == .propertyChanged, lastEvent.variables?.first == 0xD213 {
-                    self.isAwaitingObject = true
                     Logger.log(message: "Got property changed event and was \"Focus Found\", continuing with capture process", category: "SonyPTPIPCamera")
                     os_log("Got property changed event and was \"Focus Found\", continuing with capture process", log: self.log, type: .debug)
                     continueClosure(true)
                     return
                 } else if lastEvent.code == .objectAdded {
+                    self.isAwaitingObject = false
                     Logger.log(message: "Got property changed event and was \"Object Added\", continuing with capture process", category: "SonyPTPIPCamera")
                     os_log("Got property changed event and was \"Object Added\", continuing with capture process", log: self.log, type: .debug)
                     newObject = lastEvent.variables?.first
@@ -131,7 +132,7 @@ extension SonyPTPIPDevice {
                 guard let self = self else { return }
                 Logger.log(message: "Got camera event, focussed: \(event?.focusStatus == .focused)", category: "SonyPTPIPCamera")
                 os_log("Got camera event, focussed: %@", log: self.log, type: .debug, event?.focusStatus == .focused ? "true" : "false")
-                self.isAwaitingObject = event?.focusStatus == .focused
+                self.isAwaitingObject = self.isAwaitingObject || event?.focusStatus == .focused
                 continueClosure(event?.focusStatus == .focused)
             }
             
