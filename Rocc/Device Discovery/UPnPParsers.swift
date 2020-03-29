@@ -682,6 +682,8 @@ internal final class UPnPFileParser: NSObject, XMLParserDelegate {
     func parserDidEndDocument(_ parser: XMLParser) {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        dateFormatter.calendar = Calendar(identifier: .iso8601)
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
         let fileObjects = currentFiles.compactMap({ File(upnpDictionary: $0, dateFormatter: dateFormatter) })
         files = fileObjects.isEmpty ? nil : fileObjects
         completion?(files, nil)

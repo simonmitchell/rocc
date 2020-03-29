@@ -8,8 +8,6 @@
 
 import Foundation
 
-let dateFormatter = DateFormatter()
-
 extension Double {
     var isInteger: Bool {
         return truncatingRemainder(dividingBy: 1) == 0
