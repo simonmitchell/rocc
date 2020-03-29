@@ -391,6 +391,10 @@ internal final class SonyPTPIPDevice: SonyCamera {
         }
     }
     
+    var isAwaitingObject: Bool = false
+    
+    var awaitingObjectId: DWord?
+    
     fileprivate func handlePTPIPEvent(_ event: EventPacket) {
         
         lastEventPacket = event
@@ -399,9 +403,14 @@ internal final class SonyPTPIPDevice: SonyCamera {
         case .propertyChanged:
             onEventAvailable?()
         case .objectAdded:
+            guard let objectID = event.variables?.first else {
+                return
+            }
+            if isAwaitingObject {
+                awaitingObjectId = objectID
+            }
             Logger.log(message: "Got property changed event and was \"Object Added\", initiating transfer", category: "SonyPTPIPCamera")
             os_log("Got property changed event and was \"Object Added\", initiating transfer", log: self.log, type: .debug)
-            guard let objectID = event.variables?.first else { return }
             handleObjectId(objectID: objectID, shootingMode: lastEvent?.shootMode?.current ?? .photo) { (result) in
                 
             }
