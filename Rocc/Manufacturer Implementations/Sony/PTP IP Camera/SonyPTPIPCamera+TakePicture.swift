@@ -110,17 +110,22 @@ extension SonyPTPIPDevice {
                 
                 // If code is property changed, and first variable == "Focus Found"
                 if lastEvent.code == .propertyChanged, lastEvent.variables?.first == 0xD213 {
+                    
                     Logger.log(message: "Got property changed event and was \"Focus Found\", continuing with capture process", category: "SonyPTPIPCamera")
                     os_log("Got property changed event and was \"Focus Found\", continuing with capture process", log: self.log, type: .debug)
                     continueClosure(true)
-                    return
+                    
                 } else if lastEvent.code == .objectAdded {
+                    
                     self.isAwaitingObject = false
                     Logger.log(message: "Got property changed event and was \"Object Added\", continuing with capture process", category: "SonyPTPIPCamera")
                     os_log("Got property changed event and was \"Object Added\", continuing with capture process", log: self.log, type: .debug)
                     newObject = lastEvent.variables?.first
                     continueClosure(true)
-                    return
+                    
+                } else {
+                    
+                    continueClosure(false)
                 }
                 
             } else if let awaitingObjectId = self.awaitingObjectId {
@@ -128,13 +133,14 @@ extension SonyPTPIPDevice {
                 newObject = awaitingObjectId
                 self.awaitingObjectId = nil
                 continueClosure(true)
-                return
+                
+            } else {
+                
+                continueClosure(false)
             }
-            
-            continueClosure(false)
-            
+                        
         }, timeout: 1) { [weak self] in
-            self?.cancelShutterPress(objectID: newObject, completion: completion)
+            self?.cancelShutterPress(objectID: newObject ?? self?.awaitingObjectId, completion: completion)
         }
     }
     
@@ -184,7 +190,7 @@ extension SonyPTPIPDevice {
                 
                 Logger.log(message: "Got property changed event and was \"Object Added\", continuing with capture process", category: "SonyPTPIPCamera")
                 os_log("Got property changed event and was \"Object Added\", continuing with capture process", log: self.log, type: .debug)
-                newObject = lastEvent.variables?.first
+                newObject = lastEvent.variables?.first ?? self.awaitingObjectId
                 continueClosure(true)
                 return
                 

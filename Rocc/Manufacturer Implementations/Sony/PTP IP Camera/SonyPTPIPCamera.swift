@@ -409,8 +409,8 @@ internal final class SonyPTPIPDevice: SonyCamera {
             if isAwaitingObject {
                 awaitingObjectId = objectID
             }
-            Logger.log(message: "Got property changed event and was \"Object Added\", initiating transfer", category: "SonyPTPIPCamera")
-            os_log("Got property changed event and was \"Object Added\", initiating transfer", log: self.log, type: .debug)
+            Logger.log(message: "Handling \"Object Added\" event, initiating transfer", category: "SonyPTPIPCamera")
+            os_log("Handling \"Object Added\" event, initiating transfer. Awaiting object: %@", log: self.log, type: .debug, isAwaitingObject ? "true" : "false")
             handleObjectId(objectID: objectID, shootingMode: lastEvent?.shootMode?.current ?? .photo) { (result) in
                 
             }
