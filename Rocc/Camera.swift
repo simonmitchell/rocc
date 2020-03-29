@@ -88,6 +88,8 @@ public protocol Camera: class {
     
     typealias ConnectedCompletion = (_ error: Error?, _ transferMode: Bool) -> Void
     
+    typealias DisconnectedCompletion = (_ error: Error?) -> Void
+    
     /// The IP address of the camera
     var ipAddress: sockaddr_in? { get }
     
@@ -141,6 +143,11 @@ public protocol Camera: class {
     ///
     /// - Parameter completion: A closure to be called once the camera is connected to.
     func connect(completion: @escaping ConnectedCompletion)
+    
+    /// Disconnects from the camera.
+    ///
+    /// - Parameter completion: A closure to be called once the camera is disconnected.
+    func disconnect(completion: @escaping DisconnectedCompletion)
     
     /// Whether the camera is connected and ready to have functions called on it.
     var isConnected: Bool { get }

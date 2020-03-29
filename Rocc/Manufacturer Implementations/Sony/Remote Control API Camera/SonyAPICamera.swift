@@ -313,6 +313,10 @@ extension SonyAPICameraDevice: Camera {
         }
     }
     
+    func disconnect(completion: @escaping DisconnectedCompletion) {
+        completion(nil)
+    }
+    
     public var isConnected: Bool {
         // Make sure no clients where APIVersion hasn't been found
         return [apiClient.camera, apiClient.avContent].first(where: {

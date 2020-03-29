@@ -448,6 +448,12 @@ extension SonyPTPIPDevice: Camera {
         }
     }
     
+    func disconnect(completion: @escaping DisconnectedCompletion) {
+        ptpIPClient?.onDisconnect = nil
+        ptpIPClient?.disconnect()
+        completion(nil)
+    }
+    
     func makeFunctionAvailable<T>(_ function: T, callback: @escaping ((Error?) -> Void)) where T : CameraFunction {
         
         switch function.function {

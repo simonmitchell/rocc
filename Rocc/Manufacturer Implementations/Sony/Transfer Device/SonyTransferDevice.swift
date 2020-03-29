@@ -510,6 +510,10 @@ extension SonyTransferDevice: Camera {
     func connect(completion: @escaping ConnectedCompletion) {
         completion(nil, true)
     }
+    
+    func disconnect(completion: @escaping DisconnectedCompletion) {
+        completion(nil)
+    }
 }
 
 extension SOAPRequestBody {

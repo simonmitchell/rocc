@@ -176,6 +176,11 @@ public final class DummyCamera: Camera {
         }
     }
     
+    public func disconnect(completion: @escaping DisconnectedCompletion) {
+        isConnected = false
+        completion(nil)
+    }
+    
     public init() {
         
     }
