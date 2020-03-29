@@ -122,19 +122,16 @@ extension SonyPTPIPDevice {
                     continueClosure(true)
                     return
                 }
+                
+            } else if let awaitingObjectId = self.awaitingObjectId {
+                
+                newObject = awaitingObjectId
+                self.awaitingObjectId = nil
+                continueClosure(true)
+                return
             }
             
-            Logger.log(message: "Falling back to manual event check for focus found", category: "SonyPTPIPCamera")
-            os_log("Falling back to manual event check for focus found", log: self.log, type: .debug)
-            
-            // In case we miss the event
-            self.performFunction(Event.get, payload: nil) { [weak self] (error, event) in
-                guard let self = self else { return }
-                Logger.log(message: "Got camera event, focussed: \(event?.focusStatus == .focused)", category: "SonyPTPIPCamera")
-                os_log("Got camera event, focussed: %@", log: self.log, type: .debug, event?.focusStatus == .focused ? "true" : "false")
-                self.isAwaitingObject = self.isAwaitingObject || event?.focusStatus == .focused
-                continueClosure(event?.focusStatus == .focused)
-            }
+            continueClosure(false)
             
         }, timeout: 1) { [weak self] in
             self?.cancelShutterPress(objectID: newObject, completion: completion)
@@ -179,7 +176,9 @@ extension SonyPTPIPDevice {
         
         var newObject: DWord?
         
-        DispatchQueue.global().asyncWhile({ (continueClosure) in
+        DispatchQueue.global().asyncWhile({ [weak self] (continueClosure) in
+            
+            guard let self = self else { return }
             
             if let lastEvent = self.lastEventPacket, lastEvent.code == .objectAdded {
                 
