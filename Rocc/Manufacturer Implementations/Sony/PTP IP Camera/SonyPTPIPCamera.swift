@@ -428,6 +428,10 @@ internal final class SonyPTPIPDevice: SonyCamera {
 //MARK: - Camera protocol conformance -
 
 extension SonyPTPIPDevice: Camera {
+    
+    var isInBeta: Bool {
+        return true
+    }
         
     func connect(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
         

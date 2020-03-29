@@ -97,6 +97,10 @@ extension File {
 
 public final class DummyCamera: Camera {
     
+    public var isInBeta: Bool {
+        return false
+    }
+    
     public var lastEvent: CameraEvent? {
         return nil
     }

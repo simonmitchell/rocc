@@ -139,6 +139,9 @@ public protocol Camera: class {
     /// on the camera once it has been connected.
     var connectionMode: ConnectionMode { get }
     
+    /// Whether the camera is in beta support!
+    var isInBeta: Bool { get }
+    
     /// Connects to the camera and makes it ready for communication.
     ///
     /// - Parameter completion: A closure to be called once the camera is connected to.

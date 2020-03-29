@@ -191,6 +191,10 @@ internal final class SonyAPICameraDevice: SonyCamera {
 }
 
 extension SonyAPICameraDevice: Camera {
+    
+    var isInBeta: Bool {
+        return false
+    }
         
     func finishTransfer(callback: @escaping ((Error?) -> Void)) {
         callback(CameraError.noSuchMethod("Finish Transfer"))

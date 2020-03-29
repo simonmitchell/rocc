@@ -100,6 +100,10 @@ extension UPnPFolder: Countable {
 
 extension SonyTransferDevice: Camera {
     
+    var isInBeta: Bool {
+        return false
+    }
+    
     var lastEvent: CameraEvent? {
         return nil
     }
