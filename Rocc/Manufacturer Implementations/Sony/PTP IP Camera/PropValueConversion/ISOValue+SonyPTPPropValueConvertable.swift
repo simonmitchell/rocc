@@ -27,6 +27,10 @@ extension ISO.Value: SonyPTPPropValueConvertable {
         switch binaryInt {
         case 0x00ffffff:
             self = .auto
+        case 0x01ffffff:
+            self = .multiFrameNRAuto
+        case 0x02ffffff:
+            self = .multiFrameNRHiAuto
         default:
             var buffer = ByteBuffer()
             buffer.append(DWord(binaryInt))
@@ -42,6 +46,10 @@ extension ISO.Value: SonyPTPPropValueConvertable {
                 self = .native(Int(value))
             case 0x1000:
                 self = .extended(Int(value))
+            case 0x0100:
+                self = .multiFrameNR(Int(value))
+            case 0x0200:
+                self = .multiFrameNRHi(Int(value))
             default:
                 self = .native(Int(value))
             }
@@ -52,6 +60,10 @@ extension ISO.Value: SonyPTPPropValueConvertable {
         switch self {
         case .auto:
             return DWord(0x00ffffff)
+        case .multiFrameNRAuto:
+            return DWord(0x01ffffff)
+        case .multiFrameNRHiAuto:
+            return DWord(0x02ffffff)
         case .extended(let value):
             var data = ByteBuffer()
             data.append(Word(value))
@@ -61,6 +73,16 @@ extension ISO.Value: SonyPTPPropValueConvertable {
             var data = ByteBuffer()
             data.append(Word(value))
             data.append(Word(0x0000))
+            return data[dWord: 0] ?? DWord(value)
+        case .multiFrameNR(let value):
+            var data = ByteBuffer()
+            data.append(Word(value))
+            data.append(Word(0x0100))
+            return data[dWord: 0] ?? DWord(value)
+        case .multiFrameNRHi(let value):
+            var data = ByteBuffer()
+            data.append(Word(value))
+            data.append(Word(0x0200))
             return data[dWord: 0] ?? DWord(value)
         }
     }

@@ -192,11 +192,9 @@ fileprivate extension ISO.Value {
     
     var sonyString: String {
         switch self {
-        case .auto:
+        case .auto, .multiFrameNRAuto, .multiFrameNRHiAuto:
             return "AUTO"
-        case .extended(let value):
-            return "\(value)"
-        case .native(let value):
+        case .extended(let value), .native(let value), .multiFrameNRHi(let value), .multiFrameNR(let value):
             return "\(value)"
         }
     }
