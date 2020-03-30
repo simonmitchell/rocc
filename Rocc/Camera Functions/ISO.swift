@@ -15,6 +15,10 @@ public struct ISO: CameraFunction {
         case auto
         case extended(Int)
         case native(Int)
+        case multiFrameNRAuto
+        case multiFrameNR(Int)
+        case multiFrameNRHiAuto
+        case multiFrameNRHi(Int)
     }
     
     public var function: _CameraFunction

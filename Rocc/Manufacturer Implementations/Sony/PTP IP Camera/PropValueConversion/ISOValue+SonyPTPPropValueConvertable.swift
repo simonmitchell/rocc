@@ -25,7 +25,7 @@ extension ISO.Value: SonyPTPPropValueConvertable {
         }
         
         switch binaryInt {
-        case 0x00ffffff:
+        case 0x00ffffff, 0x01ffffff, 0x02ffffff:
             self = .auto
         default:
             var buffer = ByteBuffer()
@@ -38,7 +38,7 @@ extension ISO.Value: SonyPTPPropValueConvertable {
                 return
             }
             switch type {
-            case 0x0000:
+            case 0x0000, 0x0100, 0x0200:
                 self = .native(Int(value))
             case 0x1000:
                 self = .extended(Int(value))
