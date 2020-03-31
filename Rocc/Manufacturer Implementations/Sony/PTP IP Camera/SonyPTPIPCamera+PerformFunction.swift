@@ -410,8 +410,16 @@ extension SonyPTPIPDevice {
             //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(nil, nil)
         case .startBulbCapture:
-            startCapturing { (error) in
-                callback(error, nil)
+            startCapturing { [weak self] (error) in
+                
+                guard error == nil else {
+                    callback(error, nil)
+                    return
+                }
+                
+                self?.awaitFocusIfNeeded { (_) in
+                    callback(nil, nil)
+                }
             }
         case .endBulbCapture:
             finishCapturing() { (result) in

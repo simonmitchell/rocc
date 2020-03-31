@@ -26,36 +26,47 @@ extension SonyPTPIPDevice {
                 return
             }
             
-            guard let focusMode = self.lastEvent?.focusMode?.current else {
-                
-                self.performFunction(Focus.Mode.get, payload: nil) { [weak self] (_, focusMode) in
-                
-                    guard let self = self else {
-                        return
-                    }
-                    
-                    guard focusMode?.isAutoFocus == true else {
-                        self.isAwaitingObject = true
-                        self.cancelShutterPress(objectID: nil, completion: completion)
-                        return
-                    }
-                    
-                    self.awaitFocus(completion: completion)
-                }
-                
-                return
-            }
-            
-            guard focusMode.isAutoFocus else {
-                self.isAwaitingObject = true
-                self.cancelShutterPress(objectID: nil, completion: completion)
-                return
-            }
-            
-            self.awaitFocus(completion: completion)
+            self.awaitFocusIfNeeded(completion: { [weak self] (objectId) in
+                self?.cancelShutterPress(objectID: objectId, completion: completion)
+            }, setAwaitingObject: true)
         }
     }
     
+    func awaitFocusIfNeeded(completion: @escaping (_ objectId: DWord?) -> Void, setAwaitingObject: Bool = false) {
+        
+        guard let focusMode = self.lastEvent?.focusMode?.current else {
+            
+            self.performFunction(Focus.Mode.get, payload: nil) { [weak self] (_, focusMode) in
+            
+                guard let self = self else {
+                    return
+                }
+                
+                guard focusMode?.isAutoFocus == true else {
+                    if setAwaitingObject {
+                        self.isAwaitingObject = true
+                    }
+                    completion(nil)
+                    return
+                }
+                
+                self.awaitFocus(completion: completion)
+            }
+            
+            return
+        }
+        
+        guard focusMode.isAutoFocus else {
+            if setAwaitingObject {
+                self.isAwaitingObject = true
+            }
+            completion(nil)
+            return
+        }
+        
+        self.awaitFocus(completion: completion)
+    }
+ 
     func startCapturing(completion: @escaping (Error?) -> Void) {
         
         Logger.log(message: "Starting capture...", category: "SonyPTPIPCamera")
@@ -94,7 +105,7 @@ extension SonyPTPIPDevice {
         cancelShutterPress(objectID: nil, completion: completion)
     }
     
-    private func awaitFocus(completion: @escaping CaptureCompletion) {
+    func awaitFocus(completion: @escaping (_ objectId: DWord?) -> Void) {
         
         Logger.log(message: "Focus mode is AF variant awaiting focus...", category: "SonyPTPIPCamera")
         os_log("Focus mode is AF variant awaiting focus...", log: self.log, type: .debug)
@@ -130,6 +141,7 @@ extension SonyPTPIPDevice {
                 
             } else if let awaitingObjectId = self.awaitingObjectId {
                 
+                self.isAwaitingObject = false
                 newObject = awaitingObjectId
                 self.awaitingObjectId = nil
                 continueClosure(true)
@@ -140,7 +152,9 @@ extension SonyPTPIPDevice {
             }
                         
         }, timeout: 1) { [weak self] in
-            self?.cancelShutterPress(objectID: newObject ?? self?.awaitingObjectId, completion: completion)
+            let awaitingObjectId = self?.awaitingObjectId
+            self?.awaitingObjectId = nil
+            completion(newObject ?? awaitingObjectId)
         }
     }
     
@@ -190,7 +204,9 @@ extension SonyPTPIPDevice {
                 
                 Logger.log(message: "Got property changed event and was \"Object Added\", continuing with capture process", category: "SonyPTPIPCamera")
                 os_log("Got property changed event and was \"Object Added\", continuing with capture process", log: self.log, type: .debug)
+                self.isAwaitingObject = false
                 newObject = lastEvent.variables?.first ?? self.awaitingObjectId
+                self.awaitingObjectId = nil
                 continueClosure(true)
                 return
                 
@@ -199,6 +215,7 @@ extension SonyPTPIPDevice {
                 Logger.log(message: "\"Object Added\" event was intercepted elsewhere, continuing with capture process", category: "SonyPTPIPCamera")
                 os_log("\"Object Added\" event was intercepted elsewhere, continuing with capture process", log: self.log, type: .debug)
                 
+                self.isAwaitingObject = false
                 newObject = awaitingObjectId
                 self.awaitingObjectId = nil
                 continueClosure(true)
@@ -218,6 +235,8 @@ extension SonyPTPIPDevice {
                         continueClosure(false)
                         return
                     }
+                    self.isAwaitingObject = false
+                    self.awaitingObjectId = nil
                     newObject = 0xffffc001
                     continueClosure(true)
                 }
@@ -226,6 +245,7 @@ extension SonyPTPIPDevice {
 
         }, timeout: 35) { [weak self] in
             
+            self?.awaitingObjectId = nil
             self?.isAwaitingObject = false
 
             guard newObject != nil else {
