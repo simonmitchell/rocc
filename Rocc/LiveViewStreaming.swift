@@ -528,6 +528,13 @@ extension LiveViewStream: URLSessionDataDelegate {
     }
     
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        
+        if (error as NSError?)?.domain == NSURLErrorDomain && (error as NSError?)?.code == NSURLErrorCancelled {
+            Logger.log(message: "Live view stream cancelled, ignoring...", category: "LiveViewStreaming")
+            os_log("Live view stream cancelled, ignoring...", log: log, type: .info)
+            return
+        }
+        
         Logger.log(message: "Live view stream did error, restarting...", category: "LiveViewStreaming")
         os_log("Live view stream did error, restarting...", log: log, type: .error)
         receivedData = Data()
