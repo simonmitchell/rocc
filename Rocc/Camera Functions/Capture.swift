@@ -324,10 +324,10 @@ public struct VideoCapture: CameraFunction {
         public typealias ReturnType = Value
         
         /// Gets the current video recording quality
-        public static let get = Quality(function: .setVideoQuality)
+        public static let get = Quality(function: .getVideoQuality)
         
         /// Sets the video recording quality
-        public static let set = Quality(function: .getVideoQuality)
+        public static let set = Quality(function: .setVideoQuality)
     }
     
     /// Functions for controlling whether audio is captured along with video

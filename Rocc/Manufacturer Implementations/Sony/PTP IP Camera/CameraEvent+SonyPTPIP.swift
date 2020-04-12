@@ -212,6 +212,7 @@ extension CameraEvent {
         var recordingDuration: TimeInterval?
         var recordingDurationGetSetAvailable: PTP.DeviceProperty.GetSetAvailable?
         var videoFileFormat: (current: VideoCapture.FileFormat.Value, available: [VideoCapture.FileFormat.Value], supported: [VideoCapture.FileFormat.Value])?
+        var videoQuality: (current: VideoCapture.Quality.Value, available: [VideoCapture.Quality.Value], supported: [VideoCapture.Quality.Value])?
         var availableFunctions: [_CameraFunction] = []
         var supportedFunctions: [_CameraFunction] = []
         
@@ -837,6 +838,19 @@ extension CameraEvent {
                 
                 videoFileFormat = (currentFormat, availableFormats, supportedFormats)
                 
+            case .movieQuality:
+                
+                guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
+                    return
+                }
+                guard let currentQuality = VideoCapture.Quality.Value(sonyValue: deviceProperty.currentValue) else {
+                    return
+                }
+                let availableQualities = enumProperty.available.compactMap({ VideoCapture.Quality.Value(sonyValue: $0) })
+                let supportedQualities = enumProperty.supported.compactMap({ VideoCapture.Quality.Value(sonyValue: $0) })
+                
+                videoQuality = (currentQuality, availableQualities, supportedQualities)
+                
             default:
                 break
             }
@@ -900,7 +914,7 @@ extension CameraEvent {
             beepMode: nil,
             function: nil,
             functionResult: false,
-            videoQuality: nil,
+            videoQuality: videoQuality,
             stillSizeInfo: stillSizeInfo,
             steadyMode: nil,
             viewAngle: nil,
