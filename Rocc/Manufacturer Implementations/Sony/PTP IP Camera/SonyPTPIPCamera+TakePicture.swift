@@ -108,33 +108,25 @@ extension SonyPTPIPDevice {
         os_log("Focus mode is AF variant awaiting focus...", log: self.log, type: .debug)
         
         var newObject: DWord?
-        self.isAwaitingObject = true
                     
         DispatchQueue.global().asyncWhile({ [weak self] (continueClosure) in
             
             guard let self = self else { return }
             
-            if let lastEvent = self.lastEventPacket {
+            // If code is property changed, and first variable == "Focus Found"
+            if let lastEvent = self.lastEventPacket, lastEvent.code == .propertyChanged, lastEvent.variables?.first == 0xD213 {
                 
-                // If code is property changed, and first variable == "Focus Found"
-                if lastEvent.code == .propertyChanged, lastEvent.variables?.first == 0xD213 {
-                    
-                    Logger.log(message: "Got property changed event and was \"Focus Found\", continuing with capture process", category: "SonyPTPIPCamera")
-                    os_log("Got property changed event and was \"Focus Found\", continuing with capture process", log: self.log, type: .debug)
-                    continueClosure(true)
-                    
-                } else if lastEvent.code == .objectAdded {
-                    
-                    self.isAwaitingObject = false
-                    Logger.log(message: "Got property changed event and was \"Object Added\", continuing with capture process", category: "SonyPTPIPCamera")
-                    os_log("Got property changed event and was \"Object Added\", continuing with capture process", log: self.log, type: .debug)
-                    newObject = lastEvent.variables?.first
-                    continueClosure(true)
-                    
-                } else {
-                    
-                    continueClosure(false)
-                }
+                Logger.log(message: "Got property changed event and was \"Focus Found\", continuing with capture process", category: "SonyPTPIPCamera")
+                os_log("Got property changed event and was \"Focus Found\", continuing with capture process", log: self.log, type: .debug)
+                continueClosure(true)
+                
+            } else if let lastEvent = self.lastEventPacket, lastEvent.code == .objectAdded {
+                
+                self.isAwaitingObject = false
+                Logger.log(message: "Got property changed event and was \"Object Added\", continuing with capture process", category: "SonyPTPIPCamera")
+                os_log("Got property changed event and was \"Object Added\", continuing with capture process", log: self.log, type: .debug)
+                newObject = lastEvent.variables?.first
+                continueClosure(true)
                 
             } else if let awaitingObjectId = self.awaitingObjectId {
                 
