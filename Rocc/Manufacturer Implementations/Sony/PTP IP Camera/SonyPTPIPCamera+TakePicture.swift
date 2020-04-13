@@ -18,21 +18,24 @@ extension SonyPTPIPDevice {
         Logger.log(message: "Taking picture...", category: "SonyPTPIPCamera")
         os_log("Taking picture...", log: log, type: .debug)
         
+        self.isAwaitingObject = true
+        
         startCapturing { [weak self] (error) in
             
             guard let self = self else { return }
             if let error = error {
+                self.isAwaitingObject = false
                 completion(Result.failure(error))
                 return
             }
             
             self.awaitFocusIfNeeded(completion: { [weak self] (objectId) in
                 self?.cancelShutterPress(objectID: objectId, completion: completion)
-            }, setAwaitingObject: true)
+            })
         }
     }
     
-    func awaitFocusIfNeeded(completion: @escaping (_ objectId: DWord?) -> Void, setAwaitingObject: Bool = false) {
+    func awaitFocusIfNeeded(completion: @escaping (_ objectId: DWord?) -> Void) {
         
         guard let focusMode = self.lastEvent?.focusMode?.current else {
             
@@ -43,9 +46,6 @@ extension SonyPTPIPDevice {
                 }
                 
                 guard focusMode?.isAutoFocus == true else {
-                    if setAwaitingObject {
-                        self.isAwaitingObject = true
-                    }
                     completion(nil)
                     return
                 }
@@ -57,9 +57,6 @@ extension SonyPTPIPDevice {
         }
         
         guard focusMode.isAutoFocus else {
-            if setAwaitingObject {
-                self.isAwaitingObject = true
-            }
             completion(nil)
             return
         }
