@@ -138,7 +138,10 @@ struct CommandResponsePacket: Packetable {
         fullData.append(bytes: data.bytes.compactMap({ $0 }))
         // Override the length that set(header:) sets to make sure we don't loose data when calling parsePackets
         fullData[dWord: 0] = 14
-        return fullData.parsePacket(offset: 0) as? (CommandResponsePacket, DWord)
+        guard let responsePacket = fullData.parsePacket(offset: 0) else { return nil }
+        guard let cmdResponsePacket = responsePacket.packet as? CommandResponsePacket else { return nil }
+        guard !cmdResponsePacket.awaitingFurtherData else { return nil }
+        return (cmdResponsePacket, responsePacket.length)
     }
     
     init?(length: DWord, name: Packet.Name, data: ByteBuffer) {

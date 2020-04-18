@@ -11,7 +11,7 @@ import XCTest
 
 class AsyncWhileTests: XCTestCase {
 
-    func testTimeoutCalledBeforeBreaking() {
+    func testTimeoutCalledBeforeBreakingTwice() {
         
         var continueCalls: Int = 0
         let expectation = XCTestExpectation(description: "timeout called")
@@ -29,7 +29,7 @@ class AsyncWhileTests: XCTestCase {
         }
         
         wait(for: [expectation], timeout: 2.0)
-        XCTAssertEqual(continueCalls, 0)
+        XCTAssertEqual(continueCalls, 1)
     }
     
     func testWhileClosureCalledAppropriateNumberOfTimes() {
@@ -39,7 +39,7 @@ class AsyncWhileTests: XCTestCase {
         
         DispatchQueue.global().asyncWhile({ (continueClosure) in
             
-            DispatchQueue.global().asyncAfter(deadline: .now() + 0.2) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                 calls += 1
                 continueClosure(false)
             }
@@ -50,7 +50,7 @@ class AsyncWhileTests: XCTestCase {
         }
         
         wait(for: [expectation], timeout: 3.0)
-        XCTAssertEqual(calls, 10)
+        XCTAssertEqual(calls, 11)
     }
     
     func testCallingContinueWithTrueBreaksWhile() {
@@ -81,10 +81,10 @@ class AsyncWhileTests: XCTestCase {
         DispatchQueue.global().asyncWhile({ (continueClosure) in
             
             XCTAssertEqual(Thread.current.isMainThread, true)
+            expectation.fulfill()
             
         }, timeout: 0.2) {
             
-            expectation.fulfill()
         }
         
         wait(for: [expectation], timeout: 0.3)
@@ -96,25 +96,11 @@ class AsyncWhileTests: XCTestCase {
         
         DispatchQueue.global().asyncWhile({ (continueClosure) in
             
+            continueClosure(true)
             
         }, timeout: 0.2) {
             
             XCTAssertEqual(Thread.current.isMainThread, true)
-            expectation.fulfill()
-        }
-        
-        wait(for: [expectation], timeout: 0.3)
-    }
-    
-    func testDoneClosureCalledAfterTimeoutWithoutCallingContinue() {
-        
-        let expectation = XCTestExpectation(description: "timeout called")
-        
-        DispatchQueue.global().asyncWhile({ (continueClosure) in
-            
-            
-        }, timeout: 0.2) {
-            
             expectation.fulfill()
         }
         

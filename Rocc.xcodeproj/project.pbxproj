@@ -52,6 +52,8 @@
 		B154535F21EFE3DC00C59096 /* Countable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B154535421EFDC1700C59096 /* Countable.swift */; };
 		B1561ED120976B850013D122 /* ShootMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1561ECB20976B850013D122 /* ShootMode.swift */; };
 		B1561ED420976F7B0013D122 /* Capture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1561ED320976F7A0013D122 /* Capture.swift */; };
+		B15CE11A244AEBCE0025AD1D /* ThunderRequest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B184CAEB242BF105000B13E9 /* ThunderRequest.framework */; };
+		B15CE11C244AEC4C0025AD1D /* ThunderRequest.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = B184CAEB242BF105000B13E9 /* ThunderRequest.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B16064A821E3A00A00AE3483 /* SonyTransferDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = B16064A221E3A00900AE3483 /* SonyTransferDevice.swift */; };
 		B163AEBF20A8D6050061D1C4 /* CameraEventNotifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B163AEBE20A8D6050061D1C4 /* CameraEventNotifier.swift */; };
 		B164F02621811BD400590A05 /* SonyCameraDiscoverer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B164F02521811BD400590A05 /* SonyCameraDiscoverer.swift */; };
@@ -164,6 +166,19 @@
 			remoteInfo = CCKit;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B15CE11B244AEC3F0025AD1D /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				B15CE11C244AEC4C0025AD1D /* ThunderRequest.framework in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		B100E196209E47F8004F7AB8 /* TrackingFocus.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TrackingFocus.swift; sourceTree = "<group>"; };
@@ -328,6 +343,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B1316A572089C08F006BD136 /* Rocc.framework in Frameworks */,
+				B15CE11A244AEBCE0025AD1D /* ThunderRequest.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -751,6 +767,7 @@
 				B1316A522089C08F006BD136 /* Sources */,
 				B1316A532089C08F006BD136 /* Frameworks */,
 				B1316A542089C08F006BD136 /* Resources */,
+				B15CE11B244AEC3F0025AD1D /* CopyFiles */,
 			);
 			buildRules = (
 			);
@@ -1194,6 +1211,10 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = RoccTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1212,6 +1233,10 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = RoccTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
