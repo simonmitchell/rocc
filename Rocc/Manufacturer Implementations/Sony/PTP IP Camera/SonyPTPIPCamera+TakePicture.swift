@@ -175,6 +175,13 @@ extension SonyPTPIPDevice {
                 Logger.log(message: "Shutter press set to 1", category: "SonyPTPIPCamera")
                 os_log("Shutter press set to 1", log: self.log, type: .debug, objectID != nil ? "\(objectID!)" : "null")
                 
+                // If we call setAutoFocus when we've already got objectID it seems to crap out the camera which eventually
+                // breaks the stream, let's not do this.
+                guard objectID == nil, self.awaitingObjectId == nil else {
+                    completion(Result.success(nil))
+                    return
+                }
+                
                 self.ptpIPClient?.sendSetControlDeviceBValue(
                     PTP.DeviceProperty.Value(
                         code: .autoFocus,
