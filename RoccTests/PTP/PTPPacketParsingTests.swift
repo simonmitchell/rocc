@@ -239,4 +239,42 @@ class PTPPacketParsingTests: XCTestCase {
         XCTAssertEqual(byteBuffer2.length, 0)
         XCTAssertEqual(packets2?.count, 2)
     }
+    
+    func testPartialCommandResponseWithLengthOver14DoesntBreakNextCommandResponse() {
+        
+        let part1 = "12 00 00 00 07 00 00 00"
+        let part2 = "01 20 7b 01 00 00 9a f5 07 00 0e 00 00 00 07 00 00 00 01 20 7c 01 00 00"
+        
+        var part1Data = ByteBuffer(hexString: part1)
+        
+        guard let partialResponsePacket = part1Data.parsePackets()?.first as? CommandResponsePacket else {
+            XCTFail("Failed to parse partial CommandResponsePacket")
+            return
+        }
+        XCTAssertTrue(partialResponsePacket.awaitingFurtherData)
+        
+        var part2Data = ByteBuffer(hexString: part2)
+        guard let fullResponsePacket = partialResponsePacket.addingAwaitedData(part2Data) else {
+            XCTFail("Second data string didn't correctly make full CommandResponsePacket")
+            return
+        }
+        
+        XCTAssertFalse(fullResponsePacket.packet.awaitingFurtherData)
+//        XCTAssertEqual(fullResponsePacket.packet.data.toHex, "9a f5")
+        
+        // Remove the continued data
+        let lengthToRemove = fullResponsePacket.length - partialResponsePacket.length
+        part2Data.slice(Int(lengthToRemove))
+        
+        let packets = part2Data.parsePackets()
+        
+        XCTAssertEqual(packets?.count, 1)
+        guard let secondResponsePacket = packets?.first as? CommandResponsePacket else {
+            XCTFail("Failed to parse second CommandResponsePacket")
+            return
+        }
+        
+        XCTAssertFalse(secondResponsePacket.awaitingFurtherData)
+        XCTAssertEqual(secondResponsePacket.transactionId, 0x0000017c)
+    }
 }

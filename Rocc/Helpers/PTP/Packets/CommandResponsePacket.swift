@@ -121,6 +121,8 @@ struct CommandResponsePacket: Packetable {
     
     private var originalData: ByteBuffer = ByteBuffer()
     
+    private var originalLength: DWord = 0
+    
     private var pendingData: ByteBuffer {
         var data = ByteBuffer()
         data.append(bytes: .init(repeating: 0, count: Packet.headerLength))
@@ -136,8 +138,9 @@ struct CommandResponsePacket: Packetable {
     func addingAwaitedData(_ data: ByteBuffer) -> (packet: CommandResponsePacket, length: DWord)?  {
         var fullData = pendingData
         fullData.append(bytes: data.bytes.compactMap({ $0 }))
-        // Override the length that set(header:) sets to make sure we don't loose data when calling parsePackets
-        fullData[dWord: 0] = 14
+        // Override the length that set(header:) sets to make sure we don't loose data when calling parsePackets, sometimes CommandResponsePackets can be longer than
+        // 14, so we need to make sure to handle that!
+        fullData[dWord: 0] = max(originalLength, 14)
         guard let responsePacket = fullData.parsePacket(offset: 0) else { return nil }
         guard let cmdResponsePacket = responsePacket.packet as? CommandResponsePacket else { return nil }
         guard !cmdResponsePacket.awaitingFurtherData else { return nil }
@@ -152,6 +155,7 @@ struct CommandResponsePacket: Packetable {
         guard let responseWord = data[word: 0] else {
             // Some manufacturers *coughs* Sony, send malformed packets... we handle this by hard-coding the length and code!
             self.code = .okay
+            self.originalLength  = length
             self.length = 8
             transactionId = nil
             awaitingFurtherData = length > Packet.headerLength
@@ -161,6 +165,7 @@ struct CommandResponsePacket: Packetable {
         guard let code = Code(rawValue: responseWord) else {
             // Some manufacturers *coughs* Sony, send malformed packets... we handle this by hard-coding the length and code!
             self.code = .okay
+            self.originalLength  = length
             self.length = 8
             transactionId = nil
             awaitingFurtherData = length > Packet.headerLength
