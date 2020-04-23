@@ -58,7 +58,7 @@ public final class CameraEventNotifier {
     /// - Important: To avoid polling errors, if you are unsure if you are already being notified please only call this once per instance of `CameraEventNotifier`
     public func startNotifying() {
         
-        Logger.log(message: "Starting event notification with polling mode \(camera.eventPollingMode)", category: "CameraEventNotifier")
+        Logger.log(message: "Starting event notification with polling mode \(camera.eventPollingMode)", category: "CameraEventNotifier", level: .debug)
         os_log("Starting event notification with polling mode %@", log: log, type: .debug, "\(camera.eventPollingMode)")
         
         switch camera.eventPollingMode {
@@ -69,7 +69,7 @@ public final class CameraEventNotifier {
         case .cameraDriven:
             camera.onEventAvailable = { [weak self] in
                 guard let self = self else { return }
-                Logger.log(message: "Camera indicated event available", category: "CameraEventNotifier")
+                Logger.log(message: "Camera indicated event available", category: "CameraEventNotifier", level: .debug)
                 os_log("Camera indicated event available", log: self.log, type: .debug)
                 self.fetchEvent()
             }
@@ -87,10 +87,10 @@ public final class CameraEventNotifier {
     func fetchEvent(_ isInitial: Bool = false) {
         
         if isInitial {
-            Logger.log(message: "Fetching initial event", category: "CameraEventNotifier")
+            Logger.log(message: "Fetching initial event", category: "CameraEventNotifier", level: .debug)
             os_log("Fetching initial event", log: log, type: .debug, "\(camera.eventPollingMode)")
         } else {
-            Logger.log(message: "Fetching next event", category: "CameraEventNotifier")
+            Logger.log(message: "Fetching next event", category: "CameraEventNotifier", level: .debug)
             os_log("Fetching next event", log: log, type: .debug, "\(camera.eventPollingMode)")
         }
         
@@ -101,14 +101,14 @@ public final class CameraEventNotifier {
             
             if let error = error {
                 
-                Logger.log(message: "Got error fetching event: \(error.localizedDescription)", category: "CameraEventNotifier")
+                Logger.log(message: "Got error fetching event: \(error.localizedDescription)", category: "CameraEventNotifier", level: .error)
                 os_log("Got error fetching event: %@", log: self.log, type: .error, error.localizedDescription)
                 
                 if let cameraError = error as? CameraError {
                     switch cameraError {
                     case .timeout(_):
                         // If we timed out, then re-fetch as the API docs suggest!
-                        Logger.log(message: "Error is timeout, retrying...", category: "CameraEventNotifier")
+                        Logger.log(message: "Error is timeout, retrying...", category: "CameraEventNotifier", level: .error)
                         os_log("Error is timeout, retrying...", log: self.log, type: .error)
                         self.fetchEvent(isInitial)
                         return
@@ -118,7 +118,7 @@ public final class CameraEventNotifier {
                 }
                 
                 if (error as NSError).code == NSURLErrorTimedOut {
-                    Logger.log(message: "Error is timeout, retrying...", category: "CameraEventNotifier")
+                    Logger.log(message: "Error is timeout, retrying...", category: "CameraEventNotifier", level: .error)
                     os_log("Error is timeout, retrying...", log: self.log, type: .error)
                     self.fetchEvent(isInitial)
                     return
@@ -126,7 +126,7 @@ public final class CameraEventNotifier {
                 
                 self.delegate?.eventNotifier(self, didError: error)
             } else if let _event = event {
-                Logger.log(message: "Successfully received event from camera", category: "CameraEventNotifier")
+                Logger.log(message: "Successfully received event from camera", category: "CameraEventNotifier", level: .debug)
                 os_log("Successfully received event from camera", log: self.log, type: .debug)
                 self.delegate?.eventNotifier(self, receivedEvent: _event)
                 self.camera.handleEvent(event: _event)
@@ -136,7 +136,7 @@ public final class CameraEventNotifier {
                 return
             }
             
-            Logger.log(message: "Polling mode is continuous so fetching next event", category: "CameraEventNotifier")
+            Logger.log(message: "Polling mode is continuous so fetching next event", category: "CameraEventNotifier", level: .debug)
             os_log("Polling mode is continuous so fetching next event", log: self.log, type: .debug)
             self.fetchEvent()
         }

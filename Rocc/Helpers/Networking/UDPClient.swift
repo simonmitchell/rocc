@@ -189,7 +189,7 @@ class UDPClient {
             
             let addressData = Data(bytes: &address, count: MemoryLayout.size(ofValue: address))
             
-            Logger.log(message: "Initialising socket for listening", category: "UDPClient")
+            Logger.log(message: "Initialising socket for listening", category: "UDPClient", level: .debug)
             os_log("Initialising socket for listening", log: strongSelf.log, type: .debug)
             
             if strongSelf.listenSocket == nil {
@@ -209,7 +209,7 @@ class UDPClient {
             // Send data to socket
             messageDatas.forEach({ (messageData) in
                 if CFSocketSendData(sendSocket, addressData as CFData, messageData.data, 0.0) == CFSocketError.success {
-                    Logger.log(message: "Sending data to socket:\n\n\(messageData.message)", category: "UDPClient")
+                    Logger.log(message: "Sending data to socket:\n\n\(messageData.message)", category: "UDPClient", level: .debug)
                     os_log("sendSocket Sending data:\n\n%@", log: strongSelf.log, type: .debug, messageData.message)
                 }
             })
@@ -218,7 +218,7 @@ class UDPClient {
             let setAddressResponse = CFSocketSetAddress(_listenSocket, addressData as CFData)
             guard setAddressResponse == CFSocketError.success else {
                 strongSelf.callCompletionHandlers(with: nil, error: UDPClientError.failedToSetListenAddress)
-                Logger.log(message: "listenSocket CFSocketSetAddress() failed. [errno \(errno)]", category: "UDPClient")
+                Logger.log(message: "listenSocket CFSocketSetAddress() failed. [errno \(errno)]", category: "UDPClient", level: .error)
                 os_log("listenSocket CFSocketSetAddress() failed. [errno %d]", log: strongSelf.log, type: .error, errno)
                 return
             }
@@ -229,19 +229,19 @@ class UDPClient {
             
             if _sendSource == nil && _listenSource == nil {
                 strongSelf.callCompletionHandlers(with: nil, error: UDPClientError.failedToCreateRunLoopSources)
-                Logger.log(message: "CFRunLoopSourceRef's couldn't be allocated", category: "UDPClient")
+                Logger.log(message: "CFRunLoopSourceRef's couldn't be allocated", category: "UDPClient", level: .error)
                 os_log("CFRunLoopSourceRef's couldn't be allocated", log: strongSelf.log, type: .error)
                 return
             }
             
             if let sendSource = _sendSource {
                 CFRunLoopAddSource(CFRunLoopGetCurrent(), sendSource, .defaultMode)
-                Logger.log(message: "sendSource added", category: "UDPClient")
+                Logger.log(message: "sendSource added", category: "UDPClient", level: .debug)
                 os_log("sendSource added", log: strongSelf.log, type: .debug)
             }
             if let listenSource = _listenSource {
                 CFRunLoopAddSource(CFRunLoopGetCurrent(), listenSource, .defaultMode)
-                Logger.log(message: "listenSocket listening", category: "UDPClient")
+                Logger.log(message: "listenSocket listening", category: "UDPClient", level: .debug)
                 os_log("listenSocket listening", log: strongSelf.log, type: .debug)
             }
                         
@@ -256,7 +256,7 @@ class UDPClient {
         let reusePortResult = setsockopt(CFSocketGetNative(socket), SOL_SOCKET, SO_REUSEPORT, &on, socklen_t(MemoryLayout.size(ofValue: on)))
         
         guard reusePortResult == 0 else {
-            Logger.log(message: "setsockopt SO_REUSEPORT failed. [errno \(errno)]", category: "UDPClient")
+            Logger.log(message: "setsockopt SO_REUSEPORT failed. [errno \(errno)]", category: "UDPClient", level: .error)
             os_log("setsockopt SO_REUSEPORT failed. [errno %d]", log: log, type: .error, errno)
             return false
         }
@@ -264,7 +264,7 @@ class UDPClient {
         let reuseAddressResult = setsockopt(CFSocketGetNative(socket), SOL_SOCKET, SO_REUSEADDR, &on, socklen_t(MemoryLayout.size(ofValue: on)))
         
         guard reuseAddressResult == 0 else {
-            Logger.log(message: "setsockopt SO_REUSEADDR failed. [errno \(errno)]", category: "UDPClient")
+            Logger.log(message: "setsockopt SO_REUSEADDR failed. [errno \(errno)]", category: "UDPClient", level: .error)
             os_log("setsockopt SO_REUSEADDR failed. [errno %d]", log: log, type: .error, errno)
             return false
         }
@@ -289,7 +289,7 @@ class UDPClient {
         }, &socketContext)
         
         guard let _socket = socket else {
-            Logger.log(message: "UDP socket could not be created", category: "UDPClient")
+            Logger.log(message: "UDP socket could not be created", category: "UDPClient", level: .error)
             os_log("UDP socket could not be created", log: log, type: .error)
             return socket
         }
@@ -303,12 +303,12 @@ class UDPClient {
         let setResult = setsockopt(CFSocketGetNative(_socket), IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, socklen_t(MemoryLayout<ip_mreq>.size))
         
         guard setResult == 0 else {
-            Logger.log(message: "setsockopt IP_ADD_MEMBERSHIP failed. [errno \(errno)]", category: "UDPClient")
+            Logger.log(message: "setsockopt IP_ADD_MEMBERSHIP failed. [errno \(errno)]", category: "UDPClient", level: .error)
             os_log("setsockopt IP_ADD_MEMBERSHIP failed. [errno %d]", log: log, type: .error, errno)
             return nil
         }
         
-        Logger.log(message: "setsockopt IP_ADD_MEMBERSHIP succeeded.", category: "UDPClient")
+        Logger.log(message: "setsockopt IP_ADD_MEMBERSHIP succeeded.", category: "UDPClient", level: .debug)
         os_log("setsockopt IP_ADD_MEMBERSHIP succeeded", log: log)
         
         return socket;
@@ -342,27 +342,27 @@ class UDPClient {
             // Appending all data to a circular buf and reading from head:
             
             guard let responseString = String(data: cfdata as Data, encoding: .utf8) else {
-                Logger.log(message: "Socket data couldn't be converted to utf8 string", category: "UDPClient")
+                Logger.log(message: "Socket data couldn't be converted to utf8 string", category: "UDPClient", level: .debug)
                 os_log("Socket data couldn't be converted to utf8 string", log: log, type: .debug)
                 return
             }
             
-            Logger.log(message: "Got data from socket:\n\(responseString)", category: "UDPClient")
+            Logger.log(message: "Got data from socket:\n\(responseString)", category: "UDPClient", level: .debug)
             os_log("Got data from socket:\n%@", log: log, type: .debug, responseString)
             
             guard let ddURL = parseDDURL(from: responseString) else {
-                Logger.log(message: "Could not parse ddURL from socket data", category: "UDPClient")
+                Logger.log(message: "Could not parse ddURL from socket data", category: "UDPClient", level: .error)
                 os_log("Could not parse ddURL from socket data", log: log, type: .error)
                 return
             }
             
             guard let uuid = parseUUID(from: responseString) else {
-                Logger.log(message: "Could not parse uuid from socket data", category: "UDPClient")
+                Logger.log(message: "Could not parse uuid from socket data", category: "UDPClient", level: .error)
                 os_log("Could not parse uuid from socket data", log: log, type: .error)
                 return
             }
             
-            Logger.log(message: "Got device from socket with ddURL: \(ddURL.absoluteString), uuid: \(uuid)", category: "UDPClient")
+            Logger.log(message: "Got device from socket with ddURL: \(ddURL.absoluteString), uuid: \(uuid)", category: "UDPClient", level: .debug)
             os_log("Got device from socket with ddURL: %@, uuid: %@", log: log, type: .debug, ddURL.absoluteString, uuid)
             
             let device = Device(uuid: uuid, ddURL: ddURL)

@@ -109,14 +109,14 @@ final class PTPIPClient: NSObject {
         awaitingFurtherDataCommandResponsePacket = nil
         connectCallback = callback
         
-        Logger.log(message: "Creating streams to host \(host):\(port)", category: "PTPIPClient")
+        Logger.log(message: "Creating streams to host \(host):\(port)", category: "PTPIPClient", level: .debug)
         os_log("Creating streams to host %@", log: ptpClientLog, type: .debug, "\(host):\(port)")
         
         Stream.getStreamsToHost(withName: host, port: port, inputStream: &controlReadStream, outputStream: &controlWriteStream)
         
         guard let controlReadStream = controlReadStream, let controlWriteStream = controlWriteStream else {
             callback(PTPIPClientError.failedToCreateStreamsToHost)
-            Logger.log(message: "Failed to get streams to host", category: "PTPIPClient")
+            Logger.log(message: "Failed to get streams to host", category: "PTPIPClient", level: .error)
             os_log("Failed to get streams to host", log: ptpClientLog, type: .error)
             return
         }
@@ -162,7 +162,7 @@ final class PTPIPClient: NSObject {
         let connectPacket = Packet.initCommandPacket(guid: guidData?.toBytes ?? [], name: UIDevice.current.name)
         sendControlPacket(connectPacket)
         
-        Logger.log(message: "Sending InitCommandPacket to PTP IP Device", category: "PTPIPClient")
+        Logger.log(message: "Sending InitCommandPacket to PTP IP Device", category: "PTPIPClient", level: .debug)
         os_log("Sending InitCommandPacket to PTP IP Device", log: ptpClientLog, type: .debug)
     }
     
@@ -198,7 +198,7 @@ final class PTPIPClient: NSObject {
             guard response == packet.length else {
                 break
             }
-            Logger.log(message: "Sending event packet to device: \(packet.debugDescription)", category: "PTPIPClient")
+            Logger.log(message: "Sending event packet to device: \(packet.debugDescription)", category: "PTPIPClient", level: .debug)
             os_log("Sending event packet to device: %@", log: ptpClientLog, type: .debug, "\(packet.debugDescription)")
             pendingEventPackets.remove(at: index)
         }
@@ -211,7 +211,7 @@ final class PTPIPClient: NSObject {
             guard response == packet.length else {
                 break
             }
-            Logger.log(message: "Sending control packet to device: \(packet.debugDescription)", category: "PTPIPClient")
+            Logger.log(message: "Sending control packet to device: \(packet.debugDescription)", category: "PTPIPClient", level: .debug)
             os_log("Sending control packet to device: %@", log: ptpClientLog, type: .debug, "\(packet.debugDescription)")
             pendingControlPackets.remove(at: index)
         }
@@ -231,7 +231,7 @@ final class PTPIPClient: NSObject {
             pendingEventPackets.append(packet)
             return
         }
-        Logger.log(message: "Sending event packet to device: \(packet.debugDescription)", category: "PTPIPClient")
+        Logger.log(message: "Sending event packet to device: \(packet.debugDescription)", category: "PTPIPClient", level: .debug)
         os_log("Sending event packet to device: %@", log: ptpClientLog, type: .debug, "\(packet.debugDescription)")
         eventWriteStream.write(packet)
     }
@@ -248,7 +248,7 @@ final class PTPIPClient: NSObject {
             pendingControlPackets.append(packet)
             return
         }
-        Logger.log(message: "Sending control packet to device: \(packet.debugDescription)", category: "PTPIPClient")
+        Logger.log(message: "Sending control packet to device: \(packet.debugDescription)", category: "PTPIPClient", level: .debug)
         os_log("Sending control packet to device: %@", log: ptpClientLog, type: .debug, "\(packet.debugDescription)")
         controlWriteStream.write(packet)
     }
@@ -315,7 +315,7 @@ final class PTPIPClient: NSObject {
     fileprivate func handle(packet: Packetable) {
         
         if packet as? CommandResponsePacket == nil || !(packet as! CommandResponsePacket).awaitingFurtherData {
-            Logger.log(message: "Received packet from device: \(packet.debugDescription)", category: "PTPIPClient")
+            Logger.log(message: "Received packet from device: \(packet.debugDescription)", category: "PTPIPClient", level: .debug)
             os_log("Received packet from device: %@", log: ptpClientLog, type: .debug, "\(packet.debugDescription)")
         }
         
@@ -411,7 +411,7 @@ final class PTPIPClient: NSObject {
         
         var bytes: [Byte] = Array<Byte>.init(repeating: .zero, count: 1024)
         
-        Logger.log(message: "Start reading available bytes", category: "PTPIPClient")
+        Logger.log(message: "Start reading available bytes", category: "PTPIPClient", level: .debug)
         os_log("Start reading available bytes", log: ptpClientLog, type: .debug)
         
         while stream.hasBytesAvailable {
@@ -441,12 +441,12 @@ final class PTPIPClient: NSObject {
         
         switch stream {
         case eventReadStream:
-            Logger.log(message: "Read event available bytes (\(eventLoopByteBuffer.length))", category: "PTPIPClient")
+            Logger.log(message: "Read event available bytes (\(eventLoopByteBuffer.length))", category: "PTPIPClient", level: .debug)
             os_log("Read event available bytes (%i)", log: ptpClientLog, type: .debug, eventLoopByteBuffer.length)
             packets = eventLoopByteBuffer.parsePackets()
         case controlReadStream:
             
-            Logger.log(message: "Read control available bytes (\(mainLoopByteBuffer.length))", category: "PTPIPClient")
+            Logger.log(message: "Read control available bytes (\(mainLoopByteBuffer.length))", category: "PTPIPClient", level: .debug)
             os_log("Read control available bytes (%i)", log: ptpClientLog, type: .debug, mainLoopByteBuffer.length)
             
             // If we have a command response packet awaiting further data
@@ -501,13 +501,13 @@ extension PTPIPClient: StreamDelegate {
         switch eventCode {
         case Stream.Event.errorOccurred:
             guard let error = aStream.streamError else { return }
-            Logger.log(message: "Stream error: \(error.localizedDescription)", category: "PTPIPClient")
+            Logger.log(message: "Stream error: \(error.localizedDescription)", category: "PTPIPClient", level: .error)
             os_log("Stream error: %@", log: ptpClientLog, type: .error, error.localizedDescription)
             disconnect()
             onDisconnect?()
             break
         case Stream.Event.hasSpaceAvailable:
-            Logger.log(message: "Stream has space available", category: "PTPIPClient")
+            Logger.log(message: "Stream has space available", category: "PTPIPClient", level: .debug)
             os_log("Stream has space available", log: ptpClientLog, type: .debug)
             switch aStream {
             case eventWriteStream:
@@ -520,7 +520,7 @@ extension PTPIPClient: StreamDelegate {
                 break
             }
         case Stream.Event.hasBytesAvailable:
-            Logger.log(message: "Stream has bytes available", category: "PTPIPClient")
+            Logger.log(message: "Stream has bytes available", category: "PTPIPClient", level: .debug)
             os_log("Stream has bytes available", log: ptpClientLog, type: .debug)
             readAvailableBytes(stream: aStream as! InputStream)
             break
@@ -537,7 +537,7 @@ extension PTPIPClient: StreamDelegate {
             }
             break
         case Stream.Event.endEncountered:
-            Logger.log(message: "Stream end encountered", category: "PTPIPClient")
+            Logger.log(message: "Stream end encountered", category: "PTPIPClient", level: .debug)
             os_log("Stream end encountered", log: ptpClientLog, type: .debug)
             aStream.close()
             aStream.remove(from: .current, forMode: .default)

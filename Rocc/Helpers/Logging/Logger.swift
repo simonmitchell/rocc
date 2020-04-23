@@ -10,11 +10,54 @@ import Foundation
 import os.log
 import ThunderRequest
 
-/// A simple class for logging to a given file url
+/// A protocol that can be implemented to act as a logger for ROCC.
+/// this allows you to collate logs in any way you wish, rather than relying
+/// on rocc's logging to file!
+public protocol Log {
+    
+    /// A function which will be called to write a log message to the log
+    /// - Parameters:
+    ///   - message: The message to log
+    ///   - category: The category of the message
+    ///   - subsystem: The subsystem of the log
+    ///   - level: The level of the log (Allows you to filter!)
+    func log(message: String, subsystem: String, category: String, level: Logger.Level)
+}
+
+/// A class which stores the shared logger, mostly for type aliasing
 public final class Logger {
     
+    public enum Level: String {
+        case `default`
+        case info
+        case error
+        case debug
+        case fault
+    }
+    
+    public static var sharedLog: Log = FileLog.shared
+    
+    internal init() {
+        
+    }
+    
+    /// Logs a given message via the shared instance of `Logger`
+    ///
+    /// - Parameters:
+    ///   - message: The message to log
+    ///   - category: The category of the log
+    ///   - subsystem: The subsystem of the log
+    ///   - level: The log level
+    public class func log(message: String, category: String, subsystem: String = Bundle(for: Logger.self).bundleIdentifier ?? "com.yellowbrickbear.rocc", level: Level = .debug) {
+        Logger.sharedLog.log(message: message, subsystem: subsystem, category: category, level: level)
+    }
+}
+
+/// A simple class for logging to a given file url
+public final class FileLog: Log {
+    
     /// Shared instance of the logger
-    public static let shared = Logger()
+    public static let shared = FileLog()
     
     /// Whether logs are currently being saved to a file
     public var isLoggingToFile: Bool {
@@ -52,20 +95,11 @@ public final class Logger {
         return url
     }
     
-    /// Logs a given message via the shared instance of `Logger`
-    ///
-    /// - Parameters:
-    ///   - message: The message to log
-    ///   - category: The category of the log
-    public class func log(message: String, category: String) {
-        Logger.shared.log(message, category: category)
-    }
-    
     private init() {
         
     }
     
-    private func log(_ message: String, category: String) {
+    public func log(message: String, subsystem: String, category: String, level: Logger.Level) {
         
         guard let fileURL = fileURL, let logQueue = logQueue else { return }
         
@@ -82,7 +116,7 @@ public final class Logger {
             var writeString = message
             
             if !writeString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                writeString = "\n\(formatter.string(from: Date())) [\(category)] \(writeString)"
+                writeString = "\n\(formatter.string(from: Date())) [\(level.rawValue)] | \(subsystem) \(category) | \(writeString)"
             }
             
             if let handle = try? FileHandle(forWritingTo: fileURL) {
@@ -123,9 +157,26 @@ public final class Logger {
     }
 }
 
+extension LogLevel {
+    var roccLevel: Logger.Level {
+        switch self {
+        case .default:
+            return .default
+        case .debug:
+            return .debug
+        case .error:
+            return .error
+        case .fault:
+            return .fault
+        case .info:
+            return .info
+        }
+    }
+}
+
 extension Logger: LogReceiver {
     
     public func log(_ message: String, category: String, level: LogLevel) {
-        log(message, category: category)
+        Logger.sharedLog.log(message: message, subsystem: "com.threesidedcube.thunderrequest", category: category, level: level.roccLevel)
     }
 }

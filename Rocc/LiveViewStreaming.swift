@@ -177,7 +177,7 @@ public final class LiveViewStream: NSObject {
         
         isStarting = true
         
-        Logger.log(message: "Starting live view stream", category: "LiveViewStreaming")
+        Logger.log(message: "Starting live view stream", category: "LiveViewStreaming", level: .debug)
         os_log("Starting live view stream", log: log, type: .debug)
         
         camera.performFunction(LiveView.start, payload: nil) { [weak self] (error, streamURL) in
@@ -187,21 +187,21 @@ public final class LiveViewStream: NSObject {
             guard let streamURL = streamURL else {
                 
                 guard let sonyError = error as? CameraError, case .alreadyRunningPollingAPI(_) = sonyError else {
-                    Logger.log(message: "Starting live view stream errored \((error ?? StreamingError.unknown).localizedDescription)", category: "LiveViewStreaming")
+                    Logger.log(message: "Starting live view stream errored \((error ?? StreamingError.unknown).localizedDescription)", category: "LiveViewStreaming", level: .error)
                     os_log("Starting live view stream errored %@", log: strongSelf.log, type: .error, (error ?? StreamingError.unknown).localizedDescription)
                     strongSelf.isStarting = false
                     strongSelf.delegate?.liveViewStream(strongSelf, didError: error ?? StreamingError.unknown)
                     return
                 }
                 
-                Logger.log(message: "Got already running polling API error, restarting live stream", category: "LiveViewStreaming")
+                Logger.log(message: "Got already running polling API error, restarting live stream", category: "LiveViewStreaming", level: .debug)
                 os_log("Got already running polling API error, restarting live stream", log: strongSelf.log, type: .debug)
                 
                 strongSelf.camera.performFunction(LiveView.stop, payload: nil, callback: { [weak strongSelf] (error, response) in
                     
                     guard let _strongSelf = strongSelf else { return }
                     guard error == nil else {
-                        Logger.log(message: "Stopping live view stream errored \((error ?? StreamingError.unknown).localizedDescription)", category: "LiveViewStreaming")
+                        Logger.log(message: "Stopping live view stream errored \((error ?? StreamingError.unknown).localizedDescription)", category: "LiveViewStreaming", level: .error)
                         os_log("Stopping live view stream errored %@", log: _strongSelf.log, type: .error, (error ?? StreamingError.unknown).localizedDescription)
                         _strongSelf.isStarting = false
                         _strongSelf.delegate?.liveViewStream(_strongSelf, didError: error ?? StreamingError.unknown)
@@ -231,7 +231,7 @@ public final class LiveViewStream: NSObject {
         
     private func streamFrom(url: URL) {
         
-        Logger.log(message: "Beggining live view stream from \(url.absoluteString)", category: "LiveViewStreaming")
+        Logger.log(message: "Beggining live view stream from \(url.absoluteString)", category: "LiveViewStreaming", level: .debug)
         os_log("Beggining live view stream from %@", log: log, type: .debug, url.absoluteString)
         
         isPacketedStream = false
@@ -259,7 +259,7 @@ public final class LiveViewStream: NSObject {
     /// Stops the stream
     public func stop() {
         
-        Logger.log(message: "Stopping live view stream", category: "LiveViewStreaming")
+        Logger.log(message: "Stopping live view stream", category: "LiveViewStreaming", level: .debug)
         os_log("Stopping live view stream", log: log, type: .debug)
         
         isStreaming = false
@@ -390,12 +390,12 @@ public final class LiveViewStream: NSObject {
         // If for some reason our data doesn't start with the "Start Byte", then delete up to that point!
         if let firstByte = receivedData.first, firstByte != 0xFF {
             
-            Logger.log(message: "Received data didn't start with 0xFF deleting up to that point", category: "LiveViewStreaming")
+            Logger.log(message: "Received data didn't start with 0xFF deleting up to that point", category: "LiveViewStreaming", level: .debug)
             os_log("Received data didn't start with 0xFF deleting up to that point", log: log, type: .debug)
             
             // If we have a start byte, discard everything before it
             if receivedData.contains(0xFF) {
-                Logger.log(message: "Discarding data up to first 0xFF", category: "LiveViewStreaming")
+                Logger.log(message: "Discarding data up to first 0xFF", category: "LiveViewStreaming", level: .debug)
                 os_log("Discarding data up to first 0xFF", log: log, type: .debug)
                 receivedData = Data(receivedData.split(separator: 0xFF, maxSplits: 1, omittingEmptySubsequences: false).last ?? Data())
                 // Add back in the 0xff byte as this is required to parse a JPEG!
@@ -544,14 +544,14 @@ extension LiveViewStream: URLSessionDataDelegate {
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         
         if (error as NSError?)?.domain == NSURLErrorDomain && (error as NSError?)?.code == NSURLErrorCancelled {
-            Logger.log(message: "Live view stream cancelled, ignoring...", category: "LiveViewStreaming")
+            Logger.log(message: "Live view stream cancelled, ignoring...", category: "LiveViewStreaming", level: .info)
             os_log("Live view stream cancelled, ignoring...", log: log, type: .info)
             // Still need to reset data, otherwise we may run into parsing issues!
             receivedData = Data()
             return
         }
         
-        Logger.log(message: "Live view stream did error, restarting...", category: "LiveViewStreaming")
+        Logger.log(message: "Live view stream did error, restarting...", category: "LiveViewStreaming", level: .error)
         os_log("Live view stream did error, restarting...", log: log, type: .error)
         receivedData = Data()
         guard error != nil else { return }

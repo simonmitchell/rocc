@@ -57,7 +57,7 @@ internal class ServiceClient {
     
     internal init?(service: SonyAPICameraDevice.ApiDeviceInfo.Service) {
         requestController = RequestController(baseURL: service.url)
-        requestController.logger = Logger.shared
+        requestController.logger = Logger()
         self.service = service
     }
     

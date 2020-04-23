@@ -66,7 +66,7 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
             address: address,
             port: port
         )
-        requestController.logger = Logger.shared
+        requestController.logger = Logger()
         
         reachability = Reachability(hostName: "www.google.co.uk")
     }
@@ -80,14 +80,14 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
         var isReachable: Bool = true
         lastSSID = Reachability.currentWiFiSSID
         
-        Logger.log(message: "Starting device search", category: "UDPDeviceDiscoverer")
+        Logger.log(message: "Starting device search", category: "UDPDeviceDiscoverer", level: .info)
         os_log("Starting device search", log: log, type: .info)
         
         // If we have a description URL cached for the current SSID, then first off try and hit that!
         if let currentSSID = Reachability.currentWiFiSSID, let urls = UserDefaults.standard.ssidDeviceMap[currentSSID], !ignoreSavedDevices {
             
             let urlString = urls.map({ $0.absoluteString }).joined(separator: ", ")
-            Logger.log(message: "Have cached devices at \(urlString) for SSID \(currentSSID)", category: "UDPDeviceDiscoverer")
+            Logger.log(message: "Have cached devices at \(urlString) for SSID \(currentSSID)", category: "UDPDeviceDiscoverer", level: .debug)
             os_log("Have cached devices at: %{public}@ for SSID %{public}@", log: log, type: .debug, urlString, currentSSID)
             
             urls.forEach { (url) in
@@ -97,11 +97,11 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
                         return
                     }
                     guard let _error = error else {
-                        Logger.log(message: "Successfully fetched device info for cached device", category: "UDPDeviceDiscoverer")
+                        Logger.log(message: "Successfully fetched device info for cached device", category: "UDPDeviceDiscoverer", level: .debug)
                         os_log("Successfully fetched device info for cached device", log: strongSelf.log, type: .debug)
                         return
                     }
-                    Logger.log(message: "Error fetching cached device info from url: \(_error.localizedDescription)", category: "UDPDeviceDiscoverer")
+                    Logger.log(message: "Error fetching cached device info from url: \(_error.localizedDescription)", category: "UDPDeviceDiscoverer", level: .error)
                     os_log("Error fetching cached device info from url: %{public}@", log: strongSelf.log, type: .error, _error.localizedDescription)
                 }
             }
@@ -116,7 +116,7 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
         reachability?.networkChangeCallback = { [weak self] (ssid) in
             guard let this = self/*, this.lastSSID != ssid */ else { return }
 //            this.lastSSID = ssid
-            Logger.log(message: "Network did change: \(ssid ?? "null")", category: "UDPDeviceDiscoverer")
+            Logger.log(message: "Network did change: \(ssid ?? "null")", category: "UDPDeviceDiscoverer", level: .debug)
             os_log("Network did change %{public}@", log: this.log, type: .debug, ssid ?? "Unknown")
             this.requestController.cancelAllRequests()
             this.udpClient.finishSearching(with: { [weak this] in
@@ -127,7 +127,7 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
         #if os(iOS)
         guard isReachable else {
             
-            Logger.log(message: "Device not reachable", category: "UDPDeviceDiscoverer")
+            Logger.log(message: "Device not reachable", category: "UDPDeviceDiscoverer", level: .debug)
             os_log("Device not reachable", log: log, type: .debug)
             
             reachability?.start(callback: { [weak self] (flags) in
@@ -149,7 +149,7 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
             
         })
         
-        Logger.log(message: "Starting UDP device search on network: \(Reachability.currentWiFiSSID ?? "Unknown")", category: "UDPDeviceDiscoverer")
+        Logger.log(message: "Starting UDP device search on network: \(Reachability.currentWiFiSSID ?? "Unknown")", category: "UDPDeviceDiscoverer", level: .debug)
         os_log("Starting UDP device search on network: %{public}@", log: log, type: .debug, Reachability.currentWiFiSSID ?? "Unknown")
         
         udpClient.startSearching { [weak self] (device, error) in
@@ -157,13 +157,13 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
             guard let self = self else { return }
             
             guard let device = device else {
-                Logger.log(message: "Client did fail with error: \(error?.localizedDescription ?? "Unknown")", category: "UDPDeviceDiscoverer")
+                Logger.log(message: "Client did fail with error: \(error?.localizedDescription ?? "Unknown")", category: "UDPDeviceDiscoverer", level: .error)
                 os_log("Client did fail with error: %{public}@", log: self.log, type: .error, error?.localizedDescription ?? "Unknown")
                 self.delegate?.deviceDiscoverer(self, didError: error ?? CameraDiscoveryError.unknown)
                 return
             }
             
-            Logger.log(message: "Did find device at \(device.ddURL.absoluteString)", category: "UDPDeviceDiscoverer")
+            Logger.log(message: "Did find device at \(device.ddURL.absoluteString)", category: "UDPDeviceDiscoverer", level: .debug)
             os_log("Did find device at: %{public}@", log: self.log, type: .debug, device.ddURL.absoluteString)
             
             self.parseDeviceInfo(at: device.ddURL, isCached: false)
@@ -172,7 +172,7 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
     
     func stop(_ callback: @escaping () -> Void) {
         
-        Logger.log(message: "Stopping search for devices", category: "UDPDeviceDiscoverer")
+        Logger.log(message: "Stopping search for devices", category: "UDPDeviceDiscoverer", level: .debug)
         os_log("Stopping search for devices", log: log, type: .debug)
         
         lastSSID = nil
@@ -186,7 +186,7 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
         let lastPathComponent = url.lastPathComponent
         let baseURL = url.deletingLastPathComponent()
         
-        Logger.log(message: "Requesting device info", category: "UDPDeviceDiscoverer")
+        Logger.log(message: "Requesting device info", category: "UDPDeviceDiscoverer", level: .debug)
         os_log("Requesting device info", log: log, type: .debug)
         
         let currentSSID = Reachability.currentWiFiSSID
@@ -197,14 +197,14 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
             guard let strongSelf = self else { return }
             
             guard let stringResponse = response?.string else {
-                Logger.log(message: "Failed to get device info with error: \(error?.localizedDescription ?? "Unknown")", category: "UDPDeviceDiscoverer")
+                Logger.log(message: "Failed to get device info with error: \(error?.localizedDescription ?? "Unknown")", category: "UDPDeviceDiscoverer", level: .error)
                 os_log("Failed to get device info with error: %{public}@", log: strongSelf.log, type: .error, error?.localizedDescription ?? "Unknown")
                 callback?(error ?? CameraDiscoveryError.unknown)
                 strongSelf.delegate?.deviceDiscoverer(strongSelf, didError: error ?? CameraDiscoveryError.unknown)
                 return
             }
             
-            Logger.log(message: "Parsing device info", category: "UDPDeviceDiscoverer")
+            Logger.log(message: "Parsing device info", category: "UDPDeviceDiscoverer", level: .debug)
             os_log("Parsing device info", log: strongSelf.log, type: .debug)
             strongSelf.parseDevice(from: stringResponse, isCached: isCached, baseURL: baseURL, callback: { [weak strongSelf] parsed in
                 
@@ -223,7 +223,7 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
                     }
                     deviceMap[_currentSSID] = devicesForSSID
                     if let _strongSelf = strongSelf {
-                        Logger.log(message: "Caching device info url (\(url.absoluteString) for ssid: \(_currentSSID))", category: "UDPDeviceDiscoverer")
+                        Logger.log(message: "Caching device info url (\(url.absoluteString) for ssid: \(_currentSSID))", category: "UDPDeviceDiscoverer", level: .debug)
                         os_log("Caching device info url (%{public}@) for ssid: %{public}@", log: _strongSelf.log, type: .debug, url.absoluteString, _currentSSID)
                     }
                     UserDefaults.standard.ssidDeviceMap = deviceMap
@@ -234,7 +234,7 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
     
     func getFurtherInfoAt(path: String, baseURL: URL, callback: @escaping (_ requestResponse: RequestResponse?, _ error: Error?) -> Void) {
         
-        Logger.log(message: "Request further info from \(baseURL.appendingPathComponent(path).absoluteString)", category: "UDPDeviceDiscoverer")
+        Logger.log(message: "Request further info from \(baseURL.appendingPathComponent(path).absoluteString)", category: "UDPDeviceDiscoverer", level: .debug)
         os_log("Request further info from %{public}@", log: log, type: .debug, baseURL.appendingPathComponent(path).absoluteString)
         
         requestController.sharedBaseURL = baseURL
@@ -250,14 +250,14 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
     
     func sendErrorToDelegate(_ error: Error) {
         
-        Logger.log(message: "Failed to parse device info with error: \(error.localizedDescription)", category: "UDPDeviceDiscoverer")
+        Logger.log(message: "Failed to parse device info with error: \(error.localizedDescription)", category: "UDPDeviceDiscoverer", level: .error)
         os_log("Failed to parse device info with error: %{public}@", log: log, type: .error, error.localizedDescription)
         delegate?.deviceDiscoverer(self, didError: error)
     }
     
     func sendDeviceToDelegate(_ camera: Camera, isCached: Bool) {
         
-        Logger.log(message: "Letting delegate know about discovered device with name: \(camera.name ?? "Unknown")", category: "UDPDeviceDiscoverer")
+        Logger.log(message: "Letting delegate know about discovered device with name: \(camera.name ?? "Unknown")", category: "UDPDeviceDiscoverer", level: .debug)
         os_log("Letting delegate know about discovered device with name: %{public}@", log: log, type: .debug, camera.name ?? "Unknown")
         delegate?.deviceDiscoverer(self, discovered: camera, isCached: isCached)
     }

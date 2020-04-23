@@ -1742,7 +1742,7 @@ extension SonyAPICameraDevice: Camera {
                         guard case let .success(response) = result else {
                             if case let .failure(error) = result {
                                 
-                                Logger.shared.log("Capture failed" + (ignoreShootingFailure ? ", ignoring shooting failure" : ""), category: "SonyCamera", level: .debug)
+                                Logger.log(message:"Capture failed" + (ignoreShootingFailure ? ", ignoring shooting failure" : ""), category: "SonyCamera", level: .debug)
                                 
                                 // If we're not ignoring the error, then call back to original caller
                                 if let cameraError = error as? CameraError {
@@ -1786,7 +1786,7 @@ extension SonyAPICameraDevice: Camera {
                 
                 // Make sure our camera model requires this call! Only 3rd gen seem to
                 guard let _model = modelEnum, _model.requiresHalfPressToCapture else {
-                    Logger.shared.log("\(modelEnum?.friendlyName ?? "Unknown") doesn't require half press to focus, skipping step", category: "SonyCamera", level: .debug)
+                    Logger.log(message:"\(modelEnum?.friendlyName ?? "Unknown") doesn't require half press to focus, skipping step", category: "SonyCamera", level: .debug)
                     takePicture(false, nil)
                     return
                 }
@@ -1794,13 +1794,13 @@ extension SonyAPICameraDevice: Camera {
                 // Make sure is in AF, otherwise we don't need to call half-press. If we don't have focusMode yet, then call halfPress
                 // as it will fail anyway if the camera is in MF
                 guard lastNonNilFocusState != .focusing || lastNonNilFocusState == nil else {
-                    Logger.shared.log("Camera already focussing (\(lastNonNilFocusState?.debugString ?? "Unknown")), skipping half press shutter", category: "SonyCamera", level: .debug)
+                    Logger.log(message:"Camera already focussing (\(lastNonNilFocusState?.debugString ?? "Unknown")), skipping half press shutter", category: "SonyCamera", level: .debug)
                     takePicture(false, nil)
                     return
                 }
                 
                 guard focusMode == nil || focusMode!.isAutoFocus else {
-                    Logger.shared.log("Camera not in AF mode, skipping half-press shutter", category: "SonyCamera", level: .debug)
+                    Logger.log(message:"Camera not in AF mode, skipping half-press shutter", category: "SonyCamera", level: .debug)
                     takePicture(false, nil)
                     return
                 }
@@ -1808,17 +1808,15 @@ extension SonyAPICameraDevice: Camera {
                 supportsFunction(Shutter.halfPress) { [weak self] (supports, _, _) in
                     
                     guard let this = self, let _supports = supports, _supports else {
-                        Logger.shared.log("Camera doesn't support shutter half press, skipping", category: "SonyCamera", level: .debug)
+                        Logger.log(message:"Camera doesn't support shutter half press, skipping", category: "SonyCamera", level: .debug)
                         takePicture(false, nil)
                         return
                     }
                     
                     // Perform a half-press of the shutter
-                    this.performFunction(Shutter.halfPress, payload: nil, callback: { [weak this] (error, _) in
-                        
-                        guard let _this = this else { return }
-                        
-                        Logger.shared.log("Half-press completed, attempting capture", category: "SonyCamera", level: .debug)
+                    this.performFunction(Shutter.halfPress, payload: nil, callback: { (error, _) in
+                                                
+                        Logger.log(message:"Half-press completed, attempting capture", category: "SonyCamera", level: .debug)
                         
                         // Take picture immediately after half press has completed, two scenarios here:
                         // 1. User is in MF, this takePicture should succeed and take the photo
@@ -1827,11 +1825,11 @@ extension SonyAPICameraDevice: Camera {
                             
                             // If the take picture failed, then we'll await the focus change from `Shutter.halfPress`
                             guard !success else {
-                                Logger.shared.log("Take picture succeeded, camera either in MF or already focussed", category: "SonyCamera", level: .debug)
+                                Logger.log(message:"Take picture succeeded, camera either in MF or already focussed", category: "SonyCamera", level: .debug)
                                 return
                             }
                             
-                            Logger.shared.log("Take picture failed, nothing we can do...", category: "SonyCamera", level: .debug)
+                            Logger.log(message:"Take picture failed, nothing we can do...", category: "SonyCamera", level: .debug)
                         })
                     })
                 }

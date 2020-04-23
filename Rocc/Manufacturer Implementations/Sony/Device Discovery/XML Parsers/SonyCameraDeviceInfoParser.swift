@@ -49,7 +49,7 @@ class SonyCameraDeviceInfoParser: NSObject, XMLParserDelegate {
         
         guard let data = xmlString.data(using: .utf8) else {
             completion(nil, SonyCameraParserError.couldntCreateData)
-            Logger.log(message: "Parser failed, couldn't create Data from XML string", category: "DeviceInfoXMLParser")
+            Logger.log(message: "Parser failed, couldn't create Data from XML string", category: "DeviceInfoXMLParser", level: .error)
             os_log("Parse failed, couldn't create Data from XML string", log: log, type: .error)
             return
         }
@@ -58,7 +58,7 @@ class SonyCameraDeviceInfoParser: NSObject, XMLParserDelegate {
         xmlParser?.delegate = self
         xmlParser?.parse()
         
-        Logger.log(message: "Beginning parsing", category: "DeviceInfoXMLParser")
+        Logger.log(message: "Beginning parsing", category: "DeviceInfoXMLParser", level: .debug)
         os_log("Beginning parsing", log: log, type: .debug)
     }
     
@@ -118,12 +118,12 @@ class SonyCameraDeviceInfoParser: NSObject, XMLParserDelegate {
     func parserDidEndDocument(_ parser: XMLParser) {
         deviceInfo = SonyDeviceInfo(dictionary: deviceDictionary)
         completion?(deviceInfo, nil)
-        Logger.log(message: "Parser did end document with success: \(deviceInfo != nil)", category: "DeviceInfoXMLParser")
+        Logger.log(message: "Parser did end document with success: \(deviceInfo != nil)", category: "DeviceInfoXMLParser", level: .debug)
         os_log("Parser did end document", log: log, type: .debug)
     }
     
     func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
-        Logger.log(message: "Parse error occured: \(parseError.localizedDescription)", category: "DeviceInfoXMLParser")
+        Logger.log(message: "Parse error occured: \(parseError.localizedDescription)", category: "DeviceInfoXMLParser", level: .error)
         os_log("Parse error occured: %@", log: log, type: .error, parseError.localizedDescription)
         completion?(nil, parseError)
     }

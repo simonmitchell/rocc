@@ -104,13 +104,13 @@ public final class DeviceConnectivityNotifier {
             guard let self = self else { return }
             
             guard ssid != self.initialSSID else {
-                Logger.log(message: "Re-connected to device's SSID", category: "DeviceConnectivity")
+                Logger.log(message: "Re-connected to device's SSID", category: "DeviceConnectivity", level: .debug)
                 os_log("Re-connected to device's SSID", log: self.logger, type: .debug)
                 self.handle(reachable: true)
                 return
             }
             
-            Logger.log(message: "Disconnected from device's SSID", category: "DeviceConnectivity")
+            Logger.log(message: "Disconnected from device's SSID", category: "DeviceConnectivity", level: .debug)
             os_log("Disconnected from device's SSID", log: self.logger, type: .debug)
             self.handle(reachable: false)
         }
@@ -128,7 +128,7 @@ public final class DeviceConnectivityNotifier {
         
         if flags.contains(.reachable) && !flags.contains(.connectionRequired) {
             
-            Logger.log(message: "Reachable and no connection required", category: "DeviceConnectivity")
+            Logger.log(message: "Reachable and no connection required", category: "DeviceConnectivity", level: .debug)
             os_log("Reachable and no connection required", log: logger, type: .debug)
             
             camera.performFunction(Ping.perform, payload: nil) { [weak self] (error, _) in                
@@ -142,7 +142,7 @@ public final class DeviceConnectivityNotifier {
                 return
             }
             
-            Logger.log(message: "Not reachable", category: "DeviceConnectivity")
+            Logger.log(message: "Not reachable", category: "DeviceConnectivity", level: .debug)
             os_log("Not reachable", log: logger, type: .debug)
             camera.performFunction(Ping.perform, payload: nil) { [weak self] (error, _) in
                 self?.handle(reachable: error != nil)

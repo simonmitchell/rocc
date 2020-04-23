@@ -40,7 +40,7 @@ extension SonyTransferDevice {
         var loadedDevice = self
         let requestController = RequestController(baseURL: baseURL)
         self.requestController = requestController
-        self.requestController?.logger = Logger.shared
+        self.requestController?.logger = Logger()
         
         // Get additional device info (Model, firmware version e.t.c.)
         if let deviceInfoService = services.first(where: { $0.type == .digitalImaging }) {

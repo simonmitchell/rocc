@@ -15,7 +15,7 @@ extension SonyPTPIPDevice {
     
     func takePicture(completion: @escaping CaptureCompletion) {
         
-        Logger.log(message: "Taking picture...", category: "SonyPTPIPCamera")
+        Logger.log(message: "Taking picture...", category: "SonyPTPIPCamera", level: .debug)
         os_log("Taking picture...", log: log, type: .debug)
         
         self.isAwaitingObject = true
@@ -66,7 +66,7 @@ extension SonyPTPIPDevice {
  
     func startCapturing(completion: @escaping (Error?) -> Void) {
         
-        Logger.log(message: "Starting capture...", category: "SonyPTPIPCamera")
+        Logger.log(message: "Starting capture...", category: "SonyPTPIPCamera", level: .debug)
         os_log("Starting capture...", log: self.log, type: .debug)
         
         ptpIPClient?.sendSetControlDeviceBValue(
@@ -104,7 +104,7 @@ extension SonyPTPIPDevice {
     
     func awaitFocus(completion: @escaping (_ objectId: DWord?) -> Void) {
         
-        Logger.log(message: "Focus mode is AF variant awaiting focus...", category: "SonyPTPIPCamera")
+        Logger.log(message: "Focus mode is AF variant awaiting focus...", category: "SonyPTPIPCamera", level: .debug)
         os_log("Focus mode is AF variant awaiting focus...", log: self.log, type: .debug)
         
         var newObject: DWord? = awaitingObjectId
@@ -116,7 +116,7 @@ extension SonyPTPIPDevice {
             // If code is property changed, and first variable == "Focus Found"
             if let lastEvent = self.lastEventPacket, lastEvent.code == .propertyChanged, lastEvent.variables?.first == 0xD213 {
                 
-                Logger.log(message: "Got property changed event and was \"Focus Found\", continuing with capture process", category: "SonyPTPIPCamera")
+                Logger.log(message: "Got property changed event and was \"Focus Found\", continuing with capture process", category: "SonyPTPIPCamera", level: .debug)
                 os_log("Got property changed event and was \"Focus Found\", continuing with capture process", log: self.log, type: .debug)
                 continueClosure(true)
                 
@@ -124,14 +124,14 @@ extension SonyPTPIPDevice {
                 
                 self.isAwaitingObject = false
                 self.awaitingObjectId = nil
-                Logger.log(message: "Got property changed event and was \"Object Added\", continuing with capture process", category: "SonyPTPIPCamera")
+                Logger.log(message: "Got property changed event and was \"Object Added\", continuing with capture process", category: "SonyPTPIPCamera", level: .debug)
                 os_log("Got property changed event and was \"Object Added\", continuing with capture process", log: self.log, type: .debug)
                 newObject = objectId
                 continueClosure(true)
                 
             } else if let awaitingObjectId = self.awaitingObjectId {
                 
-                Logger.log(message: "Got object ID from elsewhere whilst awaiting focus", category: "SonyPTPIPCamera")
+                Logger.log(message: "Got object ID from elsewhere whilst awaiting focus", category: "SonyPTPIPCamera", level: .debug)
                 os_log("Got object ID from elsewhere whilst awaiting focus", log: self.log, type: .debug)
                 
                 self.isAwaitingObject = false
@@ -148,7 +148,7 @@ extension SonyPTPIPDevice {
             
             guard let self = self else { return }
             
-            Logger.log(message: "Focus awaited \(newObject != nil ? "\(newObject!)" : "null")", category: "SonyPTPIPCamera")
+            Logger.log(message: "Focus awaited \(newObject != nil ? "\(newObject!)" : "null")", category: "SonyPTPIPCamera", level: .debug)
             os_log("Focus awaited %@", log: self.log, type: .debug, newObject != nil ? "\(newObject!)" : "null")
             
             let awaitingObjectId = self.awaitingObjectId
@@ -159,7 +159,7 @@ extension SonyPTPIPDevice {
     
     private func cancelShutterPress(objectID: DWord?, completion: @escaping CaptureCompletion) {
         
-        Logger.log(message: "Cancelling shutter press \(objectID != nil ? "\(objectID!)" : "null")", category: "SonyPTPIPCamera")
+        Logger.log(message: "Cancelling shutter press \(objectID != nil ? "\(objectID!)" : "null")", category: "SonyPTPIPCamera", level: .debug)
         os_log("Cancelling shutter press %@", log: self.log, type: .debug, objectID != nil ? "\(objectID!)" : "null")
                 
         ptpIPClient?.sendSetControlDeviceBValue(
@@ -172,7 +172,7 @@ extension SonyPTPIPDevice {
                 
                 guard let self = self else { return }
                 
-                Logger.log(message: "Shutter press set to 1", category: "SonyPTPIPCamera")
+                Logger.log(message: "Shutter press set to 1", category: "SonyPTPIPCamera", level: .debug)
                 os_log("Shutter press set to 1", log: self.log, type: .debug, objectID != nil ? "\(objectID!)" : "null")
                 
                 self.ptpIPClient?.sendSetControlDeviceBValue(
@@ -184,7 +184,7 @@ extension SonyPTPIPDevice {
                     callback: { [weak self] (_) in
                         guard let self = self else { return }
                         
-                        Logger.log(message: "Autofocus set to 1 \(objectID ?? 0)", category: "SonyPTPIPCamera")
+                        Logger.log(message: "Autofocus set to 1 \(objectID ?? 0)", category: "SonyPTPIPCamera", level: .debug)
                         os_log("Autofocus set to 1", log: self.log, type: .debug, objectID != nil ? "\(objectID!)"
                             : "null")
                         guard objectID != nil else {
@@ -202,7 +202,7 @@ extension SonyPTPIPDevice {
         
         var newObject: DWord?
         
-        Logger.log(message: "Awaiting Object ID", category: "SonyPTPIPCamera")
+        Logger.log(message: "Awaiting Object ID", category: "SonyPTPIPCamera", level: .debug)
         os_log("Awaiting Object ID", log: self.log, type: .debug)
         
         // If we already have an awaitingObjectId! For some reason this isn't caught if we jump into asyncWhile...
@@ -223,7 +223,7 @@ extension SonyPTPIPDevice {
             
             if let lastEvent = self.lastEventPacket, lastEvent.code == .objectAdded {
                 
-                Logger.log(message: "Got property changed event and was \"Object Added\", continuing with capture process", category: "SonyPTPIPCamera")
+                Logger.log(message: "Got property changed event and was \"Object Added\", continuing with capture process", category: "SonyPTPIPCamera", level: .debug)
                 os_log("Got property changed event and was \"Object Added\", continuing with capture process", log: self.log, type: .debug)
                 self.isAwaitingObject = false
                 newObject = lastEvent.variables?.first ?? self.awaitingObjectId
@@ -233,7 +233,7 @@ extension SonyPTPIPDevice {
                 
             } else if let awaitingObjectId = self.awaitingObjectId {
                 
-                Logger.log(message: "\"Object Added\" event was intercepted elsewhere, continuing with capture process", category: "SonyPTPIPCamera")
+                Logger.log(message: "\"Object Added\" event was intercepted elsewhere, continuing with capture process", category: "SonyPTPIPCamera", level: .debug)
                 os_log("\"Object Added\" event was intercepted elsewhere, continuing with capture process", log: self.log, type: .debug)
                 
                 self.isAwaitingObject = false
@@ -243,12 +243,12 @@ extension SonyPTPIPDevice {
                 return
             }
             
-            Logger.log(message: "Getting device prop description for 'objectInMemory'", category: "SonyPTPIPCamera")
+            Logger.log(message: "Getting device prop description for 'objectInMemory'", category: "SonyPTPIPCamera", level: .debug)
             os_log("Getting device prop description for 'objectInMemory'", log: self.log, type: .debug)
             
             self.getDevicePropDescriptionFor(propCode: .objectInMemory, callback: { (result) in
                 
-                Logger.log(message: "Got device prop description for 'objectInMemory'", category: "SonyPTPIPCamera")
+                Logger.log(message: "Got device prop description for 'objectInMemory'", category: "SonyPTPIPCamera", level: .debug)
                 os_log("Got device prop description for 'objectInMemory'", log: self.log, type: .debug)
                 
                 switch result {
@@ -263,7 +263,7 @@ extension SonyPTPIPDevice {
                         return
                     }
                     
-                    Logger.log(message: "objectInMemory >= 0x8000, object in memory at 0xffffc001", category: "SonyPTPIPCamera")
+                    Logger.log(message: "objectInMemory >= 0x8000, object in memory at 0xffffc001", category: "SonyPTPIPCamera", level: .debug)
                     os_log("objectInMemory >= 0x8000, object in memory at 0xffffc001", log: self.log, type: .debug)
                     
                     self.isAwaitingObject = false
@@ -292,7 +292,7 @@ extension SonyPTPIPDevice {
     
     func handleObjectId(objectID: DWord, shootingMode: ShootingMode, completion: @escaping CaptureCompletion) {
         
-        Logger.log(message: "Got object with id: \(objectID)", category: "SonyPTPIPCamera")
+        Logger.log(message: "Got object with id: \(objectID)", category: "SonyPTPIPCamera", level: .debug)
         os_log("Got object ID", log: log, type: .debug)
         
         ptpIPClient?.getObjectInfoFor(objectId: objectID, callback: { [weak self] (result) in
@@ -313,7 +313,7 @@ extension SonyPTPIPDevice {
     
     private func getObjectWith(info: PTP.ObjectInfo, objectID: DWord, shootingMode: ShootingMode, completion: @escaping CaptureCompletion) {
         
-        Logger.log(message: "Getting object of size: \(info.compressedSize) with id: \(objectID)", category: "SonyPTPIPCamera")
+        Logger.log(message: "Getting object of size: \(info.compressedSize) with id: \(objectID)", category: "SonyPTPIPCamera", level: .debug)
         os_log("Getting object", log: log, type: .debug)
         
         let packet = Packet.commandRequestPacket(code: .getPartialObject, arguments: [objectID, 0, info.compressedSize], transactionId: ptpIPClient?.getNextTransactionId() ?? 2)
@@ -323,7 +323,7 @@ extension SonyPTPIPDevice {
             case .success(let data):
                 self.handleObjectData(data.data, shootingMode: shootingMode, fileName: info.fileName ?? "\(ProcessInfo().globallyUniqueString).jpg")
             case .failure(let error):
-                Logger.log(message: "Failed to get object: \(error.localizedDescription)", category: "SonyPTPIPCamera")
+                Logger.log(message: "Failed to get object: \(error.localizedDescription)", category: "SonyPTPIPCamera", level: .error)
                 os_log("Failed to get object", log: self.log, type: .error)
                 break
             }
@@ -333,7 +333,7 @@ extension SonyPTPIPDevice {
     
     private func handleObjectData(_ data: ByteBuffer, shootingMode: ShootingMode, fileName: String) {
         
-        Logger.log(message: "Got object data!: \(data.length). Attempting to save as image", category: "SonyPTPIPCamera")
+        Logger.log(message: "Got object data!: \(data.length). Attempting to save as image", category: "SonyPTPIPCamera", level: .debug)
         os_log("Got object data! Attempting to save as image", log: self.log, type: .debug)
         
         // Check for a new object, in-case we missed the event for it!
@@ -359,7 +359,7 @@ extension SonyPTPIPDevice {
         
         let imageData = Data(data)
         guard UIImage(data: imageData) != nil else {
-            Logger.log(message: "Image data not valid", category: "SonyPTPIPCamera")
+            Logger.log(message: "Image data not valid", category: "SonyPTPIPCamera", level: .error)
             os_log("Image data not valud", log: self.log, type: .error)
             return
         }
@@ -372,7 +372,7 @@ extension SonyPTPIPDevice {
             // Trigger dummy event
             onEventAvailable?()
         } catch let error {
-            Logger.log(message: "Failed to save image to disk: \(error.localizedDescription)", category: "SonyPTPIPCamera")
+            Logger.log(message: "Failed to save image to disk: \(error.localizedDescription)", category: "SonyPTPIPCamera", level: .error)
             os_log("Failed to save image to disk", log: self.log, type: .error)
         }
     }

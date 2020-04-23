@@ -85,7 +85,7 @@ internal final class SOAPResponseParser: NSObject, XMLParserDelegate {
         
         guard let data = xmlString.data(using: .utf8) else {
             completion(nil, UPnPDeviceParserError.couldntCreateData)
-            Logger.log(message: "Parse failed, couldn't create Data from XML string", category: "SOAPResponseXMLParser")
+            Logger.log(message: "Parse failed, couldn't create Data from XML string", category: "SOAPResponseXMLParser", level: .error)
             os_log("Parse failed, couldn't create Data from XML string", log: log, type: .error)
             return
         }
@@ -94,7 +94,7 @@ internal final class SOAPResponseParser: NSObject, XMLParserDelegate {
         xmlParser?.delegate = self
         xmlParser?.parse()
         
-        Logger.log(message: "Beginning parsing", category: "SOAPResponseXMLParser")
+        Logger.log(message: "Beginning parsing", category: "SOAPResponseXMLParser", level: .debug)
         os_log("Beginning parsing", log: log, type: .debug)
     }
     
@@ -135,12 +135,12 @@ internal final class SOAPResponseParser: NSObject, XMLParserDelegate {
     
     func parserDidEndDocument(_ parser: XMLParser) {
         completion?(response.isEmpty ? nil : response, nil)
-        Logger.log(message: "Parser did end document with success: \(!response.isEmpty)", category: "SOAPResponseXMLParser")
+        Logger.log(message: "Parser did end document with success: \(!response.isEmpty)", category: "SOAPResponseXMLParser", level: .debug)
         os_log("Parser did end document", log: log, type: .debug)
     }
     
     func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
-        Logger.log(message: "Parse error occured: \(parseError.localizedDescription)", category: "SOAPResponseXMLParser")
+        Logger.log(message: "Parse error occured: \(parseError.localizedDescription)", category: "SOAPResponseXMLParser", level: .error)
         os_log("Parse error occured: %@", log: log, type: .error, parseError.localizedDescription)
         completion?(nil, parseError)
     }

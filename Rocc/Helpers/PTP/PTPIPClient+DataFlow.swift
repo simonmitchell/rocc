@@ -42,7 +42,7 @@ extension PTPIPClient {
     func handleDataPacket(_ packet: DataPacket) {
         guard var containerForData = dataContainers[packet.transactionId] else {
             os_log("Received unexpected data packet for transactionId: %{public}@", log: ptpClientLog, type: .error, "\(packet.transactionId)")
-            Logger.log(message: "Received unexpected data packet for transactionId: \(packet.transactionId)", category: "PTPIPClient")
+            Logger.log(message: "Received unexpected data packet for transactionId: \(packet.transactionId)", category: "PTPIPClient", level: .error)
             return
         }
         containerForData.appendData(from: packet)
@@ -54,7 +54,7 @@ extension PTPIPClient {
             return
         }
         os_log("Received unexpected end data packet for transactionId: %{public}@", log: ptpClientLog, type: .error, "\(packet.transactionId)")
-        Logger.log(message: "Received unexpected end data packet for transactionId: \(packet.transactionId)", category: "PTPIPClient")
+        Logger.log(message: "Received unexpected end data packet for transactionId: \(packet.transactionId)", category: "PTPIPClient", level: .error)
     }
 }
 

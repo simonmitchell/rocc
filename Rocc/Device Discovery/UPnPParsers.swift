@@ -156,7 +156,7 @@ internal final class UPnPDeviceParser: NSObject, XMLParserDelegate {
         
         guard let data = xmlString.data(using: .utf8) else {
             completion(nil, UPnPDeviceParserError.couldntCreateData)
-            Logger.log(message: "Parse failed, couldn't create Data from XML string", category: "UPnPDeviceXMLParser")
+            Logger.log(message: "Parse failed, couldn't create Data from XML string", category: "UPnPDeviceXMLParser", level: .error)
             os_log("Parse failed, couldn't create Data from XML string", log: log, type: .error)
             return
         }
@@ -165,7 +165,7 @@ internal final class UPnPDeviceParser: NSObject, XMLParserDelegate {
         xmlParser?.delegate = self
         xmlParser?.parse()
         
-        Logger.log(message: "Beginning parsing", category: "UPnPDeviceXMLParser")
+        Logger.log(message: "Beginning parsing", category: "UPnPDeviceXMLParser", level: .debug)
         os_log("Beginning parsing", log: log, type: .debug)
     }
     
@@ -251,12 +251,12 @@ internal final class UPnPDeviceParser: NSObject, XMLParserDelegate {
     func parserDidEndDocument(_ parser: XMLParser) {
         device = UPnPDevice(dictionary: deviceDictionary, type: deviceType)
         completion?(device, nil)
-        Logger.log(message: "Parser did end document with success: \(device != nil)", category: "UPnPDeviceXMLParser")
+        Logger.log(message: "Parser did end document with success: \(device != nil)", category: "UPnPDeviceXMLParser", level: .debug)
         os_log("Parser did end document", log: log, type: .debug)
     }
     
     func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
-        Logger.log(message: "Parse error occured: \(parseError.localizedDescription)", category: "UPnPDeviceXMLParser")
+        Logger.log(message: "Parse error occured: \(parseError.localizedDescription)", category: "UPnPDeviceXMLParser", level: .error)
         os_log("Parse error occured: %@", log: log, type: .error, parseError.localizedDescription)
         completion?(nil, parseError)
     }
@@ -325,7 +325,7 @@ internal final class UPnPFolderParser: NSObject, XMLParserDelegate {
         
         guard let data = xmlString.data(using: .utf8) else {
             completion(nil, UPnPDeviceParserError.couldntCreateData)
-            Logger.log(message: "Parse failed, couldn't create Data from XML string", category: "UPnPFoldersXMLParser")
+            Logger.log(message: "Parse failed, couldn't create Data from XML string", category: "UPnPFoldersXMLParser", level: .error)
             os_log("Parse failed, couldn't create Data from XML string", log: log, type: .error)
             return
         }
@@ -334,7 +334,7 @@ internal final class UPnPFolderParser: NSObject, XMLParserDelegate {
         xmlParser?.delegate = self
         xmlParser?.parse()
         
-        Logger.log(message: "Beginning parsing", category: "UPnPFoldersXMLParser")
+        Logger.log(message: "Beginning parsing", category: "UPnPFoldersXMLParser", level: .debug)
         os_log("Beginning parsing", log: log, type: .debug)
     }
     
@@ -390,12 +390,12 @@ internal final class UPnPFolderParser: NSObject, XMLParserDelegate {
         let folderObjects = currentFolders.compactMap({ UPnPFolder(dictionary: $0) })
         folders = folderObjects.isEmpty ? nil : folderObjects
         completion?(folders, nil)
-        Logger.log(message: "Parser did end document with success: \(!folderObjects.isEmpty)", category: "UPnPFoldersXMLParser")
+        Logger.log(message: "Parser did end document with success: \(!folderObjects.isEmpty)", category: "UPnPFoldersXMLParser", level: .debug)
         os_log("Parser did end document", log: log, type: .debug)
     }
     
     func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
-        Logger.log(message: "Parse error occured", category: "UPnPFoldersXMLParser")
+        Logger.log(message: "Parse error occured", category: "UPnPFoldersXMLParser", level: .error)
         os_log("Parse error occured: %@", log: log, type: .error, parseError.localizedDescription)
         completion?(nil, parseError)
     }
@@ -607,7 +607,7 @@ internal final class UPnPFileParser: NSObject, XMLParserDelegate {
         
         guard let data = xmlString.data(using: .utf8) else {
             completion(nil, UPnPDeviceParserError.couldntCreateData)
-            Logger.log(message: "Parse failed, couldn't create Data from XML string", category: "UPnPFilesXMLParser")
+            Logger.log(message: "Parse failed, couldn't create Data from XML string", category: "UPnPFilesXMLParser", level: .error)
             os_log("Parse failed, couldn't create Data from XML string", log: log, type: .error)
             return
         }
@@ -616,7 +616,7 @@ internal final class UPnPFileParser: NSObject, XMLParserDelegate {
         xmlParser?.delegate = self
         xmlParser?.parse()
         
-        Logger.log(message: "Beginning parsing", category: "UPnPFilesXMLParser")
+        Logger.log(message: "Beginning parsing", category: "UPnPFilesXMLParser", level: .debug)
         os_log("Beginning parsing", log: log, type: .debug)
     }
     
@@ -687,12 +687,12 @@ internal final class UPnPFileParser: NSObject, XMLParserDelegate {
         let fileObjects = currentFiles.compactMap({ File(upnpDictionary: $0, dateFormatter: dateFormatter) })
         files = fileObjects.isEmpty ? nil : fileObjects
         completion?(files, nil)
-        Logger.log(message: "Beginning did end document with success: \(!fileObjects.isEmpty)", category: "UPnPFilesXMLParser")
+        Logger.log(message: "Beginning did end document with success: \(!fileObjects.isEmpty)", category: "UPnPFilesXMLParser", level: .debug)
         os_log("Parser did end document", log: log, type: .debug)
     }
     
     func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
-        Logger.log(message: "Parse error occured: \(parseError.localizedDescription)", category: "UPnPFilesXMLParser")
+        Logger.log(message: "Parse error occured: \(parseError.localizedDescription)", category: "UPnPFilesXMLParser", level: .error)
         os_log("Parse error occured: %@", log: log, type: .error, parseError.localizedDescription)
         completion?(nil, parseError)
     }

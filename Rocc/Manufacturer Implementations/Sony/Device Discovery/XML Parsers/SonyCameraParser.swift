@@ -45,7 +45,7 @@ final class SonyCameraParser: NSObject, XMLParserDelegate {
         
         guard let data = xmlString.data(using: .utf8) else {
             completion(nil, SonyCameraParserError.couldntCreateData)
-            Logger.log(message: "Parser failed, couldn't create Data from XML string", category: "SonyCameraXMLParser")
+            Logger.log(message: "Parser failed, couldn't create Data from XML string", category: "SonyCameraXMLParser", level: .error)
             os_log("Parse failed, couldn't create Data from XML string", log: log, type: .error)
             return
         }
@@ -54,7 +54,7 @@ final class SonyCameraParser: NSObject, XMLParserDelegate {
         xmlParser?.delegate = self
         xmlParser?.parse()
         
-        Logger.log(message: "Beginning parsing", category: "SonyCameraXMLParser")
+        Logger.log(message: "Beginning parsing", category: "SonyCameraXMLParser", level: .debug)
         os_log("Beginning parsing", log: log, type: .debug)
     }
     
@@ -152,12 +152,12 @@ final class SonyCameraParser: NSObject, XMLParserDelegate {
     func parserDidEndDocument(_ parser: XMLParser) {
         device = SonyAPICameraDevice(dictionary: deviceDictionary) ?? SonyPTPIPDevice(dictionary: deviceDictionary)
         completion?(device, nil)
-        Logger.log(message: "Parser did end document with success: \(device != nil)", category: "SonyCameraXMLParser")
+        Logger.log(message: "Parser did end document with success: \(device != nil)", category: "SonyCameraXMLParser", level: .debug)
         os_log("Parser did end document", log: log, type: .debug)
     }
     
     func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
-        Logger.log(message: "Parser error occured: \(parseError.localizedDescription)", category: "SonyCameraXMLParser")
+        Logger.log(message: "Parser error occured: \(parseError.localizedDescription)", category: "SonyCameraXMLParser", level: .error)
         os_log("Parse error occured: %@", log: log, type: .error, parseError.localizedDescription)
         completion?(nil, parseError)
     }

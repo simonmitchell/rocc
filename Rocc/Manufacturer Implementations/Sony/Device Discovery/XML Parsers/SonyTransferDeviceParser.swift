@@ -45,7 +45,7 @@ final class SonyTransferDeviceParser: NSObject, XMLParserDelegate {
         
         guard let data = xmlString.data(using: .utf8) else {
             completion(nil, SonyCameraParserError.couldntCreateData)
-            Logger.log(message: "Parse failed, couldn't create Data from XML string", category: "SonyTransferDeviceXMLParser")
+            Logger.log(message: "Parse failed, couldn't create Data from XML string", category: "SonyTransferDeviceXMLParser", level: .error)
             os_log("Parse failed, couldn't create Data from XML string", log: log, type: .error)
             return
         }
@@ -54,7 +54,7 @@ final class SonyTransferDeviceParser: NSObject, XMLParserDelegate {
         xmlParser?.delegate = self
         xmlParser?.parse()
         
-        Logger.log(message: "Beginning parsing", category: "SonyTransferDeviceXMLParser")
+        Logger.log(message: "Beginning parsing", category: "SonyTransferDeviceXMLParser", level: .debug)
         os_log("Beginning parsing", log: log, type: .debug)
     }
     
@@ -139,12 +139,12 @@ final class SonyTransferDeviceParser: NSObject, XMLParserDelegate {
     func parserDidEndDocument(_ parser: XMLParser) {
         device = SonyTransferDevice(dictionary: deviceDictionary)
         completion?(device, nil)
-        Logger.log(message: "Parser did end document with success: \(device != nil)", category: "SonyTransferDeviceXMLParser")
+        Logger.log(message: "Parser did end document with success: \(device != nil)", category: "SonyTransferDeviceXMLParser", level: .debug)
         os_log("Parser did end document", log: log, type: .debug)
     }
     
     func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
-        Logger.log(message: "Parser error occured: \(parseError.localizedDescription)", category: "SonyTransferDeviceXMLParser")
+        Logger.log(message: "Parser error occured: \(parseError.localizedDescription)", category: "SonyTransferDeviceXMLParser", level: .error)
         os_log("Parse error occured: %@", log: log, type: .error, parseError.localizedDescription)
         completion?(nil, parseError)
     }
