@@ -158,6 +158,7 @@ public final class LiveViewStream: NSObject {
         
         self.delegate = delegate
         self.camera = camera
+        self.dataProcessingQueue.qualityOfService = .utility
     }
     
     private var eventTimer: Timer?
@@ -188,6 +189,7 @@ public final class LiveViewStream: NSObject {
                 guard let sonyError = error as? CameraError, case .alreadyRunningPollingAPI(_) = sonyError else {
                     Logger.log(message: "Starting live view stream errored \((error ?? StreamingError.unknown).localizedDescription)", category: "LiveViewStreaming")
                     os_log("Starting live view stream errored %@", log: strongSelf.log, type: .error, (error ?? StreamingError.unknown).localizedDescription)
+                    strongSelf.isStarting = false
                     strongSelf.delegate?.liveViewStream(strongSelf, didError: error ?? StreamingError.unknown)
                     return
                 }
@@ -201,12 +203,12 @@ public final class LiveViewStream: NSObject {
                     guard error == nil else {
                         Logger.log(message: "Stopping live view stream errored \((error ?? StreamingError.unknown).localizedDescription)", category: "LiveViewStreaming")
                         os_log("Stopping live view stream errored %@", log: _strongSelf.log, type: .error, (error ?? StreamingError.unknown).localizedDescription)
+                        _strongSelf.isStarting = false
                         _strongSelf.delegate?.liveViewStream(_strongSelf, didError: error ?? StreamingError.unknown)
                         return
                     }
                     _strongSelf.start()
                 })
-                
                 
                 return
             }
@@ -224,6 +226,8 @@ public final class LiveViewStream: NSObject {
     private var dataTask: URLSessionDataTask?
     
     var isPacketedStream: Bool = false
+    
+    let dataProcessingQueue = OperationQueue()
         
     private func streamFrom(url: URL) {
         
@@ -234,15 +238,22 @@ public final class LiveViewStream: NSObject {
         isStarting = false
         isStreaming = true
         
+        let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData)
+        
+        streamingSession?.invalidateAndCancel()
+        streamingSession = nil
+        
         let config = URLSessionConfiguration.ephemeral
         config.requestCachePolicy = .reloadIgnoringLocalCacheData
         config.urlCache = nil
-        streamingSession = URLSession(configuration: config, delegate: self, delegateQueue: nil)
-        let request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData)
+        streamingSession = URLSession(configuration: config, delegate: self, delegateQueue: dataProcessingQueue)
         
-        receivedData = Data()
-        dataTask = streamingSession?.dataTask(with: request)
-        dataTask?.resume()
+        dataProcessingQueue.addOperation { [weak self] in
+            guard let self = self else { return }
+            self.receivedData = Data()
+            self.dataTask = self.streamingSession?.dataTask(with: request)
+            self.dataTask?.resume()
+        }
     }
     
     /// Stops the stream
@@ -254,7 +265,10 @@ public final class LiveViewStream: NSObject {
         isStreaming = false
         streamingSession?.invalidateAndCancel()
         streamingSession = nil
-        receivedData = Data()
+        dataProcessingQueue.addOperation { [weak self] in
+            guard let self = self else { return }
+            self.receivedData = Data()
+        }
         
         camera.performFunction(LiveView.stop, payload: nil) { (error, void) in
             
@@ -374,7 +388,7 @@ public final class LiveViewStream: NSObject {
         receivedData = Data(receivedData)
         
         // If for some reason our data doesn't start with the "Start Byte", then delete up to that point!
-        if receivedData.count > 0, receivedData[0] != 0xFF {
+        if let firstByte = receivedData.first, firstByte != 0xFF {
             
             Logger.log(message: "Received data didn't start with 0xFF deleting up to that point", category: "LiveViewStreaming")
             os_log("Received data didn't start with 0xFF deleting up to that point", log: log, type: .debug)
@@ -532,6 +546,8 @@ extension LiveViewStream: URLSessionDataDelegate {
         if (error as NSError?)?.domain == NSURLErrorDomain && (error as NSError?)?.code == NSURLErrorCancelled {
             Logger.log(message: "Live view stream cancelled, ignoring...", category: "LiveViewStreaming")
             os_log("Live view stream cancelled, ignoring...", log: log, type: .info)
+            // Still need to reset data, otherwise we may run into parsing issues!
+            receivedData = Data()
             return
         }
         
