@@ -349,7 +349,7 @@ extension SonyCamera {
         var latestFirmwareVersion: String? {
             switch self {
             case .a7ii, .a7rii:
-                return "4.00"
+                return "4.0"
             case .a6000:
                 return "3.21"
             case .a7s, .a7r, .a7:
@@ -359,19 +359,21 @@ extension SonyCamera {
             case .a7sii:
                 return "3.00"
             case .a7iii, .a7riii:
-                return "3.00"
-            case .a6600, .a6400:
-                return "2.00"
+                return "3.10"
+            case .a6600, .a6400, .a9ii:
+                return "2.0"
             case .a6300:
                 return "2.01"
             case .a5000:
                 return "1.10"
             case .a6500:
                 return "1.05"
-            case .NEX_6:
+            case .NEX_6, .NEX_5R:
                 return "1.03"
+            case .NEX_5T:
+                return "1.01"
             case .a9:
-                return "5.0"
+                return "6.0"
             default:
                 return nil
             }
