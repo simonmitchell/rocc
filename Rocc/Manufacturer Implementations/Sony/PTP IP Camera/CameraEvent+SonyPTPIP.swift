@@ -39,11 +39,13 @@ enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
     case single = 0x00000001
     case continuousHighPlus = 0x00018010
     case continuousLow = 0x00018012
-    case continuous = 0x00018013
+    case continuous = 0x00018015
     case continuousS = 0x00018014
-    case continuousHigh = 0x00018015
-    case timer10_a = 0x00010002
-    case timer10_b = 0x00038004
+    case continuousHigh = 0x00010002
+    case singleBurstHigh = 0x00098032
+    case singleBurstMedium = 0x00098031
+    case singleBurstLow = 0x00098030
+    case timer10 = 0x00038004
     case timer5 = 0x00038003
     case timer2 = 0x00038005
     case timer10_3 = 0x00088008
@@ -121,7 +123,7 @@ enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
             return 2.0
         case .timer5, .timer5_3, .timer5_5:
             return 5.0
-        case .timer10_a, .timer10_b, .timer10_3, .timer10_5:
+        case .timer10, .timer10_3, .timer10_5:
             return 10.0
         default:
             return 0.0
@@ -130,7 +132,7 @@ enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
     
     var isSingleTimerMode: Bool {
         switch self {
-        case .timer2, .timer5, .timer10_a, .timer10_b:
+        case .timer2, .timer5, .timer10:
             return true
         default:
             return false
@@ -139,9 +141,10 @@ enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
     
     var shootMode: ShootingMode? {
         switch self {
-        case .single, .timer2, .timer5, .timer10_a, .timer10_b:
+        case .single, .timer2, .timer5, .timer10:
             return .photo
-        case .continuousBracket0_3_3, .continuousBracket0_3_5, .continuousBracket0_3_9,
+        case .singleBurstHigh, .singleBurstMedium, .singleBurstLow,
+             .continuousBracket0_3_3, .continuousBracket0_3_5, .continuousBracket0_3_9,
              .continuousBracket0_5_3, .continuousBracket0_5_5, .continuousBracket0_5_9,
              .continuousBracket0_7_3, .continuousBracket0_7_5, .continuousBracket0_7_9,
              .continuousBracket1_3, .continuousBracket1_5, .continuousBracket1_9,
