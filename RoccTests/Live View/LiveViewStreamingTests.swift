@@ -70,7 +70,49 @@ class LiveViewStreamingTests: XCTestCase {
         let liveViewStream = LiveViewStream(camera: DummyCamera(), delegate: nil)
         liveViewStream.receivedData = data
         
-        guard let image = UIImage(data: data[150..<data.count]) else {
+        let dataParts = [
+            data[150..<24317],
+            data[24469..<data.endIndex]
+        ]
+        
+        outer: for i in 0..<24400 {
+            if let image = UIImage(data: data[i..<24400]) {
+                print("Partial image", image)
+                break outer
+            }
+        }
+        
+        outer: for i in 24400..<49000 {
+            if let image = UIImage(data: data[i..<data.endIndex]) {
+                print("Partial image", image)
+                break outer
+            }
+        }
+        
+        outer: for i in 48000..<data.endIndex {
+            if let image = UIImage(data: data[i..<data.endIndex]) {
+                print("Partial image", image)
+                break outer
+            }
+        }
+        
+        print("Data", dataParts[1])
+        
+        data.enumerated().forEach({ (offset, element) in
+            if element == 0xff, offset < data.count - 1, data[offset + 1] == 0xd8 {
+                print("Start index", offset)
+            }
+            if element == 0x88, data[offset + 1] == 0x00, data[offset + 2] == 0x00 {
+                print("End index", offset)
+            }
+        })
+        
+        var mungedData = Data()
+        dataParts.forEach { (part) in
+            mungedData.append(part)
+        }
+        
+        guard let image = UIImage(data: mungedData) else {
             XCTFail("Failed to create image")
             return
         }
