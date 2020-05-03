@@ -57,4 +57,34 @@ class LiveViewStreamingTests: XCTestCase {
         XCTAssertEqual(payloads?[0].image?.size, CGSize(width: 640, height: 424))
         XCTAssertEqual(payloads?[1].image?.size, CGSize(width: 640, height: 424))
     }
+    
+    func testA9iiMultipleImageDataIsParsedCorrectly() {
+        
+        guard let hexString = try? String(contentsOf: Bundle(for: LiveViewStreamingTests.self).url(forResource: "liveview-a9ii-multipleimages", withExtension: nil)!) else {
+            XCTFail("Couldn't get hex string from file: liveview-a9ii-multipleimages")
+            return
+        }
+        
+        let byteBuffer = ByteBuffer(hexString: hexString)
+        let data = Data(bytes: byteBuffer.bytes.compactMap({ $0 }))
+        let liveViewStream = LiveViewStream(camera: DummyCamera(), delegate: nil)
+        liveViewStream.receivedData = data
+        
+        guard let image = UIImage(data: data[150..<data.count]) else {
+            XCTFail("Failed to create image")
+            return
+        }
+
+        print("Image", image)
+        
+//        let payloads = liveViewStream.attemptImageParse()
+//        XCTAssertNotNil(payloads)
+//        XCTAssertEqual(payloads?.count, 2)
+//        XCTAssertEqual(liveViewStream.receivedData.count, 3115)
+//        XCTAssertEqual(liveViewStream.receivedData[0], 0)
+//        XCTAssertEqual(liveViewStream.receivedData[1], 0x3f)
+//
+//        XCTAssertEqual(payloads?[0].image?.size, CGSize(width: 640, height: 424))
+//        XCTAssertEqual(payloads?[1].image?.size, CGSize(width: 640, height: 424))
+    }
 }
