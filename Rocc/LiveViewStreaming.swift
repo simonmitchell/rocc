@@ -146,6 +146,16 @@ public final class LiveViewStream: NSObject {
     /// The size of the stream (M/L)
     public var streamSize: String?
     
+    /// The maximum size the data buffer should be allowed to reach
+    /// before being cleared out. This means that for unparsable streams
+    /// we won't cause out of memory crashes
+    ///
+    /// - Note: This defaults to 10Mb
+    public var bufferSize: Int = 10_485_760
+    
+    /// Used to make sure overflown buffer only logged once
+    private var hasLoggedOverflowBuffer: Bool = false
+    
     /// The data that has been received from the stream
     internal var receivedData: Data = Data()
     
@@ -539,6 +549,23 @@ extension LiveViewStream: URLSessionDataDelegate {
     public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         receivedData.append(data)
         attemptImageParse()
+        // Clear out the buffer if it got too big!
+        if receivedData.count > bufferSize {
+            
+            defer {
+                receivedData = Data()
+            }
+            
+            Logger.log(message: "Live view stream buffer has overflown", category: "LiveViewStreaming", level: .info)
+            os_log("Live view stream buffer has overflown", log: log, type: .info)
+            
+            guard !hasLoggedOverflowBuffer else {
+                return
+            }
+            
+            Logger.log(message: "\(ByteBuffer(bytes: data.toBytes).toHex)", category: "LiveViewStreaming", level: .info)
+            hasLoggedOverflowBuffer = true
+        }
     }
     
     public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
