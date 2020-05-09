@@ -441,6 +441,21 @@ extension UInt32: PTPDevicePropertyDataType {
     }
 }
 
+extension Int64: PTPDevicePropertyDataType {
+    
+    static var dataType: PTP.DeviceProperty.DataType {
+        return .int64
+    }
+    
+    var sizeOf: Int {
+        return MemoryLayout<Int64>.size
+    }
+    
+    var toInt: Int? {
+        return Int(self)
+    }
+}
+
 extension UInt64: PTPDevicePropertyDataType {
     
     static var dataType: PTP.DeviceProperty.DataType {
@@ -909,6 +924,7 @@ extension PTP {
             case int16 = 0x3
             case uint16 = 0x4
             case uint32 = 0x6
+            case int64 = 0x7
             case uint64 = 0x8
             case string = 0xffff
         }

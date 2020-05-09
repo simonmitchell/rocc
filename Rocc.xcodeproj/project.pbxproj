@@ -45,6 +45,7 @@
 		B1316A722089C0F6006BD136 /* DeviceDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1316A712089C0F6006BD136 /* DeviceDiscovery.swift */; };
 		B1316A742089C1D6006BD136 /* UDPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1316A732089C1D6006BD136 /* UDPClient.swift */; };
 		B1316A7B2089C426006BD136 /* SonyConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1316A7A2089C426006BD136 /* SonyConstants.swift */; };
+		B13B84EA245CD5B0006B1809 /* liveview-a9ii-multipleimages in Resources */ = {isa = PBXBuildFile; fileRef = B13B84E9245CD5B0006B1809 /* liveview-a9ii-multipleimages */; };
 		B154525C21EE61B800C59096 /* SOAPRequestBody.swift in Sources */ = {isa = PBXBuildFile; fileRef = B154525B21EE61B800C59096 /* SOAPRequestBody.swift */; };
 		B154526421EE63DB00C59096 /* SOAPRequestBody.swift in Sources */ = {isa = PBXBuildFile; fileRef = B154525B21EE61B800C59096 /* SOAPRequestBody.swift */; };
 		B154535521EFDC1700C59096 /* Countable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B154535421EFDC1700C59096 /* Countable.swift */; };
@@ -223,6 +224,7 @@
 		B1316A712089C0F6006BD136 /* DeviceDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceDiscovery.swift; sourceTree = "<group>"; };
 		B1316A732089C1D6006BD136 /* UDPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UDPClient.swift; sourceTree = "<group>"; };
 		B1316A7A2089C426006BD136 /* SonyConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SonyConstants.swift; sourceTree = "<group>"; };
+		B13B84E9245CD5B0006B1809 /* liveview-a9ii-multipleimages */ = {isa = PBXFileReference; lastKnownFileType = text; path = "liveview-a9ii-multipleimages"; sourceTree = "<group>"; };
 		B154525B21EE61B800C59096 /* SOAPRequestBody.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOAPRequestBody.swift; sourceTree = "<group>"; };
 		B154535421EFDC1700C59096 /* Countable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Countable.swift; sourceTree = "<group>"; };
 		B154535D21EFE3D100C59096 /* ChildRangeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChildRangeTests.swift; sourceTree = "<group>"; };
@@ -506,6 +508,7 @@
 			isa = PBXGroup;
 			children = (
 				B1B38046239EE9090088E254 /* LiveViewStreamingTests.swift */,
+				B13B84E9245CD5B0006B1809 /* liveview-a9ii-multipleimages */,
 				B1255ADF23A0DE0C00A5A9B4 /* liveview-rx100m7-singleimage */,
 				B1255AE823A0DF1C00A5A9B4 /* liveview-rx100m7-multipleimages */,
 			);
@@ -829,6 +832,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B115EFC621ECFB4700667FB7 /* CmsDesc.xml in Resources */,
+				B13B84EA245CD5B0006B1809 /* liveview-a9ii-multipleimages in Resources */,
 				B1255AE923A0DF1C00A5A9B4 /* liveview-rx100m7-multipleimages in Resources */,
 				B1255AE023A0DE0C00A5A9B4 /* liveview-rx100m7-singleimage in Resources */,
 				B115EFC521ECFB4700667FB7 /* CdsDesc.xml in Resources */,

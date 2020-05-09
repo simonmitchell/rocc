@@ -49,12 +49,12 @@ struct ByteBuffer {
         }
     }
     
-    private func getLittleEndian(offset: UInt, nBytes: UInt) -> Int? {
+    private func getLittleEndian(offset: UInt, nBytes: UInt) -> UInt? {
         
-        var value: Int = 0
+        var value: UInt = 0
         for i in 0..<nBytes {
             guard let byte = bytes[safe: offset + i] else { return nil }
-            value = value + Int(byte) << (8 * i)
+            value = value + UInt(byte) << (8 * i)
         }
         return value
     }
