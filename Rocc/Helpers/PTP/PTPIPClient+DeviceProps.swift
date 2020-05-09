@@ -40,12 +40,16 @@ extension PTPIPClient {
             switch dataResult {
             case .success(let data):
                 guard let numberOfProperties = data.data[qWord: 0] else { return }
+                Logger.log(message: "Got all device properties:\n\(data.data.toHex)", category: "PTPIPClient", level: .debug)
                 var offset: UInt = UInt(MemoryLayout<QWord>.size)
                 var properties: [PTPDeviceProperty] = []
                 for _ in 0..<numberOfProperties {
+                    Logger.log(message: "Parsing property at offset: \(offset)", category: "PTPIPClient", level: .debug)
                     guard let property = data.data.getDeviceProperty(at: offset) else {
+                        Logger.log(message: "Failed to parse property at offset: \(offset)", category: "PTPIPClient", level: .error)
                         break
                     }
+                    Logger.log(message: "Parsed property at offset: \(offset)", category: "PTPIPClient", level: .debug)
                     properties.append(property)
                     offset += property.length
                 }
