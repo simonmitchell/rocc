@@ -101,6 +101,8 @@ extension ByteBuffer {
             return read(offset: &offset) as Word?
         case .uint32:
             return read(offset: &offset) as DWord?
+        case .int64:
+            return read(offset: &offset) as Int64?
         case .uint64:
             return read(offset: &offset) as QWord?
         case .string:
@@ -128,6 +130,9 @@ extension ByteBuffer {
         case .uint64:
             guard let uint64 = value as? UInt64 else { return }
             append(uint64)
+        case .int64:
+            guard let int64 = value as? Int64 else { return }
+            append(int64)
         case .string:
             guard let string = value as? String else { return }
             append(wString: string, includingLength: false)
