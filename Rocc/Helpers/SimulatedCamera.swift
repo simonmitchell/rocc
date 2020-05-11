@@ -248,6 +248,8 @@ public final class DummyCamera: Camera {
             callback(true, nil, [-3.0, -2.66, -2.33, -2.0, -1.66, -1.33, -1.0, -0.66, -0.33, 0, 0.33, 0.66, 1.0, 1.33, 1.66, 2.0, 2.33, 2.66, 3.0] as? [T.SendType])
         case .setFocusMode:
             callback(true, nil, ["AF-S", "MF"] as? [T.SendType])
+        case .setWhiteBalance:
+            callback(true, nil, [WhiteBalance.Value(mode: .auto, temperature: nil, rawInternal: "AUTO"), WhiteBalance.Value(mode: .shade, temperature: nil, rawInternal: "AUTO"), WhiteBalance.Value(mode: .flash, temperature: nil, rawInternal: "AUTO"), WhiteBalance.Value(mode: .cloudy, temperature: nil, rawInternal: "AUTO"), WhiteBalance.Value(mode: .underwaterAuto, temperature: nil, rawInternal: "AUTO"), WhiteBalance.Value(mode: .fluorescentCoolWhite, temperature: nil, rawInternal: "AUTO"), WhiteBalance.Value(mode: .fluorescentDaylight, temperature: nil, rawInternal: "AUTO")] as? [T.SendType])
         default:
             callback(true, nil, nil)
         }
@@ -264,7 +266,7 @@ public final class DummyCamera: Camera {
             liveViewInfo: nil,
             zoomPosition: nil,
             availableFunctions: [.setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setSelfTimerDuration, .setWhiteBalance, .startZooming],
-            supportedFunctions: [],
+            supportedFunctions: [.setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setSelfTimerDuration, .setWhiteBalance, .startZooming],
             postViewPictureURLs: nil,
             storageInformation: nil,
             beepMode: nil,
@@ -318,7 +320,7 @@ public final class DummyCamera: Camera {
                 ShutterSpeed(numerator: 30, denominator: 1),
                 .bulb
                 ], supported: []),
-            whiteBalance: CameraEvent.WhiteBalanceInformation(shouldCheck: true, whitebalanceValue: WhiteBalance.Value(mode: .daylight, temperature: nil, rawInternal: ""), available: nil, supported: nil),
+            whiteBalance: CameraEvent.WhiteBalanceInformation(shouldCheck: true, whitebalanceValue: WhiteBalance.Value(mode: .auto, temperature: nil, rawInternal: ""), available: nil, supported: nil),
             touchAF: nil,
             focusStatus: nil,
             zoomSetting: nil,
