@@ -1,9 +1,6 @@
 language: swift
 xcode_project: Rocc.xcodeproj # path to your xcodeproj folder
 osx_image: xcode11.4
-cache:
-  directories:
-  - Carthage
 env:
   global:
   - LC_CTYPE=en_US.UTF-8
@@ -12,10 +9,4 @@ matrix:
   include:
     - xcode_scheme: Rocc
       xcode_destination: platform=iOS Simulator,OS=13.4,name=iPhone 11 Pro Max
-before_install:
-  - brew install carthage || true
-  - brew outdated carthage || brew upgrade carthage
-before_script:
-  # bootstrap the dependencies for the project
-  - carthage bootstrap --platform iOS --cache-builds
 
