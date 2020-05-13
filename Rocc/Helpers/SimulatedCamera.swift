@@ -276,7 +276,7 @@ public final class DummyCamera: Camera {
             stillSizeInfo: nil,
             steadyMode: nil,
             viewAngle: nil,
-            exposureMode: nil,
+            exposureMode: (current: .aperturePriority, available: [.aperturePriority], supported: [.aperturePriority]),
             exposureModeDialControl: nil,
             exposureSettingsLockStatus: nil,
             postViewImageSize: nil,
