@@ -159,7 +159,7 @@ public final class DummyCamera: Camera {
     
     private var currentShutterSpeed: ShutterSpeed = ShutterSpeed(numerator: 1.0, denominator: 1250)
     
-    private var currentAperture: Aperture.Value = Aperture.Value(value: 1.8)
+    private var currentAperture: Aperture.Value = Aperture.Value(value: 1.8, decimalSeperator: nil)
     
     private var currentSelfTimer: TimeInterval = 0.0
     
@@ -284,7 +284,37 @@ public final class DummyCamera: Camera {
             shootMode: (current: currentShootMode, available: [.photo, .continuous, .timelapse, .video, .continuous, .bulb], supported: [.photo, .continuous, .timelapse, .video, .continuous, .bulb]),
             exposureCompensation: (current: currentExposureComp, available: [-3.0, -2.66, -2.33, -2.0, -1.66, -1.33, -1.0, -0.66, -0.33, 0, 0.33, 0.66, 1.0, 1.33, 1.66, 2.0, 2.33, 2.66, 3.0].map({ Exposure.Compensation.Value(value: $0) }), supported: [-3.0, -2.66, -2.33, -2.0, -1.66, -1.33, -1.0, -0.66, -0.33, 0, 0.33, 0.66, 1.0, 1.33, 1.66, 2.0, 2.33, 2.66, 3.0].map({ Exposure.Compensation.Value(value: $0) })),
             flashMode: nil,
-            aperture: (current: currentAperture, available: [Aperture.Value(value: 1.8), Aperture.Value(value: 2.0), Aperture.Value(value: 2.2), Aperture.Value(value: 2.8), Aperture.Value(value: 3.2), Aperture.Value(value: 4.0), Aperture.Value(value: 4.8), Aperture.Value(value: 5.6), Aperture.Value(value: 8.0), Aperture.Value(value: 11.0), Aperture.Value(value: 18.0), Aperture.Value(value: 22.0)], supported: [Aperture.Value(value: 1.8), Aperture.Value(value: 2.0), Aperture.Value(value: 2.2), Aperture.Value(value: 2.8), Aperture.Value(value: 3.2), Aperture.Value(value: 4.0), Aperture.Value(value: 4.8), Aperture.Value(value: 5.6), Aperture.Value(value: 8.0), Aperture.Value(value: 11.0), Aperture.Value(value: 18.0), Aperture.Value(value: 22.0)]),
+            aperture: (
+                current: currentAperture,
+                available: [
+                        Aperture.Value(value: 1.8, decimalSeperator: "."),
+                        Aperture.Value(value: 2.0, decimalSeperator: "."),
+                        Aperture.Value(value: 2.2, decimalSeperator: "."),
+                        Aperture.Value(value: 2.8, decimalSeperator: "."),
+                        Aperture.Value(value: 3.2, decimalSeperator: "."),
+                        Aperture.Value(value: 4.0, decimalSeperator: "."),
+                        Aperture.Value(value: 4.8, decimalSeperator: "."),
+                        Aperture.Value(value: 5.6, decimalSeperator: "."),
+                        Aperture.Value(value: 8.0, decimalSeperator: "."),
+                        Aperture.Value(value: 11.0, decimalSeperator: "."),
+                        Aperture.Value(value: 18.0, decimalSeperator: "."),
+                        Aperture.Value(value: 22.0, decimalSeperator: ".")
+                ],
+                supported: [
+                    Aperture.Value(value: 1.8, decimalSeperator: "."),
+                    Aperture.Value(value: 2.0, decimalSeperator: "."),
+                    Aperture.Value(value: 2.2, decimalSeperator: "."),
+                    Aperture.Value(value: 2.8, decimalSeperator: "."),
+                    Aperture.Value(value: 3.2, decimalSeperator: "."),
+                    Aperture.Value(value: 4.0, decimalSeperator: "."),
+                    Aperture.Value(value: 4.8, decimalSeperator: "."),
+                    Aperture.Value(value: 5.6, decimalSeperator: "."),
+                    Aperture.Value(value: 8.0, decimalSeperator: "."),
+                    Aperture.Value(value: 11.0, decimalSeperator: "."),
+                    Aperture.Value(value: 18.0, decimalSeperator: "."),
+                    Aperture.Value(value: 22.0, decimalSeperator: ".")
+                ]
+            ),
             focusMode: (current: currentFocusMode, available: [.auto, .manual], supported: [.auto, .manual]),
             iso: (current: currentISO, available: [.auto, .native(100), .native(200), .native(400), .native(1600), .native(3200), .native(6400)], supported: [.auto, .native(100), .native(200), .native(400), .native(1600), .native(3200), .native(6400)]),
             isProgramShifted: false,

@@ -141,7 +141,7 @@ class ByteBufferTests: XCTestCase {
     func testReadMaxUInt64DoesntCrash() {
         
         var offset: UInt = 0
-        var int64: UInt64? = ByteBuffer(bytes: [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]).read(offset: &offset)
-        XCTAssertEqual(int64, 0)
+        let int64: UInt64? = ByteBuffer(bytes: [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]).read(offset: &offset)
+        XCTAssertEqual(int64, UInt64.max)
     }
 }

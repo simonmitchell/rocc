@@ -54,7 +54,6 @@
 		B1561ED120976B850013D122 /* ShootMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1561ECB20976B850013D122 /* ShootMode.swift */; };
 		B1561ED420976F7B0013D122 /* Capture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1561ED320976F7A0013D122 /* Capture.swift */; };
 		B15CE11A244AEBCE0025AD1D /* ThunderRequest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B184CAEB242BF105000B13E9 /* ThunderRequest.framework */; };
-		B15CE11C244AEC4C0025AD1D /* ThunderRequest.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = B184CAEB242BF105000B13E9 /* ThunderRequest.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B16064A821E3A00A00AE3483 /* SonyTransferDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = B16064A221E3A00900AE3483 /* SonyTransferDevice.swift */; };
 		B163AEBF20A8D6050061D1C4 /* CameraEventNotifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B163AEBE20A8D6050061D1C4 /* CameraEventNotifier.swift */; };
 		B164F02621811BD400590A05 /* SonyCameraDiscoverer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B164F02521811BD400590A05 /* SonyCameraDiscoverer.swift */; };
@@ -133,6 +132,10 @@
 		B1E0707D2413A66100760AC5 /* ExposureSettingsLockStatus+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1E0707C2413A66100760AC5 /* ExposureSettingsLockStatus+SonyPTPPropValueConvertable.swift */; };
 		B1EADA2F23781AE9000B7B36 /* FocusMode+SonyPTPPropValueConvertable.swift.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EADA2E23781AE9000B7B36 /* FocusMode+SonyPTPPropValueConvertable.swift.swift */; };
 		B1EADA3923795401000B7B36 /* ExposureMode+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EADA3823795401000B7B36 /* ExposureMode+SonyPTPPropValueConvertable.swift */; };
+		B1EF38C824793BF500E26C4E /* ApertureFormatterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EF38C724793BF500E26C4E /* ApertureFormatterTests.swift */; };
+		B1EF38D124793C5900E26C4E /* ApertureFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EF38D024793C5800E26C4E /* ApertureFormatter.swift */; };
+		B1EF38D22479410300E26C4E /* ApertureFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EF38D024793C5800E26C4E /* ApertureFormatter.swift */; };
+		B1EF38D324794C4600E26C4E /* Aperture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB48722092743100C33C86 /* Aperture.swift */; };
 		B1EF4C8820A24B6300EEDE3E /* InfraredRemoteControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EF4C8220A24B6300EEDE3E /* InfraredRemoteControl.swift */; };
 		B1EF4C8B20A24DA100EEDE3E /* AutoPowerOff.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EF4C8A20A24DA100EEDE3E /* AutoPowerOff.swift */; };
 		B1EF4CAD20A3140A00EEDE3E /* BeepMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EF4CAC20A3140A00EEDE3E /* BeepMode.swift */; };
@@ -225,7 +228,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				B15CE11C244AEC4C0025AD1D /* ThunderRequest.framework in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -367,6 +369,8 @@
 		B1E0707C2413A66100760AC5 /* ExposureSettingsLockStatus+SonyPTPPropValueConvertable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ExposureSettingsLockStatus+SonyPTPPropValueConvertable.swift"; sourceTree = "<group>"; };
 		B1EADA2E23781AE9000B7B36 /* FocusMode+SonyPTPPropValueConvertable.swift.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FocusMode+SonyPTPPropValueConvertable.swift.swift"; sourceTree = "<group>"; };
 		B1EADA3823795401000B7B36 /* ExposureMode+SonyPTPPropValueConvertable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ExposureMode+SonyPTPPropValueConvertable.swift"; sourceTree = "<group>"; };
+		B1EF38C724793BF500E26C4E /* ApertureFormatterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApertureFormatterTests.swift; sourceTree = "<group>"; };
+		B1EF38D024793C5800E26C4E /* ApertureFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApertureFormatter.swift; sourceTree = "<group>"; };
 		B1EF4C8220A24B6300EEDE3E /* InfraredRemoteControl.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InfraredRemoteControl.swift; sourceTree = "<group>"; };
 		B1EF4C8A20A24DA100EEDE3E /* AutoPowerOff.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AutoPowerOff.swift; sourceTree = "<group>"; };
 		B1EF4CAC20A3140A00EEDE3E /* BeepMode.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BeepMode.swift; sourceTree = "<group>"; };
@@ -462,6 +466,7 @@
 				B115EFC421ECFB4700667FB7 /* CmsDesc.xml */,
 				B1316A5B2089C08F006BD136 /* RoccTests.swift */,
 				B1A25F2821ADEAAC00D9EE81 /* ShutterSpeedFormatterTests.swift */,
+				B1EF38C724793BF500E26C4E /* ApertureFormatterTests.swift */,
 				B115EFD221ECFB6B00667FB7 /* ParserTests.swift */,
 				B1316A5D2089C08F006BD136 /* Info.plist */,
 				B154535D21EFE3D100C59096 /* ChildRangeTests.swift */,
@@ -663,6 +668,7 @@
 			children = (
 				B164F02821811C1200590A05 /* String+Regex.swift */,
 				B1A25F2021ADE6CE00D9EE81 /* ShutterSpeedFormatter.swift */,
+				B1EF38D024793C5800E26C4E /* ApertureFormatter.swift */,
 			);
 			path = Strings;
 			sourceTree = "<group>";
@@ -1069,6 +1075,7 @@
 				B1FF7A382371EC180010D5F0 /* SDIOExtDeviceInfo.swift in Sources */,
 				B1AEE50A2375CB7F00224152 /* ShutterSpeed+SonyPTPPropValueConvertable.swift in Sources */,
 				B100E1C620A105D9004F7AB8 /* TVColorSystem.swift in Sources */,
+				B1EF38D124793C5900E26C4E /* ApertureFormatter.swift in Sources */,
 				B128D0DC23F9A198007B37F8 /* StillFormat+SonyPTPPropValueConvertable.swift in Sources */,
 				B182B8FD2381E22A0054539E /* SonyPTPIPCamera+FunctionAvailability.swift in Sources */,
 				B1F7CECC236D8261007E3921 /* SonyPTPIPCamera.swift in Sources */,
@@ -1133,10 +1140,12 @@
 			files = (
 				B1A3EC2521F11AB700670712 /* CameraFunctions.swift in Sources */,
 				B18AEBAE23D9C3F7007B916A /* ByteBufferTests.swift in Sources */,
+				B1EF38D324794C4600E26C4E /* Aperture.swift in Sources */,
 				B1BAAC96222583B9007F0F61 /* Logger.swift in Sources */,
 				B115EFD321ECFB6B00667FB7 /* ParserTests.swift in Sources */,
 				B1A3EC1E21F11AA500670712 /* FileSystem.swift in Sources */,
 				B1035B53238C51E80023270E /* PTPPacketParsingTests.swift in Sources */,
+				B1EF38C824793BF500E26C4E /* ApertureFormatterTests.swift in Sources */,
 				B1A25F2221ADE6CE00D9EE81 /* ShutterSpeedFormatter.swift in Sources */,
 				B1A25F2921ADEAAC00D9EE81 /* ShutterSpeedFormatterTests.swift in Sources */,
 				B182B92E23836C0B0054539E /* AsyncWhileTests.swift in Sources */,
@@ -1146,6 +1155,7 @@
 				B154535E21EFE3D100C59096 /* ChildRangeTests.swift in Sources */,
 				B1316A5C2089C08F006BD136 /* RoccTests.swift in Sources */,
 				B154535F21EFE3DC00C59096 /* Countable.swift in Sources */,
+				B1EF38D22479410300E26C4E /* ApertureFormatter.swift in Sources */,
 				B1AEE4E823755FEE00224152 /* PTPDevicePropertyTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

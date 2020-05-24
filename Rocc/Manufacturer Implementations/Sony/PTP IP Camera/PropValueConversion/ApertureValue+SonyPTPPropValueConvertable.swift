@@ -25,6 +25,7 @@ extension Aperture.Value: SonyPTPPropValueConvertable {
         }
         
         value = Double(binaryInt)/100.0
+        decimalSeperator = nil
     }
     
     var sonyPTPValue: PTPDevicePropertyDataType {

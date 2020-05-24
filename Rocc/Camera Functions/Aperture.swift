@@ -12,8 +12,10 @@ import Foundation
 public struct Aperture: CameraFunction {
     
     public struct Value {
-        
+                        
         public let value: Double
+        
+        internal let decimalSeperator: String?
     }
     
     public var function: _CameraFunction

@@ -491,12 +491,14 @@ fileprivate extension ContinuousCapture.Speed.Value {
 fileprivate extension Aperture.Value {
     
     init?(sonyString: String) {
-        guard let doubleValue = Double(sonyString) else { return nil }
-        value = doubleValue
+        let formatter = ApertureFormatter()
+        guard let aperture = formatter.aperture(from: sonyString) else { return nil }
+        self = aperture
     }
     
     var sonyString: String {
-        return "\(value)"
+        let formatter = ApertureFormatter()
+        return formatter.string(for: self) ?? "\(value)"
     }
 }
 
