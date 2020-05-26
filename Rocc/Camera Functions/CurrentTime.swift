@@ -11,11 +11,18 @@ import Foundation
 /// Functions for interacting with the time of the camera
 public struct CurrentTime: CameraFunction {
     
+    public struct Value: Equatable {
+        
+        public let date: Date
+        
+        public let timeZone: TimeZone
+    }
+    
     public var function: _CameraFunction
     
-    public typealias SendType = (date: Date, timeZone: TimeZone)
+    public typealias SendType = Value
     
-    public typealias ReturnType = Void
+    public typealias ReturnType = Wrapper<Void>
     
     /// Sets the current time on the camera
     public static let set = CurrentTime(function: .setCurrentTime)

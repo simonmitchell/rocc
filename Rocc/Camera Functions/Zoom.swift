@@ -40,7 +40,7 @@ public struct Zoom: CameraFunction {
     
     public typealias SendType = Direction
     
-    public typealias ReturnType = Void
+    public typealias ReturnType = Wrapper<Void>
     
     /// Begins a zoom in a given direction
     public static let start = Zoom(function: .startZooming)

@@ -13,7 +13,7 @@ public struct StillCapture: CameraFunction {
     
     public var function: _CameraFunction
     
-    public typealias SendType = Void
+    public typealias SendType = Wrapper<Void>
     
     public typealias ReturnType = URL
     
@@ -24,7 +24,7 @@ public struct StillCapture: CameraFunction {
     public struct Size: CameraFunction {
         
         /// A structural representation of still image size configuration
-        public struct Value {
+        public struct Value: Equatable {
             
             /// The aspect ratio of the size
             let aspectRatio: String?
@@ -73,7 +73,7 @@ public struct StillCapture: CameraFunction {
     public struct Format: CameraFunction {
         
         /// A structural representation of image still format
-        public enum Value {
+        public enum Value: Equatable {
             case jpeg(String)
             case raw
             case rawAndJpeg
@@ -114,9 +114,9 @@ public struct AudioCapture: CameraFunction {
     
     public var function: _CameraFunction
     
-    public typealias SendType = Void
+    public typealias SendType = Wrapper<Void>
     
-    public typealias ReturnType = Void
+    public typealias ReturnType = Wrapper<Void>
     
     /// Starts audio capture
     public static let start = AudioCapture(function: .startAudioRecording)
@@ -130,9 +130,9 @@ public struct ContinuousCapture: CameraFunction {
     
     public var function: _CameraFunction
     
-    public typealias SendType = Void
+    public typealias SendType = Wrapper<Void>
     
-    public typealias ReturnType = Void
+    public typealias ReturnType = Wrapper<Void>
     
     /// Starts continuous capture of stills
     public static let start = ContinuousCapture(function: .startContinuousShooting)
@@ -216,7 +216,7 @@ public struct HighFrameRateCapture: CameraFunction {
     
     public var function: _CameraFunction
     
-    public typealias SendType = Void
+    public typealias SendType = Wrapper<Void>
     
     public typealias ReturnType = Status
     
@@ -348,9 +348,9 @@ public struct VideoCapture: CameraFunction {
     
     public var function: _CameraFunction
     
-    public typealias SendType = Void
+    public typealias SendType = Wrapper<Void>
     
-    public typealias ReturnType = Void
+    public typealias ReturnType = Wrapper<Void>
     
     /// Starts video capture
     public static let start = VideoCapture(function: .startVideoRecording)
@@ -380,9 +380,9 @@ public struct LoopCapture: CameraFunction {
     
     public var function: _CameraFunction
     
-    public typealias SendType = Void
+    public typealias SendType = Wrapper<Void>
     
-    public typealias ReturnType = Void
+    public typealias ReturnType = Wrapper<Void>
     
     /// Starts a loop recording
     public static let start = LoopCapture(function: .startLoopRecording)
@@ -396,9 +396,9 @@ public struct BulbCapture: CameraFunction {
     
     public var function: _CameraFunction
     
-    public typealias SendType = Void
+    public typealias SendType = Wrapper<Void>
     
-    public typealias ReturnType = Void
+    public typealias ReturnType = Wrapper<Void>
     
     /// Start capturing a bulb exposure
     public static let start = BulbCapture(function: .startBulbCapture)

@@ -9,13 +9,13 @@
 import Foundation
 
 /// A structural representation of a file on a Camera
-public struct File {
+public struct File: Equatable {
     
     /// A structural representation of the content of a file
-    public struct Content {
+    public struct Content: Equatable {
         
         /// A structural representation of the original representation of some content. Each content can have multiple of these, for example a RAW and JPEG original when shooting in RAW+JPEG!
-        public struct Original {
+        public struct Original: Equatable {
             
             /// The name of the original content
             public let fileName: String?
@@ -97,7 +97,7 @@ public struct File {
 }
 
 /// Represents all the information required to request files from a camera.
-public struct FileRequest {
+public struct FileRequest: Equatable {
     
     /// How the returned files should be sorted
     ///
@@ -147,7 +147,7 @@ public struct FileRequest {
 }
 
 /// Represents all the information required to request a content count from a camera.
-public struct CountRequest {
+public struct CountRequest: Equatable {
     
     /// Represents the hierarchy of how files should be counted
     ///
@@ -182,7 +182,7 @@ public struct CountRequest {
 }
 
 /// Represents a file response from the camera
-public struct FileResponse {
+public struct FileResponse: Equatable {
     
     /// Whether the request loaded in the remaining (Or all) files for a given URI
     public let fullyLoaded: Bool
@@ -197,7 +197,7 @@ public struct FileSystem {
     /// Functions for managing the file system
     public struct Manage: CameraFunction {
         
-        public typealias ReturnType = Void
+        public typealias ReturnType = Wrapper<Void>
         
         public typealias SendType = [File]
         
@@ -225,7 +225,7 @@ public struct FileSystem {
         
         public typealias ReturnType = [String]
         
-        public typealias SendType = Void
+        public typealias SendType = Wrapper<Void>
         
         public var function: _CameraFunction
         

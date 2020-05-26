@@ -17,7 +17,7 @@ extension Double {
 /// A representation of shutter speed.
 /// This must be stored as numerator and denominator so it can be re-constructed
 /// into it's string format where needed without breaking fractional shutter speeds.
-public struct ShutterSpeed {
+public struct ShutterSpeed: Equatable {
     
     /// The numerator of the shutter speed
     public let numerator: Double

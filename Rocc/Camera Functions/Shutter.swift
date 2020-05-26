@@ -29,9 +29,9 @@ public struct Shutter: CameraFunction {
     
     public var function: _CameraFunction
     
-    public typealias SendType = Void
+    public typealias SendType = Wrapper<Void>
     
-    public typealias ReturnType = Void
+    public typealias ReturnType = Wrapper<Void>
     
     /// Performs a half-press of the shutter button
     public static let halfPress = Shutter(function: .halfPressShutter)

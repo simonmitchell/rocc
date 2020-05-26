@@ -13,7 +13,7 @@ public struct Storage: CameraFunction {
     
     public var function: _CameraFunction
     
-    public typealias SendType = Void
+    public typealias SendType = Wrapper<Void>
     
     public typealias ReturnType = [StorageInformation]
     
@@ -22,7 +22,7 @@ public struct Storage: CameraFunction {
 }
 
 /// A structural representation of information about camera storage
-public struct StorageInformation {
+public struct StorageInformation: Equatable {
     
     /// A description of the storage option
     public let description: String?

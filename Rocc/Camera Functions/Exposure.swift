@@ -116,7 +116,7 @@ public struct Exposure {
     public struct Compensation: CameraFunction {
         
         /// A exposure compensation value
-        public struct Value {
+        public struct Value: Equatable {
             /// The double value the given exposure compensation represents
             public let value: Double
         }

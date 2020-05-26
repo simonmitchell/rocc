@@ -32,7 +32,7 @@ public struct WhiteBalance: CameraFunction {
     }
     
     /// A structural representation of white balance information
-    public struct Value {
+    public struct Value: Equatable {
         
         /// The white balance mode (incandescent, sunlight e.t.c.)
         public let mode: Mode
@@ -59,7 +59,7 @@ public struct WhiteBalance: CameraFunction {
     public struct Custom: CameraFunction {
         
         /// A structural representation of result of setting up a custom white balance from a capture
-        public struct Result {
+        public struct Result: Equatable {
             
             /// Color compensating value in G-M axis. The positive value is G direction and negative is M direction.
             let colorCompensation: Int
@@ -76,7 +76,7 @@ public struct WhiteBalance: CameraFunction {
         
         public var function: _CameraFunction
         
-        public typealias SendType = Void
+        public typealias SendType = Wrapper<Void>
         
         public typealias ReturnType = Result
     
