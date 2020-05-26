@@ -85,7 +85,6 @@
 		B18AEB7023D98B51007B916A /* PTPObjectInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = B18AEB6F23D98B51007B916A /* PTPObjectInfo.swift */; };
 		B18AEBAE23D9C3F7007B916A /* ByteBufferTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B18AEBAD23D9C3F7007B916A /* ByteBufferTests.swift */; };
 		B18EAEFB2469DCC300C3BE91 /* ThunderRequest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B18EAEEE2469DCA400C3BE91 /* ThunderRequest.framework */; };
-		B18EAEFC2469DCC300C3BE91 /* ThunderRequest.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = B18EAEEE2469DCA400C3BE91 /* ThunderRequest.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		B1990A8020C3FA1D0090A2F6 /* DeviceConnectivityNotifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1990A7F20C3FA1D0090A2F6 /* DeviceConnectivityNotifier.swift */; };
 		B1990A8320C3FDAA0090A2F6 /* Reachability.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1990A8220C3FDAA0090A2F6 /* Reachability.swift */; };
 		B19BD2962413C3C700111539 /* FunctionNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1178700218775980006B72E /* FunctionNames.swift */; };
@@ -229,17 +228,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		B18EAEFD2469DCC300C3BE91 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				B18EAEFC2469DCC300C3BE91 /* ThunderRequest.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -836,7 +824,6 @@
 				B1316A4A2089C08F006BD136 /* Headers */,
 				B1316A4B2089C08F006BD136 /* Resources */,
 				B182B8CF237EEEE50054539E /* ShellScript */,
-				B18EAEFD2469DCC300C3BE91 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
