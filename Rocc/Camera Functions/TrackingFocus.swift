@@ -31,7 +31,7 @@ public struct TrackingFocus: CameraFunction {
     
     public typealias SendType = CGPoint
     
-    public typealias ReturnType = Void
+    public typealias ReturnType = CGPoint?
     
     /// Starts focus tracking at a given point
     public static let start = TrackingFocus(function: .startTrackingFocus)

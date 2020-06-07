@@ -32,7 +32,7 @@ public struct LiveView: CameraFunction {
         
         public var function: _CameraFunction
         
-        public typealias SendType = Void
+        public typealias SendType = Wrapper<Void>
         
         public typealias ReturnType = String
         

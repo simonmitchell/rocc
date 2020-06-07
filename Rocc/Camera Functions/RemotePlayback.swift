@@ -16,7 +16,7 @@ public struct RemotePlayback: CameraFunction {
         
         public var function: _CameraFunction
         
-        public typealias SendType = Void
+        public typealias SendType = Wrapper<Void>
         
         public typealias ReturnType = TimeInterval
         
@@ -27,11 +27,18 @@ public struct RemotePlayback: CameraFunction {
     /// Functions for getting the status of a remote playback session
     public struct Status: CameraFunction {
         
+        public struct Value: Equatable {
+            
+            public let status: String
+            
+            public let factor: String?
+        }
+        
         public var function: _CameraFunction
         
         public typealias SendType = Bool
         
-        public typealias ReturnType = (status: String, factor: String?)
+        public typealias ReturnType = Value
         
         /// Returns the current streaming status for remote playback
         public static let get = Content(function: .getStreamingStatus)
@@ -52,9 +59,9 @@ public struct RemotePlayback: CameraFunction {
     
     public var function: _CameraFunction
     
-    public typealias SendType = Void
+    public typealias SendType = Wrapper<Void>
     
-    public typealias ReturnType = Void
+    public typealias ReturnType = Wrapper<Void>
     
     /// Starts remote playback
     public static let start = RemotePlayback(function: .startStreaming)

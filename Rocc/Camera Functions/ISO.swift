@@ -11,7 +11,7 @@ import Foundation
 /// Functions for controlling the ISO of the camera
 public struct ISO: CameraFunction {
     
-    public enum Value {
+    public enum Value: Equatable {
         case auto
         case extended(Int)
         case native(Int)

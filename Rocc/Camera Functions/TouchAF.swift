@@ -12,7 +12,7 @@ import Foundation
 public struct TouchAF: CameraFunction {
     
     /// Structural representation of information about the Touch AF setup
-    public struct Information {
+    public struct Information: Equatable {
         
         /// Whether Touch AF points are set
         let isSet: Bool
@@ -39,9 +39,9 @@ public struct TouchAF: CameraFunction {
     
     public var function: _CameraFunction
     
-    public typealias SendType = Void
+    public typealias SendType = Wrapper<Void>
     
-    public typealias ReturnType = Void
+    public typealias ReturnType = Wrapper<Void>
     
     /// Stops Touch AF and removes all Touch AF points
     public static let cancel = TouchAF(function: .cancelTouchAFPosition)

@@ -136,10 +136,10 @@ public enum _CameraFunction: String, CaseIterable {
 public protocol CameraFunction {
     
     /// An associated type which is taken as an input when calling this function on a `Camera` instance
-    associatedtype SendType
+    associatedtype SendType: Equatable
     
     /// An associated type which is returned from the camera when calling this function on the `Camera`
-    associatedtype ReturnType
+    associatedtype ReturnType: Equatable
     
     /// The enum representation of this given function
     var function: _CameraFunction { get }

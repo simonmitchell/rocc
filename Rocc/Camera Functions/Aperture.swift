@@ -30,3 +30,7 @@ public struct Aperture: CameraFunction {
     /// Returns the current aperture of the camera
     public static let get = Aperture(function: .getAperture)
 }
+
+extension Aperture.Value: Equatable {
+    
+}
