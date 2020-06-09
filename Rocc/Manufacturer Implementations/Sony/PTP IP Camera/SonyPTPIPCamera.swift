@@ -199,7 +199,7 @@ internal final class SonyPTPIPDevice: SonyCamera {
 
     private func performCloseSession(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
         let packet = Packet.commandRequestPacket(code: .closeSession, arguments: nil, transactionId: ptpIPClient?.getNextTransactionId() ?? 1)
-        ptpIPClient?.sendCommandRequestPacket(packet, callback: { [weak self] (response) in
+        ptpIPClient?.sendCommandRequestPacket(packet, callback: { (response) in
             completion(PTPError.anotherSessionOpen, false)
         }, callCallbackForAnyResponse: true)
     }
