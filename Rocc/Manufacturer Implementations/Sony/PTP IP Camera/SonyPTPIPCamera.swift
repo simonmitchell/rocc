@@ -196,6 +196,13 @@ internal final class SonyPTPIPDevice: SonyCamera {
             completion(nil)
         }, callCallbackForAnyResponse: true)
     }
+
+    private func performCloseSession(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
+        let packet = Packet.commandRequestPacket(code: .closeSession, arguments: nil, transactionId: ptpIPClient?.getNextTransactionId() ?? 1)
+        ptpIPClient?.sendCommandRequestPacket(packet, callback: { (response) in
+            completion(PTPError.anotherSessionOpen, false)
+        }, callCallbackForAnyResponse: true)
+    }
     
     private func getSdioExtDeviceInfo(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
         
@@ -205,10 +212,19 @@ internal final class SonyPTPIPDevice: SonyCamera {
         
         performSdioConnect(completion: { [weak self] (error) in
             guard let self = self else { return }
+
+            if let ptpError = error as? PTPError, case PTPError.commandRequestFailed(.sony_anotherSessionOpen) = ptpError {
+                return self.performCloseSession(completion: completion)
+            }
+
             self.performSdioConnect(
                 completion: { [weak self] (secondaryError) in
                     
                     guard let self = self else { return }
+
+                    if let ptpError = secondaryError as? PTPError, case PTPError.commandRequestFailed(.sony_anotherSessionOpen) = ptpError {
+                        return self.performCloseSession(completion: completion)
+                    }
                     
                     // One parameter into this call, not sure what it represents!
                     let packet = Packet.commandRequestPacket(code: .sdioGetExtDeviceInfo, arguments: [0x0000012c], transactionId: self.ptpIPClient?.getNextTransactionId() ?? 4)
@@ -430,6 +446,7 @@ internal final class SonyPTPIPDevice: SonyCamera {
         case deviceInfoNotAvailable
         case objectNotFound
         case propCodeNotFound
+        case anotherSessionOpen
         case operationNotSupported
     }
 }
@@ -443,16 +460,42 @@ extension SonyPTPIPDevice: Camera {
     }
         
     func connect(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
-        
         lastEvent = nil
         lastEventPacket = nil
         lastStillCaptureModes = nil
         zoomingDirection = nil
         highFrameRateCallback = nil
-        
-        ptpIPClient?.connect(callback: { [weak self] (error) in
-            self?.sendStartSessionPacket(completion: completion)
-        })
+
+        retry(work: { [weak self] (anotherAttemptMaybeSuccessful, attemptNumber) in
+            guard let self = self else { return }
+
+            Logger.log(message: "PTP/IP Connection attempt: \(attemptNumber)", category: "SonyPTPIPCamera", level: .debug)
+            os_log("PTP/IP Connection attempt: %d", log: self.log, type: .debug, attemptNumber)
+
+            let retriableCompletion: SonyPTPIPDevice.ConnectedCompletion = { (_ error: Error?, _ transferMode: Bool) in
+                var retriable = false
+
+                if let ptpError = error as? PTPError {
+                    switch ptpError {
+                    case .anotherSessionOpen, .operationNotSupported:
+                        retriable = true
+                    default:
+                        retriable = false
+                    }
+                }
+
+                if !anotherAttemptMaybeSuccessful(retriable) {
+                    completion(error, transferMode)
+                }
+            }
+            self.ptpIPClient?.connect(callback: { [weak self] (error) in
+                self?.sendStartSessionPacket(completion: retriableCompletion)
+            })
+        }, attempts: 3)
+
+        // ptpIPClient?.connect(callback: { [weak self] (error) in
+        //     self?.sendStartSessionPacket(completion: completion)
+        // })
         ptpIPClient?.onEvent = { [weak self] (event) in
             self?.handlePTPIPEvent(event)
         }

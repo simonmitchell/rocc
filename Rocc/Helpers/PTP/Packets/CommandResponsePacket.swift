@@ -49,6 +49,10 @@ struct CommandResponsePacket: Packetable {
         case noStreamEnabled = 0x2022
         case invalidDataSet = 0x2023
 
+        /* Sony specific response codes */
+        case sony_anotherSessionOpen = 0xA101
+
+
         /* Eastman Kodak extension Response Codes */
         case EK_filenameRequired = 0xA001
         case EK_filenameConflicts = 0xA002
@@ -74,7 +78,6 @@ struct CommandResponsePacket: Packetable {
 //        case nikon_UNKNOWN_COMMAND = 0xA001
 //        case nikon_OPERATION_REFUSED = 0xA005
 //        case nikon_lensCover = 0xA006
-        case nikon_batteryLow = 0xA101
         case nikon_notReady = 0xA102
 
 //        case nikon_A009 = 0xA009
