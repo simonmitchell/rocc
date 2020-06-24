@@ -504,7 +504,7 @@ public final class DummyCamera: Camera {
             
         case .takePicture:
             
-            callback(nil, URL(string: "https://via.placeholder.com/1370x1028") as? T.ReturnType)
+            callback(nil, URL(string: "https://via.placeholder.com/1370x1028?text=\(NSUUID().uuidString)") as? T.ReturnType)
             
         default:
             callback(nil, nil)
