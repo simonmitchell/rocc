@@ -84,7 +84,7 @@ extension SonyPTPIPDevice {
             case .setProgramShift, .getProgramShift:
                 // Not available natively with PTP/IP
                 callback(false, nil, nil)
-            case .takePicture, .startContinuousShooting, .endContinuousShooting, .startBulbCapture, .endBulbCapture:
+            case .takePicture, .startContinuousShooting, .endContinuousShooting, .startBulbCapture, .endBulbCapture, .startBracketedShooting, .stopBracketedShooting:
                 getDevicePropDescriptionFor(propCode: .stillCaptureMode, callback: { (result) in
                     switch result {
                     case .success(let property):
@@ -166,6 +166,16 @@ extension SonyPTPIPDevice {
                         callback(false, error, nil)
                     }
                 })
+            case .setBracketedShootingBracket, .getBracketedShootingBracket:
+                getDevicePropDescriptionFor(propCode: .stillCaptureMode) { (result) in
+                    switch result {
+                    case .success(let property):
+                        let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                        callback(event.availableFunctions?.contains(function.function), nil, event.bracketedShootingBrackets?.available as? [T.SendType])
+                    case .failure(let error):
+                        callback(false, error, nil)
+                    }
+                }
             case .setSelfTimerDuration, .getSelfTimerDuration:
                 getDevicePropDescriptionFor(propCode: .stillCaptureMode, callback: { (result) in
                     switch result {

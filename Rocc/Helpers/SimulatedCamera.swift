@@ -366,6 +366,7 @@ public final class DummyCamera: Camera {
             stillFormat: nil,
             continuousShootingMode: nil,
             continuousShootingSpeed: nil,
+            bracketedShootingBrackets: nil,
             continuousShootingURLS: nil,
             flipSetting: nil,
             scene: nil,

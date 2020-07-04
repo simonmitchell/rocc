@@ -125,6 +125,75 @@ public struct AudioCapture: CameraFunction {
     public static let stop = AudioCapture(function: .endAudioRecording)
 }
 
+public struct BracketCapture: CameraFunction {
+    
+    public var function: _CameraFunction
+    
+    public typealias SendType = Wrapper<Void>
+    
+    public typealias ReturnType = Wrapper<Void>
+    
+    /// Starts capture of bracketed stills
+    public static let start = BracketCapture(function: .startContinuousShooting)
+    
+    /// Ends capture of bracketed stills
+    public static let stop = BracketCapture(function: .endContinuousShooting)
+    
+    /// Functions for interacting with the bracketed shooting mode
+    public struct Bracket: CameraFunction {
+        
+        /// Enumeration representing the bracket mode which a camera is using
+        public enum Mode: String {
+            
+            case single
+            case continuous
+            case whiteBalance
+            case dro
+        }
+        
+        /// The interval at which bracketed images are captured
+        public enum Interval: Equatable {
+            case low
+            case high
+            case custom(images: Int, interval: Double)
+        }
+        
+        public struct Value: Equatable {
+            
+            public let mode: Mode
+            
+            public let interval: Interval
+            
+            /// Public memberwise initialiser for bracket shooting value
+            ///
+            /// - Warning: This should not be used unless you are absolutely certain
+            /// the connected camera supports the given mode and interval. The preferred
+            /// way to get values is to call `BracketCapture.Bracket.get` or use the
+            /// values returned via the eventing mechanism
+            ///
+            /// - Parameters:
+            ///   - mode: The bracketing mode (single/continuous/whiteBalance/dro)
+            ///   - interval: The "interval" of the bracket, or how many images will be taken at what intervals
+            public init(mode: Mode, interval: Interval) {
+                self.mode = mode
+                self.interval = interval
+            }
+        }
+        
+        public var function: _CameraFunction
+        
+        public typealias SendType = Value
+        
+        public typealias ReturnType = Value
+        
+        /// Sets the bracketed shooting mode
+        public static let set = BracketCapture.Bracket(function: .setBracketedShootingBracket)
+        
+        /// Returns the current bracketed shooting mode
+        public static let get = BracketCapture.Bracket(function: .getBracketedShootingBracket)
+    }
+}
+
 /// Functions for interacting with the camera's continuous capture API
 public struct ContinuousCapture: CameraFunction {
     
@@ -402,7 +471,7 @@ public struct BulbCapture: CameraFunction {
     
     /// Start capturing a bulb exposure
     public static let start = BulbCapture(function: .startBulbCapture)
-
+    
     /// Stop capturing a bulb exposure
     public static let stop = BulbCapture(function: .endBulbCapture)
 }

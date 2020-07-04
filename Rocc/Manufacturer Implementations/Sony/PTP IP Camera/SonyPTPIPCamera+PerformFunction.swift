@@ -91,7 +91,7 @@ extension SonyPTPIPDevice {
         case .setContinuousShootingMode:
             // This isn't a thing via PTP according to Sony's app (Instead we just have multiple continuous shooting speeds) so we just don't do anything!
             callback(nil, nil)
-        case .setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setFocusMode, .setExposureMode, .setExposureModeDialControl, .setFlashMode, .setContinuousShootingSpeed, .setStillQuality, .setStillFormat, .setVideoFileFormat, .setVideoQuality:
+        case .setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setFocusMode, .setExposureMode, .setExposureModeDialControl, .setFlashMode, .setContinuousShootingSpeed, .setStillQuality, .setStillFormat, .setVideoFileFormat, .setVideoQuality, .setBracketedShootingBracket:
             guard let value = payload as? SonyPTPPropValueConvertable else {
                 callback(FunctionError.invalidPayload, nil)
                 return
@@ -182,6 +182,16 @@ extension SonyPTPIPDevice {
                     callback(error, nil)
                 }
             })
+        case .getBracketedShootingBracket:
+            getDevicePropDescriptionFor(propCode: .stillCaptureMode) { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                    callback(nil, event.bracketedShootingBrackets?.current as? T.ReturnType)
+                case .failure(let error):
+                    callback(error, nil)
+                }
+            }
         case .setStillSize:
             guard let stillSize = payload as? StillCapture.Size.Value else {
                 callback(FunctionError.invalidPayload, nil)
@@ -325,12 +335,13 @@ extension SonyPTPIPDevice {
                     callback(error, nil)
                 }
             }
-        case .startContinuousShooting:
+        case .startContinuousShooting, .startBracketedShooting:
+            //TODO: [Bracketing] Test this!
             startCapturing { (error) in
                 callback(error, nil)
             }
             callback(nil, nil)
-        case .endContinuousShooting:
+        case .endContinuousShooting, .stopBracketedShooting:
             finishCapturing() { (result) in
                 switch result {
                 case .failure(let error):

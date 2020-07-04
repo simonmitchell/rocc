@@ -608,10 +608,16 @@ extension SonyPTPIPDevice: Camera {
         case .photo, .timelapse, .bulb:
             return .single
         case .continuous:
-            guard let continuousShootingModes = lastStillCaptureModes?.available.filter({ $0.shootMode == .continuous }) else {
+            guard let continuousShootingModes = lastStillCaptureModes?.available.filter({
+                $0.shootMode == .continuous
+            }) else {
                 return .continuous
             }
             return continuousShootingModes.first
+        case .bracket:
+            return lastStillCaptureModes?.available.filter({
+                $0.shootMode == .bracket
+            }).first
         }
     }
     

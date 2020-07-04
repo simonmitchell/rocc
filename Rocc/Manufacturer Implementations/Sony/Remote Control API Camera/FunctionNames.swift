@@ -11,7 +11,7 @@ import Foundation
 extension _CameraFunction {
     var sonyCameraMethodName: String? {
         switch self {
-        case .ping:
+        case .ping, .setBracketedShootingBracket, .getBracketedShootingBracket, .startBracketedShooting, .stopBracketedShooting:
             return nil
         case .setShootMode:
             return "setShootMode"
