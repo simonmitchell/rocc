@@ -29,17 +29,20 @@ Rocc is designed to be as generic as possible, both from a coding point of view 
 Carthage is a dependency manager which builds frameworks for you or downloads pre-built binaries from a specific tag on GitHub
 
 1. If you haven't already, setup Carthage as outlined [here](https://github.com/Carthage/Carthage#quick-start).
-1. Add ROCC as a dependency in your Cartfile.
-1. Make sure the ROCC framework is included in your carthage copy files build phase. 
+1. Add Rocc as a dependency in your Cartfile: `github "simonmitchell/rocc" == 2.0.0`.
+1. Drag both `Rocc.framework` and `ThunderRequest.framework` into your project's  `Frameworks, Libraries and Embedded Content` section.
+1. Make sure that both frameworks are included in your carthage copy files build phase. 
+
+**We will be removing the dependency on `ThunderRequest` in a future release**
 
 ### Manual
 
-Manual installation is a bit more involved, and not suggested, due to the fact ROCC itself uses Carthage to pull the dependency on `ThunderRequest`. This means it is still a requirement to have Carthage setup on your system, as you will need to run `carthage update` to pull that dependency.
+Manual installation is a bit more involved, and not the suggested approach.
 
 1. Clone, download or add the repo as a submodule to your repo.
-1. Run `carthage update --platform iOS` from the cloned/downloaded repo. 
 1. Drag the Rocc project file into your main app's project.
 1. Add `Rocc` (Or the platform appropriate equivalent) to the `Frameworks, Libraries and Embedded Content` section of your app's target in the General panel of your project. Making sure you set it to `Embed & Sign`.
+1. Add `ThunderRequest` (make sure you choose the correct framework for your OS) to the `Frameworks, Libraries and Embedded Content` section of your app's target, again making sure to set it to `Embed & Sign`
 1. Import `Rocc` and you're ready to go!
 
 ## Examples
