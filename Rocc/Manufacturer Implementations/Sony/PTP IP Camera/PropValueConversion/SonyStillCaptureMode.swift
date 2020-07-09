@@ -141,6 +141,7 @@ enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
             return nil
         case .singleBurstLow, .singleBurstHigh, .singleBurstMedium:
             //TODO: Add single-burst shooting mode
+            return nil
         }
     }
     
