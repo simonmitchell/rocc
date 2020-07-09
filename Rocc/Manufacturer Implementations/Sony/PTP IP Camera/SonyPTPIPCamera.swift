@@ -593,9 +593,13 @@ extension SonyPTPIPDevice: Camera {
             setShutterSpeedAwayFromBulbIfRequired() { [weak self] (_) in
                 self?.setToShootModeIfRequired(.highFrameRate, callback)
             }
-        case .startBracketedShooting:
+        case .startContinuousBracketShooting:
             setShutterSpeedAwayFromBulbIfRequired { [weak self] (_) in
-                self?.setToShootModeIfRequired(.bracket, callback)
+                self?.setToShootModeIfRequired(.continuousBracket, callback)
+            }
+        case .takeSingleBracketShot:
+            setShutterSpeedAwayFromBulbIfRequired { [weak self] (_) in
+                self?.setToShootModeIfRequired(.singleBracket, callback)
             }
         default:
             callback(nil)
@@ -664,7 +668,7 @@ extension SonyPTPIPDevice: Camera {
             default:
                 modes = defaultVideoModes
             }
-        case .photo, .timelapse, .bracket:
+        case .photo, .timelapse, .singleBracket, .continuousBracket:
             switch currentExposureProgrammeMode {
             case .videoShutterPriority:
                 modes = defaultModes.bringingToFront(.slowAndQuickShutterPriority).bringingToFront(.shutterPriority)
