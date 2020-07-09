@@ -134,10 +134,10 @@ public struct BracketCapture: CameraFunction {
     public typealias ReturnType = Wrapper<Void>
     
     /// Starts capture of bracketed stills
-    public static let start = BracketCapture(function: .startContinuousShooting)
+    public static let start = BracketCapture(function: .startBracketedShooting)
     
     /// Ends capture of bracketed stills
-    public static let stop = BracketCapture(function: .endContinuousShooting)
+    public static let stop = BracketCapture(function: .stopBracketedShooting)
     
     /// Functions for interacting with the bracketed shooting mode
     public struct Bracket: CameraFunction {

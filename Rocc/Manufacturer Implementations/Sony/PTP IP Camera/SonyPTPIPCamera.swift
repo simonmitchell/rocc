@@ -660,7 +660,7 @@ extension SonyPTPIPDevice: Camera {
             default:
                 modes = defaultVideoModes
             }
-        case .photo, .timelapse:
+        case .photo, .timelapse, .bracket:
             switch currentExposureProgrammeMode {
             case .videoShutterPriority:
                 modes = defaultModes.bringingToFront(.slowAndQuickShutterPriority).bringingToFront(.shutterPriority)
