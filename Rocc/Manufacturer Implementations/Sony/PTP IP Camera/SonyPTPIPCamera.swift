@@ -593,6 +593,10 @@ extension SonyPTPIPDevice: Camera {
             setShutterSpeedAwayFromBulbIfRequired() { [weak self] (_) in
                 self?.setToShootModeIfRequired(.highFrameRate, callback)
             }
+        case .startBracketedShooting:
+            setShutterSpeedAwayFromBulbIfRequired { [weak self] (_) in
+                self?.setToShootModeIfRequired(.bracket, callback)
+            }
         default:
             callback(nil)
         }
