@@ -121,8 +121,7 @@ enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
         switch self {
         case .single, .timer2, .timer5, .timer10:
             return .photo
-        case .singleBurstHigh, .singleBurstMedium, .singleBurstLow,
-             .continuousBracket0_3_3, .continuousBracket0_3_5, .continuousBracket0_3_9,
+        case .continuousBracket0_3_3, .continuousBracket0_3_5, .continuousBracket0_3_9,
              .continuousBracket0_5_3, .continuousBracket0_5_5, .continuousBracket0_5_9,
              .continuousBracket0_7_3, .continuousBracket0_7_5, .continuousBracket0_7_9,
              .continuousBracket1_3, .continuousBracket1_5, .continuousBracket1_9,
@@ -140,6 +139,8 @@ enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
         case .timer2_3, .timer2_5, .timer5_3, .timer5_5, .timer10_3, .timer10_5:
             //TODO: Add "multi-timer" timer mode
             return nil
+        case .singleBurstLow, .singleBurstHigh, .singleBurstMedium:
+            //TODO: Add single-burst shooting mode
         }
     }
     
