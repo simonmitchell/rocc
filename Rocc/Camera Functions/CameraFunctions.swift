@@ -130,10 +130,13 @@ public enum _CameraFunction: String, CaseIterable {
     case getCameraFunction
     case ping
     case startRecordMode
-    case startBracketedShooting
-    case stopBracketedShooting
-    case setBracketedShootingBracket
-    case getBracketedShootingBracket
+    case startContinuousBracketShooting
+    case stopContinuousBracketShooting
+    case takeSingleBracketShot
+    case setContinuousBracketedShootingBracket
+    case getContinuousBracketedShootingBracket
+    case setSingleBracketedShootingBracket
+    case getSingleBracketedShootingBracket
 }
 
 /// A protocol which can be adopted to define a function that can be performed on any given camera

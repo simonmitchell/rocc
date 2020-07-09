@@ -91,7 +91,7 @@ extension SonyPTPIPDevice {
         case .setContinuousShootingMode:
             // This isn't a thing via PTP according to Sony's app (Instead we just have multiple continuous shooting speeds) so we just don't do anything!
             callback(nil, nil)
-        case .setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setFocusMode, .setExposureMode, .setExposureModeDialControl, .setFlashMode, .setContinuousShootingSpeed, .setStillQuality, .setStillFormat, .setVideoFileFormat, .setVideoQuality, .setBracketedShootingBracket:
+        case .setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setFocusMode, .setExposureMode, .setExposureModeDialControl, .setFlashMode, .setContinuousShootingSpeed, .setStillQuality, .setStillFormat, .setVideoFileFormat, .setVideoQuality, .setContinuousBracketedShootingBracket, .setSingleBracketedShootingBracket:
             guard let value = payload as? SonyPTPPropValueConvertable else {
                 callback(FunctionError.invalidPayload, nil)
                 return
@@ -182,12 +182,22 @@ extension SonyPTPIPDevice {
                     callback(error, nil)
                 }
             })
-        case .getBracketedShootingBracket:
+        case .getSingleBracketedShootingBracket:
             getDevicePropDescriptionFor(propCode: .stillCaptureMode) { (result) in
                 switch result {
                 case .success(let property):
                     let event = CameraEvent.fromSonyDeviceProperties([property]).event
-                    callback(nil, event.bracketedShootingBrackets?.current as? T.ReturnType)
+                    callback(nil, event.singleBracketedShootingBrackets?.current as? T.ReturnType)
+                case .failure(let error):
+                    callback(error, nil)
+                }
+            }
+        case .getContinuousBracketedShootingBracket:
+            getDevicePropDescriptionFor(propCode: .stillCaptureMode) { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                    callback(nil, event.continuousBracketedShootingBrackets?.current as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
                 }
@@ -326,7 +336,8 @@ extension SonyPTPIPDevice {
         case .setProgramShift, .getProgramShift:
             // Not available natively with PTP/IP
             callback(FunctionError.notSupportedByAvailableVersion, nil)
-        case .takePicture:
+        case .takePicture, .takeSingleBracketShot:
+            //TODO: [Bracketing] Test this!
             takePicture { (result) in
                 switch result {
                 case .success(let url):
@@ -335,13 +346,13 @@ extension SonyPTPIPDevice {
                     callback(error, nil)
                 }
             }
-        case .startContinuousShooting, .startBracketedShooting:
+        case .startContinuousShooting, .startContinuousBracketShooting:
             //TODO: [Bracketing] Test this!
             startCapturing { (error) in
                 callback(error, nil)
             }
             callback(nil, nil)
-        case .endContinuousShooting, .stopBracketedShooting:
+        case .endContinuousShooting, .stopContinuousBracketShooting:
             finishCapturing() { (result) in
                 switch result {
                 case .failure(let error):

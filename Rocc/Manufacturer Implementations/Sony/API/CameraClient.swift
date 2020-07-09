@@ -456,7 +456,7 @@ fileprivate extension ShootingMode {
             return "looprec"
         case .bulb:
             return "bulb"
-        case .highFrameRate, .bracket:
+        case .highFrameRate, .singleBracket, .continuousBracket:
             // Not actually a thing for Sony API cameras... so should never be asked for this!
             return ""
         }
@@ -1100,7 +1100,8 @@ fileprivate extension CameraEvent {
         //PTP/IP things!
         exposureModeDialControl = nil
         highFrameRateCaptureStatus = nil
-        bracketedShootingBrackets = nil
+        singleBracketedShootingBrackets = nil
+        continuousBracketedShootingBrackets = nil
     }
 }
 

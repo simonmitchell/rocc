@@ -90,7 +90,7 @@ extension SonyPTPIPDevice {
         case .setProgramShift, .getProgramShift:
             // Not available natively with PTP/IP
             callback(false, nil, nil)
-        case .takePicture, .startContinuousShooting, .endContinuousShooting, .startBulbCapture, .endBulbCapture, .startBracketedShooting, .stopBracketedShooting:
+        case .takePicture, .startContinuousShooting, .endContinuousShooting, .startBulbCapture, .endBulbCapture, .startContinuousBracketShooting, .stopContinuousBracketShooting, .takeSingleBracketShot:
             getDevicePropDescriptionFor(propCode: .stillCaptureMode, callback: { (result) in
                 switch result {
                 case .success(let property):
@@ -171,12 +171,22 @@ extension SonyPTPIPDevice {
                     callback(false, error, nil)
                 }
             })
-        case .setBracketedShootingBracket, .getBracketedShootingBracket:
+        case .setContinuousBracketedShootingBracket, .getContinuousBracketedShootingBracket:
             getDevicePropDescriptionFor(propCode: .stillCaptureMode) { (result) in
                 switch result {
                 case .success(let property):
                     let event = CameraEvent.fromSonyDeviceProperties([property]).event
-                    callback(event.supportedFunctions?.contains(function.function), nil, event.bracketedShootingBrackets?.supported as? [T.SendType])
+                    callback(event.supportedFunctions?.contains(function.function), nil, event.continuousBracketedShootingBrackets?.supported as? [T.SendType])
+                case .failure(let error):
+                    callback(false, error, nil)
+                }
+            }
+        case .setSingleBracketedShootingBracket, .getSingleBracketedShootingBracket:
+            getDevicePropDescriptionFor(propCode: .stillCaptureMode) { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                    callback(event.supportedFunctions?.contains(function.function), nil, event.singleBracketedShootingBrackets?.supported as? [T.SendType])
                 case .failure(let error):
                     callback(false, error, nil)
                 }

@@ -618,9 +618,13 @@ extension SonyPTPIPDevice: Camera {
                 return .continuous
             }
             return continuousShootingModes.first
-        case .bracket:
+        case .singleBracket:
             return lastStillCaptureModes?.available.filter({
-                $0.shootMode == .bracket
+                $0.shootMode == .singleBracket
+            }).first
+        case .continuousBracket:
+            return lastStillCaptureModes?.available.filter({
+                $0.shootMode == .singleBracket
             }).first
         }
     }

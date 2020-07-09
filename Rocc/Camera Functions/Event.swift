@@ -246,8 +246,11 @@ public struct CameraEvent: Equatable {
     /// The current and available continuous shooting speeds.
     public let continuousShootingSpeed: (current: ContinuousCapture.Speed.Value?, available: [ContinuousCapture.Speed.Value], supported: [ContinuousCapture.Speed.Value])?
     
-    /// The current and available bracketed shooting values
-    public let bracketedShootingBrackets: (current: BracketCapture.Bracket.Value?, available: [BracketCapture.Bracket.Value], supported: [BracketCapture.Bracket.Value])?
+    /// The current and available continuous bracketed shooting values
+    public let continuousBracketedShootingBrackets: (current: ContinuousBracketCapture.Bracket.Value?, available: [ContinuousBracketCapture.Bracket.Value], supported: [ContinuousBracketCapture.Bracket.Value])?
+    
+    /// The current and available singl bracketed shooting values
+    public let singleBracketedShootingBrackets: (current: SingleBracketCapture.Bracket.Value?, available: [SingleBracketCapture.Bracket.Value], supported: [SingleBracketCapture.Bracket.Value])?
     
     /// Array of URL of continuous shooting. When more than one URL notifies, the last one is the latest.
     public var continuousShootingURLS: [(postView: URL, thumbnail: URL)]?

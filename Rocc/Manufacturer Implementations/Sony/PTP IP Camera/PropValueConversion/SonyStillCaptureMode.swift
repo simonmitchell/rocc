@@ -65,8 +65,12 @@ enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
     case droBracketHigh = 0x00078029
     case droBracketLow = 0x00078019
     
-    var bracket: BracketCapture.Bracket.Value? {
-        return BracketCapture.Bracket.Value(self)
+    var singleBracket: SingleBracketCapture.Bracket.Value? {
+        return SingleBracketCapture.Bracket.Value(self)
+    }
+    
+    var continuousBracket: ContinuousBracketCapture.Bracket.Value? {
+        return ContinuousBracketCapture.Bracket.Value(self)
     }
     
     var continuousShootingMode: ContinuousCapture.Mode.Value? {
@@ -121,26 +125,27 @@ enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
         switch self {
         case .single, .timer2, .timer5, .timer10:
             return .photo
-        case .continuousBracket0_3_3, .continuousBracket0_3_5, .continuousBracket0_3_9,
-             .continuousBracket0_5_3, .continuousBracket0_5_5, .continuousBracket0_5_9,
-             .continuousBracket0_7_3, .continuousBracket0_7_5, .continuousBracket0_7_9,
-             .continuousBracket1_3, .continuousBracket1_5, .continuousBracket1_9,
-             .continuousBracket2_3, .continuousBracket2_5, .continuousBracket3_3, .continuousBracket3_5,
-             .singleBracket0_3_3, .singleBracket0_3_5, .singleBracket0_3_9,
+        case .singleBracket0_3_3, .singleBracket0_3_5, .singleBracket0_3_9,
              .singleBracket0_5_3, .singleBracket0_5_5, .singleBracket0_5_9,
              .singleBracket0_7_3, .singleBracket0_7_5, .singleBracket0_7_9,
              .singleBracket1_3, .singleBracket1_5, .singleBracket1_9,
              .singleBracket2_3, .singleBracket2_5, .singleBracket3_3, .singleBracket3_5,
              .whiteBalanceBracketHigh, .whiteBalanceBracketLow, .droBracketHigh, .droBracketLow:
-            return .bracket
+            return .singleBracket
+        case .continuousBracket0_3_3, .continuousBracket0_3_5, .continuousBracket0_3_9,
+        .continuousBracket0_5_3, .continuousBracket0_5_5, .continuousBracket0_5_9,
+        .continuousBracket0_7_3, .continuousBracket0_7_5, .continuousBracket0_7_9,
+        .continuousBracket1_3, .continuousBracket1_5, .continuousBracket1_9,
+        .continuousBracket2_3, .continuousBracket2_5, .continuousBracket3_3, .continuousBracket3_5:
+            return .continuousBracket
         case .continuous, .continuousS, .continuousHigh, .continuousLow,
              .continuousHighPlus:
             return .continuous
         case .timer2_3, .timer2_5, .timer5_3, .timer5_5, .timer10_3, .timer10_5:
             //TODO: Add "multi-timer" timer mode
             return nil
-        case .singleBurstLow, .singleBurstHigh, .singleBurstMedium:
-            //TODO: Add single-burst shooting mode
+        case .singleBurstLow, .singleBurstMedium, .singleBurstHigh:
+            //TODO: Add burst mode!
             return nil
         }
     }

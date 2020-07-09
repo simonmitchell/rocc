@@ -58,7 +58,8 @@ extension CameraEvent {
         var focusStatus: FocusStatus?
         var continuousShootingMode: (current: ContinuousCapture.Mode.Value?, available: [ContinuousCapture.Mode.Value], supported: [ContinuousCapture.Mode.Value])?
         var continuousShootingSpeed: (current: ContinuousCapture.Speed.Value?, available: [ContinuousCapture.Speed.Value], supported: [ContinuousCapture.Speed.Value])?
-        var brackets: (current: BracketCapture.Bracket.Value?, available: [BracketCapture.Bracket.Value], supported: [BracketCapture.Bracket.Value])?
+        var singleBrackets: (current: SingleBracketCapture.Bracket.Value?, available: [SingleBracketCapture.Bracket.Value], supported: [SingleBracketCapture.Bracket.Value])?
+        var continuousBrackets: (current: ContinuousBracketCapture.Bracket.Value?, available: [ContinuousBracketCapture.Bracket.Value], supported: [ContinuousBracketCapture.Bracket.Value])?
         var batteryInfo: [BatteryInformation]?
         var stillQuality: (current: StillCapture.Quality.Value, available: [StillCapture.Quality.Value], supported: [StillCapture.Quality.Value])?
         var stillFormat: (current: StillCapture.Format.Value, available: [StillCapture.Format.Value], supported: [StillCapture.Format.Value])?
@@ -218,7 +219,7 @@ extension CameraEvent {
                     case .bulb:
                         supportedFunctions.append(contentsOf: [.startBulbCapture, .endBulbCapture])
                     case .photo:
-                        supportedFunctions.append(contentsOf: [.takePicture])
+                        supportedFunctions.append(.takePicture)
                     case .video:
                         supportedFunctions.append(contentsOf: [.startVideoRecording, .endVideoRecording])
                     case .continuous:
@@ -227,8 +228,10 @@ extension CameraEvent {
                         supportedFunctions.append(contentsOf: [.startLoopRecording, .endLoopRecording])
                     case .interval:
                         supportedFunctions.append(contentsOf: [.startIntervalStillRecording, .endIntervalStillRecording])
-                    case .bracket:
-                        supportedFunctions.append(contentsOf: [.startBracketedShooting, .stopBracketedShooting])
+                    case .continuousBracket:
+                        supportedFunctions.append(contentsOf: [.startContinuousBracketShooting, .stopContinuousBracketShooting])
+                    case .singleBracket:
+                        supportedFunctions.append(.takeSingleBracketShot)
                     default:
                         break
                     }
@@ -238,8 +241,11 @@ extension CameraEvent {
                 case .photo:
                     availableFunctions.append(.takePicture)
                 case .continuous:
-                    availableFunctions.append(.startContinuousShooting)
-                    availableFunctions.append(.endContinuousShooting)
+                    availableFunctions.append(contentsOf: [.startContinuousShooting, .endContinuousShooting])
+                case .singleBracket:
+                    availableFunctions.append(.takeSingleBracketShot)
+                case .continuousBracket:
+                    availableFunctions.append(contentsOf: [.startContinuousBracketShooting, .stopContinuousBracketShooting])
                 default:
                     // Others are handled by exposureProgrammeMode
                     break
@@ -299,14 +305,24 @@ extension CameraEvent {
                 
                 //Munge bracketed shooting modes
                 
-                let availableBrackets = available.compactMap({ $0.bracket })
-                let supportedBrackets = supported.compactMap({ $0.bracket })
-                if !availableBrackets.isEmpty  || !supportedBrackets.isEmpty {
-                    brackets = (current.bracket, availableBrackets, supportedBrackets)
-                    if !availableBrackets.isEmpty {
-                        availableFunctions.append(contentsOf: [.setBracketedShootingBracket, .getBracketedShootingBracket])
+                let availableSingleBrackets = available.compactMap({ $0.singleBracket })
+                let supportedSingleBrackets = supported.compactMap({ $0.singleBracket })
+                if !availableSingleBrackets.isEmpty  || !supportedSingleBrackets.isEmpty {
+                    singleBrackets = (current.singleBracket, availableSingleBrackets, supportedSingleBrackets)
+                    if !availableSingleBrackets.isEmpty {
+                        availableFunctions.append(contentsOf: [.setSingleBracketedShootingBracket, .getSingleBracketedShootingBracket])
                     }
-                    supportedFunctions.append(contentsOf: [.setBracketedShootingBracket, .getBracketedShootingBracket])
+                    supportedFunctions.append(contentsOf: [.setSingleBracketedShootingBracket, .getSingleBracketedShootingBracket])
+                }
+                
+                let availableContinuousBrackets = available.compactMap({ $0.continuousBracket })
+                let supportedContinuousBrackets = supported.compactMap({ $0.continuousBracket })
+                if !availableContinuousBrackets.isEmpty  || !supportedContinuousBrackets.isEmpty {
+                    continuousBrackets = (current.continuousBracket, availableContinuousBrackets, supportedContinuousBrackets)
+                    if !availableContinuousBrackets.isEmpty {
+                        availableFunctions.append(contentsOf: [.setContinuousBracketedShootingBracket, .getContinuousBracketedShootingBracket])
+                    }
+                    supportedFunctions.append(contentsOf: [.setContinuousBracketedShootingBracket, .getContinuousBracketedShootingBracket])
                 }
                 
                 if shootMode.available.contains(.photo) {
@@ -806,7 +822,8 @@ extension CameraEvent {
             stillFormat: stillFormat,
             continuousShootingMode: continuousShootingMode,
             continuousShootingSpeed: continuousShootingSpeed,
-            bracketedShootingBrackets: brackets,
+            continuousBracketedShootingBrackets: continuousBrackets,
+            singleBracketedShootingBrackets: singleBrackets,
             continuousShootingURLS: nil,
             flipSetting: nil,
             scene: nil,
