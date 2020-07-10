@@ -628,7 +628,7 @@ extension SonyPTPIPDevice: Camera {
             }).first
         case .continuousBracket:
             return lastStillCaptureModes?.available.filter({
-                $0.shootMode == .singleBracket
+                $0.shootMode == .continuousBracket
             }).first
         }
     }
