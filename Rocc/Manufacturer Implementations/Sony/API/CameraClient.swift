@@ -1046,9 +1046,21 @@ fileprivate extension CameraEvent {
             _shootMode = (.bulb, _shootMode?.available ?? [], _shootMode?.supported ?? [])
         }
         
+        var pictureURLs: [ShootingMode: [(postView: URL, thumbnail: URL?)]] = [:]
+        
+        if !_takenPictureURLS.isEmpty {
+            pictureURLs[.photo] = _takenPictureURLS.flatMap({ $0 }).map({ (url) -> (postView: URL, thumbnail: URL?) in
+                return (url, nil)
+            })
+        }
+        
+        if let continuousShootingURLs = _continuousShootingURLS {
+            pictureURLs[.continuous] = continuousShootingURLs
+        }
+        
         status = _cameraStatus
         zoomPosition = _zoomPosition
-        postViewPictureURLs = _takenPictureURLS.isEmpty ? nil : _takenPictureURLS
+        postViewPictureURLs = pictureURLs.isEmpty ? nil : pictureURLs
         storageInformation = _storageInfo.isEmpty ? nil : _storageInfo
         beepMode = _beepMode
         function = _function
@@ -1077,7 +1089,6 @@ fileprivate extension CameraEvent {
         stillFormat = _stillFormat
         continuousShootingMode = _continuousShootingMode
         continuousShootingSpeed = _continuousShootingSpeed
-        continuousShootingURLS = _continuousShootingURLS
         flipSetting = _flipSetting
         scene = _scene
         intervalTime = _intervalTime

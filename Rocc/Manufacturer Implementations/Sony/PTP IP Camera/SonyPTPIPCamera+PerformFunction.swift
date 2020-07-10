@@ -29,9 +29,8 @@ extension SonyPTPIPDevice {
 //                                \(properties)
 //                                """)
                         self.lastStillCaptureModes = eventAndStillModes.stillCaptureModes
-                        event.postViewPictureURLs = self.imageURLs[.photo].flatMap({ return [$0] })
-                        event.continuousShootingURLS = self.imageURLs[.continuous]?.compactMap({ (url) -> (postView: URL, thumbnail: URL) in
-                            return (postView: url, thumbnail: url)
+                        event.postViewPictureURLs = self.imageURLs.compactMapValues({ (urls) -> [(postView: URL, thumbnail: URL?)]? in
+                            return urls.map({ ($0, nil) })
                         })
                         self.imageURLs = [:]
                         callback(nil, event as? T.ReturnType)
@@ -43,11 +42,9 @@ extension SonyPTPIPDevice {
                 return
             }
             
-            lastEvent.postViewPictureURLs = self.imageURLs[.photo].flatMap({ return [$0] })
-            lastEvent.continuousShootingURLS = self.imageURLs[.continuous]?.compactMap({ (url) -> (postView: URL, thumbnail: URL) in
-                return (postView: url, thumbnail: url)
+            lastEvent.postViewPictureURLs = self.imageURLs.compactMapValues({ (urls) -> [(postView: URL, thumbnail: URL?)]? in
+                return urls.map({ ($0, nil) })
             })
-            
             imageURLs = [:]
             callback(nil, lastEvent as? T.ReturnType)
             

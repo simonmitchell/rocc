@@ -156,8 +156,8 @@ public struct CameraEvent: Equatable {
     /// This can be used to check whether functions are available instead of `Camera.isFunctionSupported` method, although this doesn't contain supported values.
     public let supportedFunctions: [_CameraFunction]?
     
-    /// URLs for postView images that the camera has taken.
-    public var postViewPictureURLs: [[URL]]?
+    /// URLs for postView images that the camera has taken. Keyed by the shooting mode they were captured in!
+    public var postViewPictureURLs: [ShootingMode: [(postView: URL, thumbnail: URL?)]]?
     
     /// Storage information for each of the camera's storage capabilities.
     public let storageInformation: [StorageInformation]?
@@ -251,9 +251,6 @@ public struct CameraEvent: Equatable {
     
     /// The current and available singl bracketed shooting values
     public let singleBracketedShootingBrackets: (current: SingleBracketCapture.Bracket.Value?, available: [SingleBracketCapture.Bracket.Value], supported: [SingleBracketCapture.Bracket.Value])?
-    
-    /// Array of URL of continuous shooting. When more than one URL notifies, the last one is the latest.
-    public var continuousShootingURLS: [(postView: URL, thumbnail: URL)]?
     
     /// Current and available flip settings.
     public let flipSetting: (current: String, available: [String], supported: [String])?

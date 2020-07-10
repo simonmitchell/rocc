@@ -368,7 +368,6 @@ public final class DummyCamera: Camera {
             continuousShootingSpeed: nil,
             continuousBracketedShootingBrackets: nil,
             singleBracketedShootingBrackets: nil,
-            continuousShootingURLS: nil,
             flipSetting: nil,
             scene: nil,
             intervalTime: nil,
