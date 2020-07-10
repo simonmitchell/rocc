@@ -353,7 +353,10 @@ extension SonyPTPIPDevice {
             }
             callback(nil, nil)
         case .endContinuousShooting, .stopContinuousBracketShooting:
-            finishCapturing() { (result) in
+            // Only await image if we're continuous shooting, continuous bracket behaves strangely
+            // in that the user must manually trigger the completion and so `ObjectID` event will have been received
+            // long ago!
+            finishCapturing(awaitObjectId: function.function == .endContinuousShooting) { (result) in
                 switch result {
                 case .failure(let error):
                     callback(error, nil)

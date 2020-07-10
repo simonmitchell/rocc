@@ -257,7 +257,9 @@ public struct ContinuousCapture: CameraFunction {
     
     public typealias ReturnType = Wrapper<Void>
     
-    /// Starts continuous capture of stills
+    /// Starts continuous capture of stills.
+    /// - Warning: Continuous capture behaves quite strangely, you have to let the user manually
+    /// call `stop` as there is no feedback from the camera as to when it has completed the shots
     public static let start = ContinuousCapture(function: .startContinuousShooting)
     
     /// Ends continuous capture of stills

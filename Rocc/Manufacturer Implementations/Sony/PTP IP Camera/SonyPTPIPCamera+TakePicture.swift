@@ -97,9 +97,9 @@ extension SonyPTPIPDevice {
         )
     }
     
-    func finishCapturing(completion: @escaping CaptureCompletion) {
+    func finishCapturing(awaitObjectId: Bool = true, completion: @escaping CaptureCompletion) {
         
-        cancelShutterPress(objectID: nil, completion: completion)
+        cancelShutterPress(objectID: nil, awaitObjectId: awaitObjectId, completion: completion)
     }
     
     func awaitFocus(completion: @escaping (_ objectId: DWord?) -> Void) {
@@ -157,7 +157,7 @@ extension SonyPTPIPDevice {
         }
     }
     
-    private func cancelShutterPress(objectID: DWord?, completion: @escaping CaptureCompletion) {
+    private func cancelShutterPress(objectID: DWord?, awaitObjectId: Bool = true, completion: @escaping CaptureCompletion) {
         
         Logger.log(message: "Cancelling shutter press \(objectID != nil ? "\(objectID!)" : "null")", category: "SonyPTPIPCamera", level: .debug)
         os_log("Cancelling shutter press %@", log: self.log, type: .debug, objectID != nil ? "\(objectID!)" : "null")
@@ -187,7 +187,7 @@ extension SonyPTPIPDevice {
                         Logger.log(message: "Autofocus set to 1 \(objectID ?? 0)", category: "SonyPTPIPCamera", level: .debug)
                         os_log("Autofocus set to 1", log: self.log, type: .debug, objectID != nil ? "\(objectID!)"
                             : "null")
-                        guard objectID != nil else {
+                        guard objectID != nil || !awaitObjectId else {
                             self.awaitObjectId(completion: completion)
                             return
                         }
