@@ -18,6 +18,9 @@ import Foundation
 /// - continuous: Records a continuous set of still images
 /// - loop: Records a loop
 /// - interval: Records still images at a given interval duration
+/// - highFrameRate: A mode on certain cameras to record a quick burst of slo-motion video
+/// - singleBracket: Capture a single bracket of photos
+/// - continuousBracket: Capture a continuous bracket of photos
 public enum ShootingMode: String, CaseIterable {
     
     case audio
@@ -29,6 +32,8 @@ public enum ShootingMode: String, CaseIterable {
     case loop
     case interval
     case highFrameRate = "High Framerate"
+    case singleBracket = "Bracket (Single)"
+    case continuousBracket = "Bracket (Continuous)"
 }
 
 /// Functions for configuring the shooting mode of the camera

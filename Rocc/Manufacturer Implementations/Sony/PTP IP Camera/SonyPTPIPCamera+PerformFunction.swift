@@ -29,9 +29,8 @@ extension SonyPTPIPDevice {
 //                                \(properties)
 //                                """)
                         self.lastStillCaptureModes = eventAndStillModes.stillCaptureModes
-                        event.postViewPictureURLs = self.imageURLs[.photo].flatMap({ return [$0] })
-                        event.continuousShootingURLS = self.imageURLs[.continuous]?.compactMap({ (url) -> (postView: URL, thumbnail: URL) in
-                            return (postView: url, thumbnail: url)
+                        event.postViewPictureURLs = self.imageURLs.compactMapValues({ (urls) -> [(postView: URL, thumbnail: URL?)]? in
+                            return urls.map({ ($0, nil) })
                         })
                         self.imageURLs = [:]
                         callback(nil, event as? T.ReturnType)
@@ -43,11 +42,9 @@ extension SonyPTPIPDevice {
                 return
             }
             
-            lastEvent.postViewPictureURLs = self.imageURLs[.photo].flatMap({ return [$0] })
-            lastEvent.continuousShootingURLS = self.imageURLs[.continuous]?.compactMap({ (url) -> (postView: URL, thumbnail: URL) in
-                return (postView: url, thumbnail: url)
+            lastEvent.postViewPictureURLs = self.imageURLs.compactMapValues({ (urls) -> [(postView: URL, thumbnail: URL?)]? in
+                return urls.map({ ($0, nil) })
             })
-            
             imageURLs = [:]
             callback(nil, lastEvent as? T.ReturnType)
             
@@ -91,7 +88,7 @@ extension SonyPTPIPDevice {
         case .setContinuousShootingMode:
             // This isn't a thing via PTP according to Sony's app (Instead we just have multiple continuous shooting speeds) so we just don't do anything!
             callback(nil, nil)
-        case .setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setFocusMode, .setExposureMode, .setExposureModeDialControl, .setFlashMode, .setContinuousShootingSpeed, .setStillQuality, .setStillFormat, .setVideoFileFormat, .setVideoQuality:
+        case .setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setFocusMode, .setExposureMode, .setExposureModeDialControl, .setFlashMode, .setContinuousShootingSpeed, .setStillQuality, .setStillFormat, .setVideoFileFormat, .setVideoQuality, .setContinuousBracketedShootingBracket, .setSingleBracketedShootingBracket:
             guard let value = payload as? SonyPTPPropValueConvertable else {
                 callback(FunctionError.invalidPayload, nil)
                 return
@@ -182,6 +179,26 @@ extension SonyPTPIPDevice {
                     callback(error, nil)
                 }
             })
+        case .getSingleBracketedShootingBracket:
+            getDevicePropDescriptionFor(propCode: .stillCaptureMode) { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                    callback(nil, event.singleBracketedShootingBrackets?.current as? T.ReturnType)
+                case .failure(let error):
+                    callback(error, nil)
+                }
+            }
+        case .getContinuousBracketedShootingBracket:
+            getDevicePropDescriptionFor(propCode: .stillCaptureMode) { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                    callback(nil, event.continuousBracketedShootingBrackets?.current as? T.ReturnType)
+                case .failure(let error):
+                    callback(error, nil)
+                }
+            }
         case .setStillSize:
             guard let stillSize = payload as? StillCapture.Size.Value else {
                 callback(FunctionError.invalidPayload, nil)
@@ -316,7 +333,8 @@ extension SonyPTPIPDevice {
         case .setProgramShift, .getProgramShift:
             // Not available natively with PTP/IP
             callback(FunctionError.notSupportedByAvailableVersion, nil)
-        case .takePicture:
+        case .takePicture, .takeSingleBracketShot:
+            //TODO: [Bracketing] Test this!
             takePicture { (result) in
                 switch result {
                 case .success(let url):
@@ -325,13 +343,17 @@ extension SonyPTPIPDevice {
                     callback(error, nil)
                 }
             }
-        case .startContinuousShooting:
+        case .startContinuousShooting, .startContinuousBracketShooting:
+            //TODO: [Bracketing] Test this!
             startCapturing { (error) in
                 callback(error, nil)
             }
             callback(nil, nil)
-        case .endContinuousShooting:
-            finishCapturing() { (result) in
+        case .endContinuousShooting, .stopContinuousBracketShooting:
+            // Only await image if we're continuous shooting, continuous bracket behaves strangely
+            // in that the user must manually trigger the completion and so `ObjectID` event will have been received
+            // long ago!
+            finishCapturing(awaitObjectId: function.function == .endContinuousShooting) { (result) in
                 switch result {
                 case .failure(let error):
                     callback(error, nil)

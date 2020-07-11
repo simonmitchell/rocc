@@ -139,6 +139,12 @@ extension SonyCamera {
         
         internal static func supporting(function: _CameraFunction) -> [Model] {
             switch function {
+                // No API based cameras support any of these
+            case .startContinuousBracketShooting, .stopContinuousBracketShooting,
+                 .setContinuousBracketedShootingBracket, .getContinuousBracketedShootingBracket,
+                 .takeSingleBracketShot,
+                 .setSingleBracketedShootingBracket, .getSingleBracketedShootingBracket:
+                return []
                 // This isn't documented, so let's err on the side of caution!
             case .startBulbCapture, .endBulbCapture:
                 return []
