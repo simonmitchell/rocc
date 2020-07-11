@@ -173,6 +173,14 @@ public final class DummyCamera: Camera {
     
     private var eventCompletion: (() -> Void)?
     
+    private var singleBracket: SingleBracketCapture.Bracket.Value = .init(mode: .exposure, interval: .custom(images: 5, interval: 0.3))
+    
+    private var continuousBracket: ContinuousBracketCapture.Bracket.Value = .init(mode: .exposure, interval: .custom(images: 5, interval: 0.3))
+    
+    private var continuousShootingMode: ContinuousCapture.Mode.Value = .continuous
+    
+    private var continuousShootingSpeed: ContinuousCapture.Speed.Value = .high
+    
     public func connect(completion: @escaping Camera.ConnectedCompletion) {
         
         isConnected = true
@@ -260,6 +268,22 @@ public final class DummyCamera: Camera {
     }
     
     public func makeFunctionAvailable<T>(_ function: T, callback: @escaping ((Error?) -> Void)) where T : CameraFunction {
+        switch function.function {
+        case .startContinuousShooting:
+            currentShootMode = .continuous
+        case .startContinuousBracketShooting:
+            currentShootMode = .continuousBracket
+        case .takePicture:
+            currentShootMode = .photo
+        case .takeSingleBracketShot:
+            currentShootMode = .singleBracket
+        case .startBulbCapture:
+            currentShootMode = .bulb
+        case .startVideoRecording:
+            currentShootMode = .video
+        default:
+            break
+        }
         callback(nil)
     }
     
@@ -269,8 +293,8 @@ public final class DummyCamera: Camera {
             status: .idle,
             liveViewInfo: nil,
             zoomPosition: nil,
-            availableFunctions: [.setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setSelfTimerDuration, .setWhiteBalance, .startZooming, .setExposureMode, .setTouchAFPosition],
-            supportedFunctions: [.setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setSelfTimerDuration, .setWhiteBalance, .startZooming, .setExposureMode, .setTouchAFPosition],
+            availableFunctions: [.setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setSelfTimerDuration, .setWhiteBalance, .startZooming, .setExposureMode, .setTouchAFPosition, .startContinuousBracketShooting, .stopContinuousBracketShooting, .setSingleBracketedShootingBracket, .setContinuousBracketedShootingBracket, .setContinuousShootingSpeed, .setContinuousShootingMode],
+            supportedFunctions: [.setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setSelfTimerDuration, .setWhiteBalance, .startZooming, .setExposureMode, .setTouchAFPosition, .setContinuousShootingSpeed, .setContinuousShootingMode],
             postViewPictureURLs: nil,
             storageInformation: nil,
             beepMode: nil,
@@ -289,8 +313,16 @@ public final class DummyCamera: Camera {
             exposureSettingsLockStatus: nil,
             postViewImageSize: nil,
             selfTimer: (current: currentSelfTimer, available: [0.0, 2.0, 5.0], supported: [0.0, 2.0, 5.0]),
-            shootMode: (current: currentShootMode, available: [.photo, .continuous, .timelapse, .video, .continuous, .bulb], supported: [.photo, .continuous, .timelapse, .video, .continuous, .bulb]),
-            exposureCompensation: (current: currentExposureComp, available: [-3.0, -2.66, -2.33, -2.0, -1.66, -1.33, -1.0, -0.66, -0.33, 0, 0.33, 0.66, 1.0, 1.33, 1.66, 2.0, 2.33, 2.66, 3.0].map({ Exposure.Compensation.Value(value: $0) }), supported: [-3.0, -2.66, -2.33, -2.0, -1.66, -1.33, -1.0, -0.66, -0.33, 0, 0.33, 0.66, 1.0, 1.33, 1.66, 2.0, 2.33, 2.66, 3.0].map({ Exposure.Compensation.Value(value: $0) })),
+            shootMode: (
+                current: currentShootMode,
+                available: [.photo, .continuous, .timelapse, .video, .continuous, .bulb, .singleBracket, .continuousBracket],
+                supported: [.photo, .continuous, .timelapse, .video, .continuous, .bulb, .singleBracket, .continuousBracket]
+            ),
+            exposureCompensation: (
+                current: currentExposureComp,
+                available: [-3.0, -2.66, -2.33, -2.0, -1.66, -1.33, -1.0, -0.66, -0.33, 0, 0.33, 0.66, 1.0, 1.33, 1.66, 2.0, 2.33, 2.66, 3.0].map({ Exposure.Compensation.Value(value: $0) }),
+                supported: [-3.0, -2.66, -2.33, -2.0, -1.66, -1.33, -1.0, -0.66, -0.33, 0, 0.33, 0.66, 1.0, 1.33, 1.66, 2.0, 2.33, 2.66, 3.0].map({ Exposure.Compensation.Value(value: $0) })
+            ),
             flashMode: nil,
             aperture: (
                 current: currentAperture,
@@ -364,10 +396,54 @@ public final class DummyCamera: Camera {
             zoomSetting: nil,
             stillQuality: nil,
             stillFormat: nil,
-            continuousShootingMode: nil,
-            continuousShootingSpeed: nil,
-            continuousBracketedShootingBrackets: nil,
-            singleBracketedShootingBrackets: nil,
+            continuousShootingMode: (current: continuousShootingMode, available: [.continuous, .single], supported: [.continuous, .single]),
+            continuousShootingSpeed: (current: continuousShootingSpeed, available: [.regular, .high, .highPlus, .low, .tenFps1Sec], supported: [.regular, .high, .highPlus, .low, .tenFps1Sec]),
+            continuousBracketedShootingBrackets: (
+                current: continuousBracket,
+                available: [
+                    .init(mode: .exposure, interval: .custom(images: 3, interval: 0.3)),
+                    .init(mode: .exposure, interval: .custom(images: 5, interval: 0.3)),
+                    .init(mode: .exposure, interval: .custom(images: 7, interval: 0.3)),
+                    .init(mode: .exposure, interval: .custom(images: 3, interval: 0.5)),
+                    .init(mode: .exposure, interval: .custom(images: 5, interval: 0.5)),
+                    .init(mode: .exposure, interval: .custom(images: 7, interval: 0.5))
+                ],
+                supported: [
+                    .init(mode: .exposure, interval: .custom(images: 3, interval: 0.3)),
+                    .init(mode: .exposure, interval: .custom(images: 5, interval: 0.3)),
+                    .init(mode: .exposure, interval: .custom(images: 7, interval: 0.3)),
+                    .init(mode: .exposure, interval: .custom(images: 3, interval: 0.5)),
+                    .init(mode: .exposure, interval: .custom(images: 5, interval: 0.5)),
+                    .init(mode: .exposure, interval: .custom(images: 7, interval: 0.5))
+                ]
+            ),
+            singleBracketedShootingBrackets: (
+                current: singleBracket,
+                available: [
+                    .init(mode: .whiteBalance, interval: .low),
+                    .init(mode: .whiteBalance, interval: .high),
+                    .init(mode: .dro, interval: .low),
+                    .init(mode: .dro, interval: .high),
+                    .init(mode: .exposure, interval: .custom(images: 3, interval: 0.3)),
+                    .init(mode: .exposure, interval: .custom(images: 5, interval: 0.3)),
+                    .init(mode: .exposure, interval: .custom(images: 7, interval: 0.3)),
+                    .init(mode: .exposure, interval: .custom(images: 3, interval: 0.5)),
+                    .init(mode: .exposure, interval: .custom(images: 5, interval: 0.5)),
+                    .init(mode: .exposure, interval: .custom(images: 7, interval: 0.5))
+                ],
+                supported: [
+                    .init(mode: .whiteBalance, interval: .low),
+                    .init(mode: .whiteBalance, interval: .high),
+                    .init(mode: .dro, interval: .low),
+                    .init(mode: .dro, interval: .high),
+                    .init(mode: .exposure, interval: .custom(images: 3, interval: 0.3)),
+                    .init(mode: .exposure, interval: .custom(images: 5, interval: 0.3)),
+                    .init(mode: .exposure, interval: .custom(images: 7, interval: 0.3)),
+                    .init(mode: .exposure, interval: .custom(images: 3, interval: 0.5)),
+                    .init(mode: .exposure, interval: .custom(images: 5, interval: 0.5)),
+                    .init(mode: .exposure, interval: .custom(images: 7, interval: 0.5))
+                ]
+            ),
             flipSetting: nil,
             scene: nil,
             intervalTime: nil,
@@ -506,6 +582,38 @@ public final class DummyCamera: Camera {
         case .takePicture:
             
             callback(nil, URL(string: "https://via.placeholder.com/1370x1028?text=\(NSUUID().uuidString)") as? T.ReturnType)
+            
+        case .setSingleBracketedShootingBracket:
+            
+            guard let value = payload as? SingleBracketCapture.Bracket.Value else {
+                return
+            }
+            singleBracket = value
+            eventCompletion?()
+            
+        case .setContinuousBracketedShootingBracket:
+        
+            guard let value = payload as? ContinuousBracketCapture.Bracket.Value else {
+                return
+            }
+            continuousBracket = value
+            eventCompletion?()
+            
+        case .setContinuousShootingSpeed:
+            
+            guard let value = payload as? ContinuousCapture.Speed.Value else {
+                return
+            }
+            continuousShootingSpeed = value
+            eventCompletion?()
+            
+        case .setContinuousShootingMode:
+            
+            guard let value = payload as? ContinuousCapture.Mode.Value else {
+                return
+            }
+            continuousShootingMode = value
+            eventCompletion?()
             
         default:
             callback(nil, nil)
