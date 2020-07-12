@@ -1550,7 +1550,7 @@ internal class CameraClient: ServiceClient {
     func setShutterSpeed(_ shutterSpeed: ShutterSpeed, completion: @escaping GenericCompletion) {
         
         let shutterSpeedFormatter = ShutterSpeedFormatter()
-        
+                
         let body = SonyRequestBody(method: "setShutterSpeed", params: [shutterSpeedFormatter.string(from: shutterSpeed)], id: 1, version: "1.0")
         
         requestController.request(service.type, method: .POST, body: body.requestSerialised) { (response, error) in

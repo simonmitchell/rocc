@@ -204,7 +204,7 @@ extension SonyCamera {
             case .setContinuousShootingSpeed, .getContinuousShootingSpeed:
                 var _supportingModels: [Model] = alphaSeries
                 _supportingModels.append(contentsOf: cyberShotSeries)
-                _supportingModels = _supportingModels.filter({ ![.a7, .a7r, .a7s, .a5000, .a5100, .a6000, .cyberShot_HX60, .cyberShot_HX60V, .cyberShot_HX400, .cyberShot_HX400V, .cyberShot_RX100M3].contains($0) })
+                _supportingModels = _supportingModels.filter({ ![.a7, .a7r, .a7s, .a7iii, .a9ii, .a5000, .a5100, .a6000, .cyberShot_HX60, .cyberShot_HX60V, .cyberShot_HX400, .cyberShot_HX400V, .cyberShot_RX100M3].contains($0) })
                 let additionalModels: [Model] = [.HDR_AZ1, .HDR_AS200V, .FDR_X1000V, .HDR_AS50, .HDR_AS300, .FDR_X3000, .QX30]
                 _supportingModels.append(contentsOf: additionalModels)
                 return _supportingModels
