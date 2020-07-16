@@ -292,6 +292,7 @@ public final class DummyCamera: Camera {
         return CameraEvent(
             status: .idle,
             liveViewInfo: nil,
+            liveViewQuality: nil,
             zoomPosition: nil,
             availableFunctions: [.setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setSelfTimerDuration, .setWhiteBalance, .startZooming, .setExposureMode, .setTouchAFPosition, .startContinuousBracketShooting, .stopContinuousBracketShooting, .setSingleBracketedShootingBracket, .setContinuousBracketedShootingBracket, .setContinuousShootingSpeed, .setContinuousShootingMode],
             supportedFunctions: [.setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setSelfTimerDuration, .setWhiteBalance, .startZooming, .setExposureMode, .setTouchAFPosition, .setContinuousShootingSpeed, .setContinuousShootingMode],

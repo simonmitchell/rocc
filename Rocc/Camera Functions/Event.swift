@@ -145,6 +145,9 @@ public struct CameraEvent: Equatable {
     /// Information about the LiveView on the camera.
     public let liveViewInfo: LiveViewInformation?
     
+    /// The quality of the live view stream
+    public let liveViewQuality: (current: LiveView.Quality, available: [LiveView.Quality], supported: [LiveView.Quality])?
+    
     /// The current amount the camera is zoomed in, between 0 and 1 (1 being 100% zoom capability of the camera).
     public let zoomPosition: Double?
     

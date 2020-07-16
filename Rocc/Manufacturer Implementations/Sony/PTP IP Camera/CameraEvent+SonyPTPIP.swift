@@ -69,6 +69,7 @@ extension CameraEvent {
         var videoQuality: (current: VideoCapture.Quality.Value, available: [VideoCapture.Quality.Value], supported: [VideoCapture.Quality.Value])?
         var availableFunctions: [_CameraFunction] = []
         var supportedFunctions: [_CameraFunction] = []
+        var liveViewQuality: (current: LiveView.Quality, available: [LiveView.Quality], supported: [LiveView.Quality])?
         
         sonyDeviceProperties.forEach { (deviceProperty) in
                         
@@ -179,6 +180,19 @@ extension CameraEvent {
                 let supported = enumProperty.supported.compactMap({ Flash.Mode.Value(sonyValue: $0) })
                 
                 flashMode = (mode, available, supported)
+                
+            case .liveViewQuality:
+                
+                guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
+                    return
+                }
+                guard let quality = LiveView.Quality(sonyValue: enumProperty.currentValue) else {
+                    return
+                }
+                let available = enumProperty.available.compactMap({ LiveView.Quality(sonyValue: $0) })
+                let supported = enumProperty.supported.compactMap({ LiveView.Quality(sonyValue: $0) })
+                
+                liveViewQuality = (quality, available, supported)
             
             case .stillCaptureMode:
                 
@@ -789,6 +803,7 @@ extension CameraEvent {
         let event = CameraEvent(
             status: nil,
             liveViewInfo: nil,
+            liveViewQuality: liveViewQuality,
             zoomPosition: zoomPosition,
             availableFunctions: availableFunctions,
             supportedFunctions: supportedFunctions,
