@@ -177,7 +177,7 @@ public final class DummyCamera: Camera {
     
     private var continuousBracket: ContinuousBracketCapture.Bracket.Value = .init(mode: .exposure, interval: .custom(images: 5, interval: 0.3))
     
-    private var continuousShootingMode: ContinuousCapture.Mode.Value = .continuous
+    private var continuousShootingMode: ContinuousCapture.Mode.Value = .single
     
     private var continuousShootingSpeed: ContinuousCapture.Speed.Value = .high
     
