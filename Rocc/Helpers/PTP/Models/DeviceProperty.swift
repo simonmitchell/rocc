@@ -128,6 +128,8 @@ extension PTP.DeviceProperty.Code {
             return nil
         case .ISO:
             return [.setISO]
+        case .liveViewQuality:
+            return [.setLiveViewQuality, .startLiveViewWithQuality]
         case .movie:
             return [.startVideoRecording, .endVideoRecording]
         case .movieFormat:
@@ -151,7 +153,7 @@ extension PTP.DeviceProperty.Code {
             // This is a devie B value, so shouldn't appear here and may be used for some other A property
         case .exposureSettingsLock:
             return nil
-        case .recordingDuration, .storageState, .liveViewURL, .liveViewQuality:
+        case .recordingDuration, .storageState, .liveViewURL:
             return nil
         }
     }
@@ -298,8 +300,10 @@ extension PTP.DeviceProperty.Code {
             return .getStillFormat
         case .exposureSettingsLockStatus, .exposureSettingsLock:
             return .getExposureSettingsLock
-        case .liveViewURL, .liveViewQuality:
+        case .liveViewURL:
             return nil
+        case .liveViewQuality:
+            return .getLiveViewQuality
         case .recordingDuration:
             return nil
         }
@@ -341,6 +345,8 @@ extension _CameraFunction {
             return [.stillQuality]
         case .getStillFormat, .setStillFormat:
             return [.stillFormat]
+        case .getLiveViewQuality, .setLiveViewQuality, .startLiveViewWithQuality:
+            return [.liveViewQuality]
         case .setCurrentTime:
             return [.dateTime]
         case .cancelHalfPressShutter, .halfPressShutter:
