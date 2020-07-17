@@ -88,7 +88,7 @@ extension SonyPTPIPDevice {
         case .setContinuousShootingMode:
             // This isn't a thing via PTP according to Sony's app (Instead we just have multiple continuous shooting speeds) so we just don't do anything!
             callback(nil, nil)
-        case .setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setFocusMode, .setExposureMode, .setExposureModeDialControl, .setFlashMode, .setContinuousShootingSpeed, .setStillQuality, .setStillFormat, .setVideoFileFormat, .setVideoQuality, .setContinuousBracketedShootingBracket, .setSingleBracketedShootingBracket:
+        case .setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setFocusMode, .setExposureMode, .setExposureModeDialControl, .setFlashMode, .setContinuousShootingSpeed, .setStillQuality, .setStillFormat, .setVideoFileFormat, .setVideoQuality, .setContinuousBracketedShootingBracket, .setSingleBracketedShootingBracket, .setLiveViewQuality:
             guard let value = payload as? SonyPTPPropValueConvertable else {
                 callback(FunctionError.invalidPayload, nil)
                 return
@@ -334,7 +334,6 @@ extension SonyPTPIPDevice {
             // Not available natively with PTP/IP
             callback(FunctionError.notSupportedByAvailableVersion, nil)
         case .takePicture, .takeSingleBracketShot:
-            //TODO: [Bracketing] Test this!
             takePicture { (result) in
                 switch result {
                 case .success(let url):
@@ -344,7 +343,6 @@ extension SonyPTPIPDevice {
                 }
             }
         case .startContinuousShooting, .startContinuousBracketShooting:
-            //TODO: [Bracketing] Test this!
             startCapturing { (error) in
                 callback(error, nil)
             }
@@ -449,33 +447,43 @@ extension SonyPTPIPDevice {
                     callback(nil, url as? T.ReturnType)
                 }
             }
-        case .startLiveView, .startLiveViewWithSize, .endLiveView:
+        case .startLiveView, .startLiveViewWithQuality, .endLiveView:
             getDevicePropDescriptionFor(propCode: .liveViewURL) { [weak self] (result) in
+                
                 guard let self = self else { return }
                 switch result {
                 case .success(let property):
-                    guard let string = property.currentValue as? String, let url = URL(string: string) else {
-                        callback(nil, self.apiDeviceInfo.liveViewURL as? T.ReturnType)
+                    
+                    var url: URL = self.apiDeviceInfo.liveViewURL
+                    if let string = property.currentValue as? String, let returnedURL = URL(string: string) {
+                        url = returnedURL
+                    }
+                    
+                    guard function.function == .startLiveViewWithQuality, let quality = payload as? LiveView.Quality else {
+                        callback(nil, url as? T.ReturnType)
                         return
                     }
-                    callback(nil, url as? T.ReturnType)
                     
-                    // After the callback set the live view quality
-                    self.ptpIPClient?.sendSetControlDeviceAValue(
-                        PTP.DeviceProperty.Value(
-                            code: .liveViewQuality,
-                            type: .uint8,
-                            value: Byte(0x01)
-                        )
-                    )
+                    self.performFunction(
+                        LiveView.QualitySet.set,
+                        payload: quality) { (_, _) in
+                        callback(nil, url as? T.ReturnType)
+                    }
                     
                 case .failure(_):
                     callback(nil, self.apiDeviceInfo.liveViewURL as? T.ReturnType)
                 }
             }
-        case .getLiveViewSize:
-            // Doesn't seem to be available via PTP/IP
-            callback(FunctionError.notSupportedByAvailableVersion, nil)
+        case .getLiveViewQuality:
+            getDevicePropDescriptionFor(propCode: .liveViewQuality, callback: { (result) in
+                switch result {
+                case .success(let property):
+                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                    callback(nil, event.liveViewQuality?.current as? T.ReturnType)
+                case .failure(let error):
+                    callback(error, nil)
+                }
+            })
         case .setSendLiveViewFrameInfo:
             // Doesn't seem to be available via PTP/IP
             callback(FunctionError.notSupportedByAvailableVersion, nil)

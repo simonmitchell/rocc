@@ -173,7 +173,7 @@ public final class LiveViewStream: NSObject {
     
     private var eventTimer: Timer?
     
-    /// Starts the stream
+    /// Performs all setup of the live view stream and begins streaming images over the network
     public func start() {
         
         #if os(iOS)
@@ -184,6 +184,8 @@ public final class LiveViewStream: NSObject {
             return
         }
         #endif
+        
+        //TODO: If `quality` is provided then all LiveView.startWithSize instead!
         
         isStarting = true
         

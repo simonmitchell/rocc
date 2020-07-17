@@ -113,11 +113,22 @@ extension SonyPTPIPDevice {
             case .startLoopRecording, .endLoopRecording:
                 //TODO: Unable to reverse engineer as not supported on RX100 VII
                 callback(false, nil, nil)
-            case .startLiveView, .startLiveViewWithSize, .endLiveView:
+            case .startLiveView, .endLiveView:
                 callback(true, nil, nil)
-            case .getLiveViewSize:
-                //TODO: Unable to reverse engineer as not supported on RX100 VII
-                callback(false, nil, nil)
+            case .getLiveViewQuality, .setLiveViewQuality, .startLiveViewWithQuality:
+                getDevicePropDescriptionFor(propCode: .liveViewQuality, callback: { (result) in
+                    switch result {
+                    case .success(let property):
+                        let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                        callback(
+                            event.availableFunctions?.contains(function.function),
+                            nil,
+                            event.liveViewQuality?.available as? [T.SendType]
+                        )
+                    case .failure(let error):
+                        callback(false, error, nil)
+                    }
+                })
             case .setSendLiveViewFrameInfo, .getSendLiveViewFrameInfo:
                 // Doesn't seem to be available via PTP/IP
                 callback(false, nil, nil)

@@ -640,7 +640,7 @@ extension SonyAPICameraDevice: Camera {
                 }
                 callback(true, nil, shootModes as? [T.SendType])
             })
-        case .startLiveViewWithSize:
+        case .startLiveViewWithQuality, .setLiveViewQuality:
             apiClient.camera?.getSupportedLiveViewSizes({ (result) in
                 guard case let .success(whiteBalances) = result else {
                     callback(true, nil, nil)
@@ -1120,7 +1120,7 @@ extension SonyAPICameraDevice: Camera {
                     }
                 })
                 
-            case .startLiveViewWithSize:
+            case .startLiveViewWithQuality, .setLiveViewQuality:
                 
                 self.apiClient.camera?.getAvailableLiveViewSizes({ (response) in
                     guard case let .success(values) = response, let _values = values as? [T.SendType] else {
@@ -1917,9 +1917,9 @@ extension SonyAPICameraDevice: Camera {
                     }
                 }
                 
-            case .startLiveViewWithSize:
+            case .startLiveViewWithQuality:
                 
-                guard let size = payload as? String else {
+                guard let size = payload as? LiveView.Quality else {
                     callback(FunctionError.invalidPayload, nil)
                     return
                 }
@@ -1932,6 +1932,36 @@ extension SonyAPICameraDevice: Camera {
                         callback(nil, url as? T.ReturnType)
                     }
                 })
+                
+            case .getLiveViewQuality:
+                
+                camera.getLiveViewSize { (result) in
+                    switch result {
+                    case .failure(let error):
+                        callback(error, nil)
+                    case .success(let quality):
+                        callback(nil, quality as? T.ReturnType)
+                    }
+                }
+                
+            case .setLiveViewQuality:
+                
+                guard let quality = payload as? LiveView.Quality else {
+                    callback(FunctionError.invalidPayload, nil)
+                    return
+                }
+                
+                camera.setLiveViewSize(size: quality) { (result) in
+                    switch result {
+                    case .failure(let error):
+                        callback(error, nil)
+                    case .success(let url):
+                        callback(
+                            nil,
+                            url as? T.ReturnType
+                        )
+                    }
+                }
                 
             case .endLiveView:
                 

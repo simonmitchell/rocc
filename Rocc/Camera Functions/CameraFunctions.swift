@@ -38,9 +38,10 @@ public enum _CameraFunction: String, CaseIterable {
     case startLoopRecording
     case endLoopRecording
     case startLiveView
-    case startLiveViewWithSize
+    case startLiveViewWithQuality
     case endLiveView
-    case getLiveViewSize
+    case getLiveViewQuality
+    case setLiveViewQuality
     case setSendLiveViewFrameInfo
     case getSendLiveViewFrameInfo
     case startZooming

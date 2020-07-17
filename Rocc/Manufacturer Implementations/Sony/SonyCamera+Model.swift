@@ -164,7 +164,7 @@ extension SonyCamera {
                 return [.HDR_AS50, .HDR_AS300, .FDR_X3000, .HDR_AS200V, .FDR_X1000V]
             case .startLiveView, .endLiveView, .getEvent, .setShootMode, .getShootMode:
                 return allCases
-            case .startLiveViewWithSize, .getLiveViewSize:
+            case .startLiveViewWithQuality, .getLiveViewQuality, .setLiveViewQuality:
                 var _supportingModels = alphaSeries
                 _supportingModels.append(contentsOf: NEXSeries)
                 _supportingModels.append(contentsOf: cyberShotSeries)
