@@ -148,16 +148,24 @@ public final class Reachability {
         }
         
         let observer = UnsafeRawPointer(Unmanaged.passUnretained(self).toOpaque())
-        CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), observer, { (nc, observer, name, _, _) -> Swift.Void in
+        CFNotificationCenterAddObserver(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            observer,
+            { (nc, observer, name, _, _) -> Swift.Void in
             
-            guard let observer = observer, let name = name else {
-                return
-            }
             
-            let instance = Unmanaged<Reachability>.fromOpaque(observer).takeUnretainedValue()
-            instance.onNetworkChange(name.rawValue as String)
+                guard let observer = observer, let name = name else {
+                    return
+                }
+                
+                let instance = Unmanaged<Reachability>.fromOpaque(observer).takeUnretainedValue()
+                instance.onNetworkChange(name.rawValue as String)
             
-        }, NetworkChangeNotificationName as CFString, nil, .deliverImmediately)
+            },
+            NetworkChangeNotificationName as CFString,
+            nil,
+            .deliverImmediately
+        )
         
         // Registers the callback. `callbackClosure` is the closure where we manage the callback implementation
         if !SCNetworkReachabilitySetCallback(reachability, callbackClosure, &context) {
