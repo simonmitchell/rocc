@@ -32,5 +32,7 @@ public struct Aperture: CameraFunction {
 }
 
 extension Aperture.Value: Equatable {
-    
+    public static func ==(lhs: Aperture.Value, rhs: Aperture.Value) -> Bool {
+        return lhs.value == rhs.value
+    }
 }

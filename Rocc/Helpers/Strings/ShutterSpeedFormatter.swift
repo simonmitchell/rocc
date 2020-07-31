@@ -42,6 +42,10 @@ public struct ShutterSpeed: Equatable {
     public var isBulb: Bool {
         return (denominator == -1.0 || numerator == -1.0) || (denominator == 0 && numerator == 0)
     }
+    
+    public static func ==(lhs: ShutterSpeed, rhs: ShutterSpeed) -> Bool {
+        return lhs.numerator == rhs.numerator && lhs.denominator == rhs.denominator && lhs.isBulb == rhs.isBulb
+    }
 }
 
 extension ShutterSpeed: Codable {

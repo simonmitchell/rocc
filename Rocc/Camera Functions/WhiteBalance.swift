@@ -41,6 +41,16 @@ public struct WhiteBalance: CameraFunction {
         public let temperature: Int?
         
         let rawInternal: String
+        
+        public static func == (lhs: WhiteBalance.Value, rhs: WhiteBalance.Value) -> Bool {
+            switch (lhs.mode, rhs.mode) {
+                // Only compare color temp if we're actually in that mode!
+            case (.colorTemp, .colorTemp):
+                return lhs.temperature == rhs.temperature
+            default:
+                return lhs.mode == rhs.mode
+            }
+        }
     }
     
     public var function: _CameraFunction
