@@ -217,14 +217,12 @@ extension SonyCamera {
                 _supportingModels.append(contentsOf: additionalModels)
                 return _supportingModels
             case .setExposureMode, .getExposureMode:
-                //TODO: Remove cameras with hardware dial!
                 var _supportingModels = alphaSeries
                 _supportingModels.append(contentsOf: NEXSeries)
                 _supportingModels.append(contentsOf: cyberShotSeries)
                 _supportingModels.append(contentsOf: QXSeries)
                 return _supportingModels
             case .setFocusMode, .getFocusMode:
-                //TODO: Remove cameras with hardware switch!
                 var _supportingModels: [Model] = alphaSeries
                 _supportingModels.append(contentsOf: cyberShotSeries)
                 _supportingModels.append(contentsOf: NEXSeries)

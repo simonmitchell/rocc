@@ -184,9 +184,7 @@ public final class LiveViewStream: NSObject {
             return
         }
         #endif
-        
-        //TODO: If `quality` is provided then all LiveView.startWithSize instead!
-        
+                
         isStarting = true
         
         Logger.log(message: "Starting live view stream", category: "LiveViewStreaming", level: .debug)
