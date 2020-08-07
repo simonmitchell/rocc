@@ -54,9 +54,7 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
     private let udpClient: UDPClient
     
     private let reachability: Reachability?
-    
-    private var lastSSID: String?
-    
+        
     private let log: OSLog = OSLog(subsystem: "com.yellow-brick-bear.rocc", category: "UDPDeviceDiscoverer")
     
     init(initialMessages: [String], address: String, port: Int = 0) {
@@ -78,7 +76,6 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
     func start(ignoreSavedDevices: Bool) {
         
         var isReachable: Bool = true
-        lastSSID = Reachability.currentWiFiSSID
         
         Logger.log(message: "Starting device search", category: "UDPDeviceDiscoverer", level: .info)
         os_log("Starting device search", log: log, type: .info)
@@ -114,13 +111,12 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
         }
         
         reachability?.networkChangeCallback = { [weak self] (ssid) in
-            guard let this = self/*, this.lastSSID != ssid */ else { return }
-//            this.lastSSID = ssid
+            guard let self = self else { return }
             Logger.log(message: "Network did change: \(ssid ?? "null")", category: "UDPDeviceDiscoverer", level: .debug)
-            os_log("Network did change %{public}@", log: this.log, type: .debug, ssid ?? "Unknown")
-            this.requestController.cancelAllRequests()
-            this.udpClient.finishSearching(with: { [weak this] in
-                this?.start()
+            os_log("Network did change %{public}@", log: self.log, type: .debug, ssid ?? "Unknown")
+            self.requestController.cancelAllRequests()
+            self.udpClient.finishSearching(with: { [weak self] in
+                self?.start()
             })
         }
         
@@ -175,7 +171,6 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
         Logger.log(message: "Stopping search for devices", category: "UDPDeviceDiscoverer", level: .debug)
         os_log("Stopping search for devices", log: log, type: .debug)
         
-        lastSSID = nil
         requestController.cancelAllRequests()
         reachability?.stop()
         udpClient.finishSearching(with: callback)

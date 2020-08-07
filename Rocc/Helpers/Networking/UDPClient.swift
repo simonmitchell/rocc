@@ -161,19 +161,19 @@ class UDPClient {
         backgroundQueue = DispatchQueue.global(qos: .userInitiated)
         backgroundQueue?.async { [weak self] in
             
-            guard let strongSelf = self else { return }
+            guard let self = self else { return }
             
-            if strongSelf.sendSocket == nil {
-                strongSelf.sendSocket = strongSelf.newSocket()
+            if self.sendSocket == nil {
+                self.sendSocket = self.newSocket()
             }
             
-            guard let sendSocket = strongSelf.sendSocket else {
-                strongSelf.callCompletionHandlers(with: nil, error: UDPClientError.failedToCreateSendSocket)
+            guard let sendSocket = self.sendSocket else {
+                self.callCompletionHandlers(with: nil, error: UDPClientError.failedToCreateSendSocket)
                 return
             }
             
             // Send on the socket
-            let messages = strongSelf.initialMessage
+            let messages = self.initialMessage
             
             let messageDatas = messages.map({ (message) in
                 return (message: message, data: Data(Array(message.utf8)) as CFData)
@@ -182,44 +182,48 @@ class UDPClient {
             var address: sockaddr_in = sockaddr_in(
                 sin_len: __uint8_t(MemoryLayout<sockaddr_in>.size),
                 sin_family: sa_family_t(AF_INET),
-                sin_port: htons(CUnsignedShort(strongSelf.port)),
-                sin_addr: in_addr(strongSelf.address)!,
+                sin_port: htons(CUnsignedShort(self.port)),
+                sin_addr: in_addr(self.address)!,
                 sin_zero: ( 0, 0, 0, 0, 0, 0, 0, 0 )
             )
             
             let addressData = Data(bytes: &address, count: MemoryLayout.size(ofValue: address))
             
             Logger.log(message: "Initialising socket for listening", category: "UDPClient", level: .debug)
-            os_log("Initialising socket for listening", log: strongSelf.log, type: .debug)
+            os_log("Initialising socket for listening", log: self.log, type: .debug)
             
-            if strongSelf.listenSocket == nil {
-                strongSelf.listenSocket = strongSelf.newSocket()
+            if self.listenSocket == nil {
+                self.listenSocket = self.newSocket()
             }
             
-            guard let _listenSocket = strongSelf.listenSocket else {
-                strongSelf.callCompletionHandlers(with: nil, error: UDPClientError.failedToCreateListenSocket)
+            guard let _listenSocket = self.listenSocket else {
+                self.callCompletionHandlers(with: nil, error: UDPClientError.failedToCreateListenSocket)
                 return
             }
             
-            guard strongSelf.setReusePortOption(for: _listenSocket) else {
-                strongSelf.callCompletionHandlers(with: nil, error: UDPClientError.failedToSetReuseOptions)
+            guard self.setReusePortOption(for: _listenSocket) else {
+                self.callCompletionHandlers(with: nil, error: UDPClientError.failedToSetReuseOptions)
                 return
             }
             
             // Send data to socket
             messageDatas.forEach({ (messageData) in
-                if CFSocketSendData(sendSocket, addressData as CFData, messageData.data, 0.0) == CFSocketError.success {
+                let sendResponse = CFSocketSendData(sendSocket, addressData as CFData, messageData.data, 0.0)
+                if sendResponse == CFSocketError.success {
                     Logger.log(message: "Sending data to socket:\n\n\(messageData.message)", category: "UDPClient", level: .debug)
-                    os_log("sendSocket Sending data:\n\n%@", log: strongSelf.log, type: .debug, messageData.message)
+                    os_log("sendSocket Sending data:\n\n%@", log: self.log, type: .debug, messageData.message)
+                } else {
+                    Logger.log(message: "Failed to send data to socket \(sendResponse):\n\n\(messageData.message)", category: "UDPClient", level: .error)
+                    os_log("Failed to send data to socket:\n\n%@", log: self.log, type: .error, messageData.message)
                 }
             })
             
             // Set the listen socket's address
             let setAddressResponse = CFSocketSetAddress(_listenSocket, addressData as CFData)
             guard setAddressResponse == CFSocketError.success else {
-                strongSelf.callCompletionHandlers(with: nil, error: UDPClientError.failedToSetListenAddress)
+                self.callCompletionHandlers(with: nil, error: UDPClientError.failedToSetListenAddress)
                 Logger.log(message: "listenSocket CFSocketSetAddress() failed. [errno \(errno)]", category: "UDPClient", level: .error)
-                os_log("listenSocket CFSocketSetAddress() failed. [errno %d]", log: strongSelf.log, type: .error, errno)
+                os_log("listenSocket CFSocketSetAddress() failed. [errno %d]", log: self.log, type: .error, errno)
                 return
             }
             
@@ -228,21 +232,21 @@ class UDPClient {
             let _listenSource = CFSocketCreateRunLoopSource(kCFAllocatorDefault, _listenSocket, 0)
             
             if _sendSource == nil && _listenSource == nil {
-                strongSelf.callCompletionHandlers(with: nil, error: UDPClientError.failedToCreateRunLoopSources)
+                self.callCompletionHandlers(with: nil, error: UDPClientError.failedToCreateRunLoopSources)
                 Logger.log(message: "CFRunLoopSourceRef's couldn't be allocated", category: "UDPClient", level: .error)
-                os_log("CFRunLoopSourceRef's couldn't be allocated", log: strongSelf.log, type: .error)
+                os_log("CFRunLoopSourceRef's couldn't be allocated", log: self.log, type: .error)
                 return
             }
             
             if let sendSource = _sendSource {
                 CFRunLoopAddSource(CFRunLoopGetCurrent(), sendSource, .defaultMode)
                 Logger.log(message: "sendSource added", category: "UDPClient", level: .debug)
-                os_log("sendSource added", log: strongSelf.log, type: .debug)
+                os_log("sendSource added", log: self.log, type: .debug)
             }
             if let listenSource = _listenSource {
                 CFRunLoopAddSource(CFRunLoopGetCurrent(), listenSource, .defaultMode)
                 Logger.log(message: "listenSocket listening", category: "UDPClient", level: .debug)
-                os_log("listenSocket listening", log: strongSelf.log, type: .debug)
+                os_log("listenSocket listening", log: self.log, type: .debug)
             }
                         
             CFRunLoopRun()
