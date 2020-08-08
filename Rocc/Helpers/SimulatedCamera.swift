@@ -167,6 +167,8 @@ public final class DummyCamera: Camera {
     
     private var currentShootMode: ShootingMode = .photo
     
+    private var currentWhiteBalance: WhiteBalance.Value = .init(mode: .auto, temperature: nil, rawInternal: "")
+    
     var currentFocusMode: Focus.Mode.Value = .auto
     
     private var currentExposureComp: Exposure.Compensation.Value = Exposure.Compensation.Value(value: 0.0)
@@ -391,7 +393,7 @@ public final class DummyCamera: Camera {
                 ShutterSpeed(numerator: 30, denominator: 1),
                 .bulb
                 ], supported: []),
-            whiteBalance: CameraEvent.WhiteBalanceInformation(shouldCheck: true, whitebalanceValue: WhiteBalance.Value(mode: .auto, temperature: nil, rawInternal: ""), available: nil, supported: nil),
+            whiteBalance: CameraEvent.WhiteBalanceInformation(shouldCheck: true, whitebalanceValue: currentWhiteBalance, available: nil, supported: nil),
             touchAF: nil,
             focusStatus: nil,
             zoomSetting: nil,
@@ -566,6 +568,12 @@ public final class DummyCamera: Camera {
                 return
             }
             currentExposureComp = value
+            eventCompletion?()
+            
+        case .setWhiteBalance:
+            
+            guard let value = payload as? WhiteBalance.Value else { return }
+            currentWhiteBalance = value
             eventCompletion?()
             
         case .startBulbCapture:
