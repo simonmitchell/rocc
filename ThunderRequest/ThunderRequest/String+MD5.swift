@@ -19,7 +19,7 @@ public extension String {
         }
         var digestData = Data(count: Int(CC_MD5_DIGEST_LENGTH))
         
-        _ = digestData.withUnsafeMutableBytes { (digestBody: UnsafeMutableRawBufferPointer) in
+        digestData.withUnsafeMutableBytes { (digestBody: UnsafeMutableRawBufferPointer) in
             
             guard let baseAddress = digestBody.baseAddress, digestBody.count > 0 else {
                 return
