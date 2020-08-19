@@ -347,7 +347,7 @@ extension SonyCamera {
         }
         
         static var alphaSeries: [Model] {
-            return [.a7, .a7ii, .a7iii, .a7r, .a7rii, .a7riii, .a7s, .a7sii, .a5000, .a5100, .a6000, .a6300, .a6500]
+            return [.a7, .a7ii, .a7iii, .a7r, .a7rii, .a7riii, .a7s, .a7sii, .a7siii, .a5000, .a5100, .a6000, .a6100, .a6300, .a6400, .a6500, .a6600]
         }
         
         var latestFirmwareVersion: String? {
