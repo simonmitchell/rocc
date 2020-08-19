@@ -186,7 +186,13 @@ internal final class SonyAPICameraDevice: SonyCamera {
         model = modelEnum?.friendlyName ?? model
         lensModelName = deviceInfo?.lensModelName
         firmwareVersion = deviceInfo?.firmwareVersion
-        remoteAppVersion = deviceInfo?.installedPlayMemoriesApps.first(where :{ $0.name == "Smart Remote Control" })?.version
+        remoteAppVersion = deviceInfo?.installedPlayMemoriesApps.first(
+            where: {
+                $0.name.lowercased() == "smart remote control" ||
+                $0.name.lowercased() == "smart remote embedded" ||
+                $0.name.lowercased().contains("smart remote")
+            }
+        )?.version
     }
 }
 

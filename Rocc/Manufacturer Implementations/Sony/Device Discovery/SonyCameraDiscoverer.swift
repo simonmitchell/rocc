@@ -23,7 +23,13 @@ extension SonyTransferDevice {
             updatedSelf.model = modelEnum.friendlyName
         }
         updatedSelf.firmwareVersion = deviceInfo?.firmwareVersion
-        updatedSelf.remoteAppVersion = deviceInfo?.installedPlayMemoriesApps.first(where :{ $0.name == "Smart Remote Control" })?.version
+        updatedSelf.remoteAppVersion = deviceInfo?.installedPlayMemoriesApps.first(
+            where: {
+                $0.name.lowercased() == "smart remote control" ||
+                $0.name.lowercased() == "smart remote embedded" ||
+                $0.name.lowercased().contains("smart remote")
+            }
+        )?.version
         
         return updatedSelf
     }
