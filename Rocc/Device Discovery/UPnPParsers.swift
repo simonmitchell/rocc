@@ -266,7 +266,11 @@ internal final class UPnPDeviceParser: NSObject, XMLParserDelegate {
     }
 }
 
-internal struct UPnPFolder {
+protocol UPnPCitizen {
+    
+}
+
+internal struct UPnPFolder: UPnPCitizen {
     
     let id: String
     
@@ -490,7 +494,7 @@ fileprivate struct Res {
     }
 }
 
-extension File {
+extension File: UPnPCitizen {
     
     init?(upnpDictionary: [AnyHashable : Any], dateFormatter: DateFormatter) {
         

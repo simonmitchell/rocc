@@ -381,57 +381,119 @@ extension SonyTransferDevice: Camera {
     ///
     /// - Parameters:
     ///   - objectId: The ID of the folder to load subfolders from
-    ///   - path: The path to make the request to, this should be the control URL of the `ContentDirectory` service
+    ///   - contentServiceURLPath: The path to make the request to, this should be the control URL of the `ContentDirectory` service
     ///   - parentFolder: The parent folder for the request
     ///   - callback: A closure to be called once the date based folders have been found!
-    private func recurseFolderContents(objectId: String, contentServiceURLPath: String, parentFolder: UPnPFolder? = nil, _ callback: @escaping (_ error: Error?, _ dateFolders: [UPnPFolder]?) -> Void) {
+    private func recurseFolderContents(
+        objectId: String,
+        contentServiceURLPath: String,
+        parentFolder: UPnPFolder? = nil,
+        _ callback: @escaping (_ error: Error?, _ dateFolders: [UPnPFolder]?) -> Void
+    ) {
         
         // Using PhotoRoot here is a quick win, it may not work on all Sony models!
-        let rootObjectBody = SOAPRequestBody(browseObjectId: objectId)
-        
-        requestController?.request(contentServiceURLPath, method: .POST, body: rootObjectBody, headers: ["SOAPACTION": "\"urn:schemas-upnp-org:service:ContentDirectory:1#Browse\""]) { [weak self] (response, requestError) in
+        fullyloadFolderSubFolders(objectId: objectId, contentServiceURLPath: contentServiceURLPath) { [weak self] (foldersError, folders) in
             
-            guard let strongSelf = self else {
+            guard let self = self else {
                 callback(nil, nil)
                 return
             }
             
-            guard let browseResponse = response else {
-                callback(requestError ?? CameraError.invalidResponse("Browse ContentDirectory"), nil)
+            guard let _folders = folders, let firstFolder = _folders.first else {
+                callback(foldersError, nil)
                 return
             }
             
-            strongSelf.parseUPnPFolders(response: browseResponse, completion: { [weak strongSelf] (folders, foldersError) in
-                
-                guard let _strongSelf = strongSelf else {
-                    callback(nil, nil)
-                    return
+            guard _folders.count > 1 || parentFolder?.title == "Date" else {
+                self.recurseFolderContents(
+                    objectId: firstFolder.id,
+                    contentServiceURLPath: contentServiceURLPath,
+                    parentFolder: firstFolder,
+                    callback
+                )
+                return
+            }
+            
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            let sortedFolders = _folders.sorted(by: { (folder1, folder2) -> Bool in
+                guard let title1 = folder1.title, let date1 = dateFormatter.date(from: title1) else {
+                    return false
                 }
-                
-                guard let _folders = folders, let firstFolder = _folders.first else {
-                    callback(foldersError, nil)
-                    return
+                guard let title2 = folder2.title, let date2 = dateFormatter.date(from: title2) else {
+                    return true
                 }
-                
-                guard _folders.count > 1 || parentFolder?.title == "Date" else {
-                    _strongSelf.recurseFolderContents(objectId: firstFolder.id, contentServiceURLPath: contentServiceURLPath, parentFolder: firstFolder, callback)
-                    return
-                }
-                
-                let dateFormatter = DateFormatter()
-                dateFormatter.dateFormat = "yyyy-MM-dd"
-                let sortedFolders = _folders.sorted(by: { (folder1, folder2) -> Bool in
-                    guard let title1 = folder1.title, let date1 = dateFormatter.date(from: title1) else {
-                        return false
-                    }
-                    guard let title2 = folder2.title, let date2 = dateFormatter.date(from: title2) else {
-                        return true
-                    }
-                    return date1 > date2
-                })
-                _strongSelf.dateFolders = sortedFolders
-                callback(nil, sortedFolders)
+                return date1 > date2
             })
+            self.dateFolders = sortedFolders
+            callback(nil, sortedFolders)
+        }
+    }
+    
+    /// Fully loads the contents of a UPnP folder, assuming it's contents are also folders. This function paginates through
+    /// the folders if the response doesn't contain the full result of the initial "Browse" call
+    /// - Parameters:
+    ///   - objectId: The ID of the folder to load subfolders from
+    ///   - contentServiceURLPath: The path to make the request to, this should be the control URL of the `ContentDirectory` service
+    ///   - cumulativeFolders: The recursive array of folders loaded via pagination
+    ///   - offset: The current offset in the pagination
+    ///   - completion: A closure called once all subfolders have been loaded, or we get a response with `0` as `ReturnedResults`
+    private func fullyloadFolderSubFolders(
+        objectId: String,
+        contentServiceURLPath: String,
+        cumulativeFolders: [UPnPFolder] = [],
+        offset: Int = 0,
+        _ completion: @escaping (_ error: Error?, _ folders: [UPnPFolder]?) -> Void
+    ) {
+        
+        let rootObjectBody = SOAPRequestBody(browseObjectId: objectId, startIndex: offset)
+        
+        // Make Browse request to server
+        requestController?.request(contentServiceURLPath, method: .POST, body: rootObjectBody, headers: ["SOAPACTION": "\"urn:schemas-upnp-org:service:ContentDirectory:1#Browse\""]) { [weak self] (response, requestError) in
+            
+            guard let self = self else {
+                completion(nil, nil)
+                return
+            }
+            
+            guard let browseResponse = response else {
+                completion(requestError ?? CameraError.invalidResponse("Browse ContentDirectory"), nil)
+                return
+            }
+            
+            // Parse UPnP folders from network request response
+            self.parseUPnPFolders(response: browseResponse) { [weak self] (UPnPResponse, parseError) in
+                
+                guard let self = self else {
+                    completion(nil, nil)
+                    return
+                }
+                
+                guard let UPnPResponse = UPnPResponse else {
+                    completion(parseError ?? CameraError.invalidResponse("Browse ContentDirectory"), nil)
+                    return
+                }
+                
+                // Append the folders to the previous response
+                var _totalResult = cumulativeFolders
+                _totalResult.append(contentsOf: UPnPResponse.objects)
+                
+                // We'll be safe here and also finish this process if numberReturned of the response was zero
+                // this should insure that bad implementations of UPnP get caught and don't result in infinite
+                // recursion
+                if UPnPResponse.numberReturned == 0 || _totalResult.count >= UPnPResponse.totalMatches {
+                    completion(nil, _totalResult)
+                } else {
+                    // If haven't loaded, then paginate the next lot!
+                    self.fullyloadFolderSubFolders(
+                        objectId: objectId,
+                        contentServiceURLPath: contentServiceURLPath,
+                        cumulativeFolders: _totalResult,
+                        offset: _totalResult.count,
+                        completion
+                    )
+                }
+            }
         }
     }
     
@@ -473,26 +535,56 @@ extension SonyTransferDevice: Camera {
         }
     }
     
+    struct UPnPResponse<T: UPnPCitizen> {
+        
+        let totalMatches: Int
+        
+        let numberReturned: Int
+        
+        let objects: [T]
+    }
+    
     /// Parses UPnP folders from a ThunderRequest RequestResponse object
     ///
     /// - Parameters:
     ///   - response: The response from the `request` method of ThunderRequest
     ///   - completion: A closure to be called once parsing has finished
-    private func parseUPnPFolders(response: RequestResponse, completion: @escaping ((_ folders: [UPnPFolder]?, _ error: Error?) -> Void)) {
+    private func parseUPnPFolders(
+        response: RequestResponse,
+        completion: @escaping ((_ response: UPnPResponse<UPnPFolder>?, _ error: Error?) -> Void)
+    ) {
         
         response.parseSOAPResponse({ [weak self] (soapResponse, soapParseError) in
             
-            guard let strongSelf = self else {
+            guard let self = self else {
                 completion(nil, nil)
                 return
             }
             
-            guard let result = soapResponse?["Result"] as? String else {
+            guard let result = soapResponse?["Result"] as? String,
+                  let returnedString = soapResponse?["NumberReturned"] as? String,
+                  let numberReturned = Int(returnedString),
+                  let matchesString = soapResponse?["TotalMatches"] as? String,
+                  let totalMatches = Int(matchesString) else {
                 completion(nil, soapParseError)
                 return
             }
             
-            strongSelf.parseUPnPFolders(xmlString: result, completion: completion)
+            self.parseUPnPFolders(xmlString: result) { (folders, error) in
+                
+                if let _folders = folders {
+                    completion(
+                        UPnPResponse(
+                            totalMatches: totalMatches,
+                            numberReturned: numberReturned,
+                            objects: _folders
+                        ),
+                        nil
+                    )
+                } else {
+                    completion(nil, error)
+                }
+            }
             
         }, tag: "u:BrowseResponse")
     }

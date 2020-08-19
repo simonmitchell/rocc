@@ -524,7 +524,7 @@ extension SonyAPICameraDevice: Camera {
                         }
                         
                         switch _setError {
-                            // Let's be cautious here, the a6300 even though it's listed as supporting `setCameraFunction` sometimes seems to
+                        // Let's be cautious here, the a6300 even though it's listed as supporting `setCameraFunction` sometimes seems to
                         // throw `noSuchMethod` here!
                         case CameraError.noSuchMethod(_):
                             callback(nil)
