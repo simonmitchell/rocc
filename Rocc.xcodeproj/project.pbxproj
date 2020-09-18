@@ -223,6 +223,13 @@
 			remoteGlobalIDString = B120EE3D207B895800A4A7CA;
 			remoteInfo = "ThunderRequest-watchOS";
 		};
+		B1D8A8422514AB56005C02F6 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B18EAEE32469DCA400C3BE91 /* ThunderRequest.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = C2E5088119C835A300350F00;
+			remoteInfo = "ThunderRequest-iOS";
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -843,6 +850,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				B1D8A8432514AB56005C02F6 /* PBXTargetDependency */,
 			);
 			name = Rocc;
 			productName = CCKit;
@@ -1174,6 +1182,11 @@
 			isa = PBXTargetDependency;
 			target = B1316A4C2089C08F006BD136 /* Rocc */;
 			targetProxy = B1316A582089C08F006BD136 /* PBXContainerItemProxy */;
+		};
+		B1D8A8432514AB56005C02F6 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "ThunderRequest-iOS";
+			targetProxy = B1D8A8422514AB56005C02F6 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
