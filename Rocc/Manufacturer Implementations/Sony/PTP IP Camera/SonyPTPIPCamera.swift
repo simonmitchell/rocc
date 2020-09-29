@@ -61,7 +61,10 @@ internal final class SonyPTPIPDevice: SonyCamera {
             if let cachedPTPIPClient = cachedPTPIPClient {
                 return cachedPTPIPClient
             }
-            cachedPTPIPClient = PTPIPClient(camera: self)
+            guard let stream = InputOutputPacketStream(camera: self, port: 15740) else {
+                return nil
+            }
+            cachedPTPIPClient = PTPIPClient(camera: self, packetStream: stream)
             return cachedPTPIPClient
         }
         set {
@@ -148,7 +151,11 @@ internal final class SonyPTPIPDevice: SonyCamera {
     private func sendStartSessionPacket(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
         
         // First argument here is the session ID.
-        let packet = Packet.commandRequestPacket(code: .openSession, arguments: [0x00000001], transactionId: ptpIPClient?.getNextTransactionId() ?? 0)
+        let packet = Packet.commandRequestPacket(
+            code: .openSession,
+            arguments: [0x00000001],
+            transactionId: ptpIPClient?.getNextTransactionId() ?? 0
+        )
         ptpIPClient?.sendCommandRequestPacket(packet, callback: { [weak self] (response) in
             guard response.code == .okay else {
                 completion(PTPError.commandRequestFailed(response.code), false)
