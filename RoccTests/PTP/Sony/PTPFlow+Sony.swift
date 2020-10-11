@@ -29,5 +29,9 @@ extension TestPTPPacketStream.TestFlow {
         static let connect: TestPTPPacketStream.TestFlow = Bundle.current.ptpTestFlow(named: "PTPFlow_Sony_Connect")
         
         static let connectAlreadyOpen: TestPTPPacketStream.TestFlow = Bundle.current.ptpTestFlow(named: "PTPFlow_Sony_Connect_Already_Open")
+        
+        static let getEvent = Bundle.current.ptpTestFlow(named: "PTPFlow_Sony_GetEvent")
+        
+        static let takePicture = Bundle.current.ptpTestFlow(named: "PTPFlow_Sony_TakePic")
     }
 }

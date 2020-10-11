@@ -472,6 +472,15 @@ extension SonyPTPIPDevice: Camera {
         lastStillCaptureModes = nil
         zoomingDirection = nil
         highFrameRateCallback = nil
+        
+        // Set these first because tests that rely on these being set
+        // run synchronously!
+        ptpIPClient?.onEvent = { [weak self] (event) in
+            self?.handlePTPIPEvent(event)
+        }
+        ptpIPClient?.onDisconnect = { [weak self] in
+            self?.onDisconnected?()
+        }
 
         retry(work: { [weak self] (anotherAttemptMaybeSuccessful, attemptNumber) in
             guard let self = self else { return }
@@ -498,17 +507,7 @@ extension SonyPTPIPDevice: Camera {
             self.ptpIPClient?.connect(callback: { [weak self] (error) in
                 self?.sendStartSessionPacket(completion: retriableCompletion)
             })
-        }, attempts: 3)
-
-        // ptpIPClient?.connect(callback: { [weak self] (error) in
-        //     self?.sendStartSessionPacket(completion: completion)
-        // })
-        ptpIPClient?.onEvent = { [weak self] (event) in
-            self?.handlePTPIPEvent(event)
-        }
-        ptpIPClient?.onDisconnect = { [weak self] in
-            self?.onDisconnected?()
-        }
+        }, attempts: 3)        
     }
     
     func disconnect(completion: @escaping DisconnectedCompletion) {

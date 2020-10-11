@@ -73,7 +73,12 @@ struct PacketInfo: Equatable, Codable, CustomStringConvertible {
 
 final class TestPTPPacketStream: PTPPacketStream {
     
-    typealias TestFlow = Array<FlowStep>
+    struct TestFlow: Codable {
+        
+        let steps: Array<FlowStep>
+        
+        let initialPacket: PacketInfo?
+    }
     
     /// Represents a step in the test flow being tested
     struct FlowStep: Codable {
@@ -86,7 +91,7 @@ final class TestPTPPacketStream: PTPPacketStream {
         var response: [PacketInfo]?
     }
     
-    var testFlow: TestFlow = []
+    var testFlow: TestFlow = .init(steps: [], initialPacket: nil)
     
     var currentTestFlowStep: Int = 0
     
@@ -106,6 +111,18 @@ final class TestPTPPacketStream: PTPPacketStream {
         delegate?.packetStreamDidOpenEventStream(self)
     }
     
+    func sendInitialPacketIfPresent() {
+        guard let initialPacket = testFlow.initialPacket else {
+            return
+        }
+        packetsSentAndReceived.append(initialPacket)
+        guard let packet = Packet.parse(from: initialPacket.packetData) else { return }
+        delegate?.packetStream(
+            self,
+            didReceive: [packet]
+        )
+    }
+    
     func disconnect() {
         
     }
@@ -118,11 +135,11 @@ final class TestPTPPacketStream: PTPPacketStream {
                 direction: .sent
             )
         )
-        guard currentTestFlowStep < testFlow.count else {
+        guard currentTestFlowStep < testFlow.steps.count else {
             print("Expected further steps in PTP test flow!")
             return
         }
-        let currentFlowStep = testFlow[currentTestFlowStep]
+        let currentFlowStep = testFlow.steps[currentTestFlowStep]
         guard currentFlowStep.packetReceived.loop == .control
                 && packet.data.toHex == currentFlowStep.packetReceived.packetData.toHex else {
             currentTestFlowStep += 1
@@ -135,6 +152,8 @@ final class TestPTPPacketStream: PTPPacketStream {
                 self,
                 didReceive: response.compactMap({ Packet.parse(from: $0.packetData) })
             )
+        } else {
+            currentTestFlowStep += 1
         }
     }
     
@@ -146,11 +165,11 @@ final class TestPTPPacketStream: PTPPacketStream {
                 direction: .sent
             )
         )
-        guard currentTestFlowStep < testFlow.count else {
+        guard currentTestFlowStep < testFlow.steps.count else {
             print("Expected further steps in PTP test flow!")
             return
         }
-        let currentFlowStep = testFlow[currentTestFlowStep]
+        let currentFlowStep = testFlow.steps[currentTestFlowStep]
         guard currentFlowStep.packetReceived.loop == .event
                 && packet.data.toHex == currentFlowStep.packetReceived.packetData.toHex else {
             currentTestFlowStep += 1
@@ -163,6 +182,8 @@ final class TestPTPPacketStream: PTPPacketStream {
                 self,
                 didReceive: response.compactMap({ Packet.parse(from: $0.packetData) })
             )
+        } else {
+            currentTestFlowStep += 1
         }
     }
 }
