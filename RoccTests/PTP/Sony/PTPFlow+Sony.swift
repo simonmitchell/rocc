@@ -33,5 +33,13 @@ extension TestPTPPacketStream.TestFlow {
         static let getEvent = Bundle.current.ptpTestFlow(named: "PTPFlow_Sony_GetEvent")
         
         static let takePicture = Bundle.current.ptpTestFlow(named: "PTPFlow_Sony_TakePic")
+        
+        static let functionAvailability = Bundle.current.ptpTestFlow(named: "PTPFlow_Sony_FunctionAvailability")
+        
+        static let performGetFunction = Bundle.current.ptpTestFlow(named: "PTPFlow_Sony_FunctionPerformGet")
+        
+        static let performSetFunction = Bundle.current.ptpTestFlow(named: "PTPFlow_Sony_FunctionPerformSet")
+        
+        static let functionSupport = Bundle.current.ptpTestFlow(named: "PTPFlow_Sony_FunctionSupport")
     }
 }
