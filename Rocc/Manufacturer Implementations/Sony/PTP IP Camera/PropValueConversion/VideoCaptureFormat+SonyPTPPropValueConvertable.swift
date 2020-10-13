@@ -45,6 +45,18 @@ extension VideoCapture.FileFormat.Value: SonyPTPPropValueConvertable {
             self = .xavc_s_4k
         case 0x09:
             self = .xavc_s_hd
+        case 0x0a:
+            self = .xavc_hs_8k
+        case 0x0b:
+            self = .xavc_hs_4k
+        case 0x0c:
+            self = .xavc_s_4k_alt
+        case 0x0d:
+            self = .xavc_s_hd_alt
+        case 0x0e:
+            self = .xavc_si_4k
+        case 0x0f:
+            self = .xavc_si_hd
         default:
             return nil
         }
@@ -73,6 +85,18 @@ extension VideoCapture.FileFormat.Value: SonyPTPPropValueConvertable {
             return Byte(0x08)
         case .xavc_s_hd:
             return Byte(0x09)
+        case .xavc_hs_8k:
+            return Byte(0x0a)
+        case .xavc_hs_4k:
+            return Byte(0x0b)
+        case .xavc_s_4k_alt:
+            return Byte(0x0c)
+        case .xavc_s_hd_alt:
+            return Byte(0x0d)
+        case .xavc_si_4k:
+            return Byte(0x0e)
+        case .xavc_si_hd:
+            return Byte(0x0f)
         }
     }
 }

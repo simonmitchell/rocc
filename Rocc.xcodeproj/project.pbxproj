@@ -73,6 +73,7 @@
 		B16BFD1121F5F0E600AF3F24 /* SimplePing.m in Sources */ = {isa = PBXBuildFile; fileRef = B16BFD0F21F5F0E600AF3F24 /* SimplePing.m */; };
 		B16BFD1321F5F0E600AF3F24 /* SimplePing.h in Headers */ = {isa = PBXBuildFile; fileRef = B16BFD1021F5F0E600AF3F24 /* SimplePing.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		B16BFD1621F5F0F100AF3F24 /* Pinger.swift in Sources */ = {isa = PBXBuildFile; fileRef = B16BFD1521F5F0F100AF3F24 /* Pinger.swift */; };
+		B17B271A2533220800B441E2 /* SonyPTPPropConversionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17B27192533220800B441E2 /* SonyPTPPropConversionTests.swift */; };
 		B17D74A5241D010500C75498 /* String+Truncate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17D74A4241D010500C75498 /* String+Truncate.swift */; };
 		B180A7CC236F17EE001AAF5D /* PTP.swift in Sources */ = {isa = PBXBuildFile; fileRef = B180A7CB236F17EE001AAF5D /* PTP.swift */; };
 		B180A7D6236F1B9D001AAF5D /* CommandResponsePacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = B180A7D5236F1B9D001AAF5D /* CommandResponsePacket.swift */; };
@@ -322,6 +323,7 @@
 		B16BFD1021F5F0E600AF3F24 /* SimplePing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SimplePing.h; sourceTree = "<group>"; };
 		B16BFD1521F5F0F100AF3F24 /* Pinger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pinger.swift; sourceTree = "<group>"; };
 		B1751E7320A316C2001D05F1 /* SystemClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SystemClient.swift; sourceTree = "<group>"; };
+		B17B27192533220800B441E2 /* SonyPTPPropConversionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SonyPTPPropConversionTests.swift; sourceTree = "<group>"; };
 		B17D74A4241D010500C75498 /* String+Truncate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Truncate.swift"; sourceTree = "<group>"; };
 		B180A7CB236F17EE001AAF5D /* PTP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PTP.swift; sourceTree = "<group>"; };
 		B180A7D5236F1B9D001AAF5D /* CommandResponsePacket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandResponsePacket.swift; sourceTree = "<group>"; };
@@ -549,6 +551,8 @@
 		B19A44132520EA7F0006915D /* Sony */ = {
 			isa = PBXGroup;
 			children = (
+				B19A4409251E7B2A0006915D /* SonyPTPCameraTests.swift */,
+				B17B27192533220800B441E2 /* SonyPTPPropConversionTests.swift */,
 				B19A44192520ECA70006915D /* PTPFlow+Sony.swift */,
 				B13271142523226900448C84 /* PTPFlow_Sony_Connect_Already_Open.json */,
 				B13271122521D58400448C84 /* PTPFlow_Sony_Connect.json */,
@@ -560,13 +564,6 @@
 				B13EA1002531A9CA00EC8779 /* PTPFlow_Sony_TakePic.json */,
 			);
 			path = Sony;
-			sourceTree = "<group>";
-		};
-		B19A44162520EAC00006915D /* Packet Testing Helpers */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = "Packet Testing Helpers";
 			sourceTree = "<group>";
 		};
 		B19DDEDF2372F1F9004C0EBF /* Helpers */ = {
@@ -584,9 +581,7 @@
 				B1AEE4E723755FEE00224152 /* PTPDevicePropertyTests.swift */,
 				B18AEBAD23D9C3F7007B916A /* ByteBufferTests.swift */,
 				B1035B52238C51E80023270E /* PTPPacketParsingTests.swift */,
-				B19A4409251E7B2A0006915D /* SonyPTPCameraTests.swift */,
 				B19A4411251E7B4F0006915D /* TestPTPPacketStream.swift */,
-				B19A44162520EAC00006915D /* Packet Testing Helpers */,
 			);
 			path = PTP;
 			sourceTree = "<group>";
@@ -1221,6 +1216,7 @@
 				B1EF38C824793BF500E26C4E /* ApertureFormatterTests.swift in Sources */,
 				B1A25F2221ADE6CE00D9EE81 /* ShutterSpeedFormatter.swift in Sources */,
 				B1A25F2921ADEAAC00D9EE81 /* ShutterSpeedFormatterTests.swift in Sources */,
+				B17B271A2533220800B441E2 /* SonyPTPPropConversionTests.swift in Sources */,
 				B182B92E23836C0B0054539E /* AsyncWhileTests.swift in Sources */,
 				B19A440A251E7B2A0006915D /* SonyPTPCameraTests.swift in Sources */,
 				B154526421EE63DB00C59096 /* SOAPRequestBody.swift in Sources */,

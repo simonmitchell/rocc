@@ -15,7 +15,7 @@ public struct Exposure {
     /// via PTP/IP on the RX100 VII, but may have other use-cases and therefore we've made it more generic for now.
     public struct SettingsLock: CameraFunction {
         
-        public enum Status {
+        public enum Status: CaseIterable {
             case normal
             case standby
             case locked
@@ -61,7 +61,7 @@ public struct Exposure {
         
         public enum Value: Equatable {
             
-            public enum Scene {
+            public enum Scene: CaseIterable {
                 case portrait
                 case sport
                 case sunset
