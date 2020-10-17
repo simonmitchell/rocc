@@ -180,6 +180,8 @@ fileprivate extension Focus.Mode.Value {
             self = .autoContinuous
         case "dmf":
             self = .directManual
+        case "pf":
+            self = .powerFocus
         default:
             return nil
         }
@@ -197,6 +199,8 @@ fileprivate extension Focus.Mode.Value {
             return "AF-C"
         case .directManual:
             return "DMF"
+        case .powerFocus:
+            return "PF"
         }
     }
 }
@@ -315,7 +319,14 @@ fileprivate extension VideoCapture.Quality.Value {
     var sonyString: String {
         switch self {
             // Some cases are missing here as they are not documented by Sony...
-        case .none, ._24p_24m_fx, ._25p_24m_fx, ._50i_24m_fx, ._60i_24m_fx, ._50p_28m_ps, ._60p_28m_ps, ._24p_17m_fh, ._25p_17m_fh, ._50i_17m_fh, ._60i_17m_fh:
+        case .none, ._24p_24m_fx, ._25p_24m_fx, ._50i_24m_fx, ._60i_24m_fx, ._50p_28m_ps, ._60p_28m_ps,
+             ._24p_17m_fh, ._25p_17m_fh, ._50i_17m_fh, ._60i_17m_fh, ._600m_4_2_2_10bit, ._500m_4_2_2_10bit,
+             ._400m_4_2_0_10bit, ._300m_4_2_2_10bit, ._280m_4_2_2_10bit, ._250m_4_2_2_10bit, ._240m_4_2_2_10bit,
+             ._222m_4_2_2_10bit, ._200m_4_2_2_10bit, ._200m_4_2_0_10bit, ._200m_4_2_0_8bit, ._185m_4_2_2_10bit,
+             ._150m_4_2_0_10bit, ._150m_4_2_0_8bit, ._140m_4_2_2_10bit, ._111m_4_2_2_10bit, ._100m_4_2_2_10bit,
+             ._100m_4_2_0_10bit, ._100m_4_2_0_8bit, ._93m_4_2_2_10bit, ._89m_4_2_2_10bit, ._75m_4_2_0_10bit,
+             ._60m_4_2_0_8bit, ._50m_4_2_2_10bit, ._50m_4_2_0_10bit, ._50m_4_2_0_8bit, ._45m_4_2_0_10bit, ._30m_4_2_0_10bit,
+             ._25m_4_2_0_8bit, ._16m_4_2_0_8bit:
             return ""
         case .ps:
             return "PS"
@@ -415,6 +426,14 @@ fileprivate extension VideoCapture.FileFormat.Value {
             self = .xavc_s_hd
         case "xavc s 4k":
             self = .xavc_s_4k
+        case "xavc si hd":
+            self = .xavc_si_hd
+        case "xavc si 4k":
+            self = .xavc_si_4k
+        case "xavc hs 8k":
+            self = .xavc_hs_4k
+        case "xavc hs 4k":
+            self = .xavc_hs_4k
         case "dvd":
             self = .dvd
         case "dv":
@@ -448,12 +467,20 @@ fileprivate extension VideoCapture.FileFormat.Value {
             return "XAVC"
         case .mxf:
             return "MXF"
-        case .xavc_s_4k:
+        case .xavc_s_4k, .xavc_s_4k_alt:
             return "XAVC S 4K"
-        case .xavc_s_hd:
+        case .xavc_s_hd, .xavc_s_hd_alt:
             return "XAVC S HD"
         case .xavc_s:
             return "XAVC S"
+        case .xavc_si_hd:
+            return "XAVC SI HD"
+        case .xavc_si_4k:
+            return "XAVC SI 4K"
+        case .xavc_hs_8k:
+            return "XAVC HS 8K"
+        case .xavc_hs_4k:
+            return "XAVC HS 4K"
         }
     }
 }

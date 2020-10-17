@@ -12,7 +12,7 @@ import Foundation
 public struct WhiteBalance: CameraFunction {
     
     /// An enumeration representing the white balance mode
-    public enum Mode {
+    public enum Mode: CaseIterable {
         case auto
         case daylight
         case shade

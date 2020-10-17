@@ -92,7 +92,7 @@ struct ByteBuffer {
         string.forEach { (character) in
             append(wChar: character)
         }
-        append(0);
+        append(Word(0));
     }
     
     mutating func clear() {
@@ -272,7 +272,7 @@ extension ByteBuffer {
             var i = offset
             while i < bytes.count {
                 // If we can't parse the character then we must be at the end of the string
-                guard let character = self[wChar: offset + UInt(MemoryLayout<Word>.size) * i] else {
+                guard let character = self[wChar: i] else {
                     if string.count > 0 {
                         // Don't append `UInt(MemoryLayout<Word>.size)` because we don't have a terminating \u{0000}
                         offset += UInt(string.count * MemoryLayout<Word>.size) + UInt(MemoryLayout<Word>.size)
@@ -397,7 +397,7 @@ extension ByteBuffer {
     subscript (wStringWithoutCount index: UInt) -> String? {
         get {
             var offset = index
-            return read(offset: &offset)
+            return read(offset: &offset, withCount: false)
         }
         set {
             print("Setting of wString by subscript is not yet supported!")
@@ -407,7 +407,7 @@ extension ByteBuffer {
     subscript (wString index: UInt) -> String? {
         get {
             var offset = index
-            return read(offset: &offset, withCount: false)
+            return read(offset: &offset, withCount: true)
         }
         set {
             print("Setting of wString (with length byte) by subscript is not yet supported!")

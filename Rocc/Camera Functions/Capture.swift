@@ -50,7 +50,7 @@ public struct StillCapture: CameraFunction {
     public struct Quality: CameraFunction {
         
         /// A structural representation of image still quality
-        public enum Value {
+        public enum Value: CaseIterable {
             case standard
             case fine
             case extraFine
@@ -77,6 +77,8 @@ public struct StillCapture: CameraFunction {
             case jpeg(String)
             case raw
             case rawAndJpeg
+            case rawAndHeif
+            case heif
         }
         
         public var function: _CameraFunction
@@ -356,7 +358,7 @@ public struct VideoCapture: CameraFunction {
     public struct FileFormat: CameraFunction {
         
         /// Values for Video Capture file format
-        public enum Value: Int {
+        public enum Value: Int, CaseIterable {
             case none
             case dvd
             case m2ps
@@ -368,6 +370,12 @@ public struct VideoCapture: CameraFunction {
             case xavc_s_4k
             case xavc_s_hd
             case xavc_s
+            case xavc_hs_8k
+            case xavc_hs_4k
+            case xavc_s_4k_alt
+            case xavc_s_hd_alt
+            case xavc_si_4k
+            case xavc_si_hd
         }
         
         public var function: _CameraFunction
@@ -387,7 +395,7 @@ public struct VideoCapture: CameraFunction {
     public struct Quality: CameraFunction {
         
         /// Values for Video Capture file quality
-        public enum Value {
+        public enum Value: CaseIterable {
             case none
             case ps
             case hq
@@ -440,6 +448,36 @@ public struct VideoCapture: CameraFunction {
             case _25p_24m_fx
             case _24p_17m_fh
             case _25p_17m_fh
+            case _600m_4_2_2_10bit
+            case _500m_4_2_2_10bit
+            case _400m_4_2_0_10bit
+            case _300m_4_2_2_10bit
+            case _280m_4_2_2_10bit
+            case _250m_4_2_2_10bit
+            case _240m_4_2_2_10bit
+            case _222m_4_2_2_10bit
+            case _200m_4_2_2_10bit
+            case _200m_4_2_0_10bit
+            case _200m_4_2_0_8bit
+            case _185m_4_2_2_10bit
+            case _150m_4_2_0_10bit
+            case _150m_4_2_0_8bit
+            case _140m_4_2_2_10bit
+            case _111m_4_2_2_10bit
+            case _100m_4_2_2_10bit
+            case _100m_4_2_0_10bit
+            case _100m_4_2_0_8bit
+            case _93m_4_2_2_10bit
+            case _89m_4_2_2_10bit
+            case _75m_4_2_0_10bit
+            case _60m_4_2_0_8bit
+            case _50m_4_2_2_10bit
+            case _50m_4_2_0_10bit
+            case _50m_4_2_0_8bit
+            case _45m_4_2_0_10bit
+            case _30m_4_2_0_10bit
+            case _25m_4_2_0_8bit
+            case _16m_4_2_0_8bit
         }
         
         public var function: _CameraFunction

@@ -61,7 +61,10 @@ internal final class SonyPTPIPDevice: SonyCamera {
             if let cachedPTPIPClient = cachedPTPIPClient {
                 return cachedPTPIPClient
             }
-            cachedPTPIPClient = PTPIPClient(camera: self)
+            guard let stream = InputOutputPacketStream(camera: self, port: 15740) else {
+                return nil
+            }
+            cachedPTPIPClient = PTPIPClient(camera: self, packetStream: stream)
             return cachedPTPIPClient
         }
         set {
@@ -148,7 +151,11 @@ internal final class SonyPTPIPDevice: SonyCamera {
     private func sendStartSessionPacket(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
         
         // First argument here is the session ID.
-        let packet = Packet.commandRequestPacket(code: .openSession, arguments: [0x00000001], transactionId: ptpIPClient?.getNextTransactionId() ?? 0)
+        let packet = Packet.commandRequestPacket(
+            code: .openSession,
+            arguments: [0x00000001],
+            transactionId: ptpIPClient?.getNextTransactionId() ?? 0
+        )
         ptpIPClient?.sendCommandRequestPacket(packet, callback: { [weak self] (response) in
             guard response.code == .okay else {
                 completion(PTPError.commandRequestFailed(response.code), false)
@@ -465,6 +472,15 @@ extension SonyPTPIPDevice: Camera {
         lastStillCaptureModes = nil
         zoomingDirection = nil
         highFrameRateCallback = nil
+        
+        // Set these first because tests that rely on these being set
+        // run synchronously!
+        ptpIPClient?.onEvent = { [weak self] (event) in
+            self?.handlePTPIPEvent(event)
+        }
+        ptpIPClient?.onDisconnect = { [weak self] in
+            self?.onDisconnected?()
+        }
 
         retry(work: { [weak self] (anotherAttemptMaybeSuccessful, attemptNumber) in
             guard let self = self else { return }
@@ -491,17 +507,7 @@ extension SonyPTPIPDevice: Camera {
             self.ptpIPClient?.connect(callback: { [weak self] (error) in
                 self?.sendStartSessionPacket(completion: retriableCompletion)
             })
-        }, attempts: 3)
-
-        // ptpIPClient?.connect(callback: { [weak self] (error) in
-        //     self?.sendStartSessionPacket(completion: completion)
-        // })
-        ptpIPClient?.onEvent = { [weak self] (event) in
-            self?.handlePTPIPEvent(event)
-        }
-        ptpIPClient?.onDisconnect = { [weak self] in
-            self?.onDisconnected?()
-        }
+        }, attempts: 3)        
     }
     
     func disconnect(completion: @escaping DisconnectedCompletion) {

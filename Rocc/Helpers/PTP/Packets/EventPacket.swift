@@ -17,9 +17,7 @@ struct EventPacket: Packetable {
     var data: ByteBuffer
     
     let code: PTP.EventCode
-    
-    let transactionId: DWord?
-    
+        
     let variables: [DWord]?
     
     init?(length: DWord, name: Packet.Name, data: ByteBuffer) {
@@ -36,22 +34,14 @@ struct EventPacket: Packetable {
         self.data = data.sliced(MemoryLayout<Word>.size, Int(length) - Packet.headerLength)
         
         guard self.data.length > 0 else {
-            transactionId = nil
+//            transactionId = nil
             variables = nil
             return
         }
         
         var offset: UInt = 0
         
-        guard let transactionId: DWord = self.data.read(offset: &offset) else {
-            self.transactionId = nil
-            variables = nil
-            return
-        }
-        
-        self.transactionId = transactionId
-        
-        guard self.data.length > 4 else {
+        guard self.data.length > 0 else {
             variables = nil
             return
         }

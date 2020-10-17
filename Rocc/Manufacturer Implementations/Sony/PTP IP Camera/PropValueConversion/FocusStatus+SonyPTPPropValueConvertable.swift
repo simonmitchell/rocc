@@ -13,9 +13,9 @@ extension FocusStatus: SonyPTPPropValueConvertable {
     var sonyPTPValue: PTPDevicePropertyDataType {
         switch self {
         case .focused:
-            return Word(2)
+            return Byte(2)
         case .focusing, .notFocussing, .failed:
-            return Word(1)
+            return Byte(1)
         }
     }
     
