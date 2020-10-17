@@ -1081,7 +1081,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         
         // Make sure all enum cases are tested for
         XCTAssertEqual(
-            WhiteBalance.Mode.allCases.filter({ $0 != .custom }),
+            WhiteBalance.Mode.allCases,
             testCases.compactMap({ $0.1 }),
             "Missing WhiteBalance.Mode in test cases"
         )
@@ -1120,7 +1120,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         
         // Make sure all enum cases are tested for
         XCTAssertEqual(
-            WhiteBalance.Mode.allCases.filter({ $0 != .custom }),
+            WhiteBalance.Mode.allCases,
             testCases.compactMap({ $0.1 }),
             "Missing WhiteBalance.Mode in test cases"
         )
