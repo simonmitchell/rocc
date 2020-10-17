@@ -110,7 +110,6 @@
 		B1A1AA1A20A4E01D00FD0A4A /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A1AA1420A4E01D00FD0A4A /* Event.swift */; };
 		B1A1B67F21F8BC78008B5181 /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A1B67E21F8BC78008B5181 /* Logger.swift */; };
 		B1A25F2121ADE6CE00D9EE81 /* ShutterSpeedFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A25F2021ADE6CE00D9EE81 /* ShutterSpeedFormatter.swift */; };
-		B1A25F2221ADE6CE00D9EE81 /* ShutterSpeedFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A25F2021ADE6CE00D9EE81 /* ShutterSpeedFormatter.swift */; };
 		B1A25F2921ADEAAC00D9EE81 /* ShutterSpeedFormatterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A25F2821ADEAAC00D9EE81 /* ShutterSpeedFormatterTests.swift */; };
 		B1A25F3221AE950E00D9EE81 /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A25F3121AE950E00D9EE81 /* Errors.swift */; };
 		B1AEE4DD2374C3E200224152 /* ByteBuffer+DeviceProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AEE4DC2374C3E200224152 /* ByteBuffer+DeviceProperty.swift */; };
@@ -1214,7 +1213,6 @@
 				B115EFD321ECFB6B00667FB7 /* ParserTests.swift in Sources */,
 				B1035B53238C51E80023270E /* PTPPacketParsingTests.swift in Sources */,
 				B1EF38C824793BF500E26C4E /* ApertureFormatterTests.swift in Sources */,
-				B1A25F2221ADE6CE00D9EE81 /* ShutterSpeedFormatter.swift in Sources */,
 				B1A25F2921ADEAAC00D9EE81 /* ShutterSpeedFormatterTests.swift in Sources */,
 				B17B271A2533220800B441E2 /* SonyPTPPropConversionTests.swift in Sources */,
 				B182B92E23836C0B0054539E /* AsyncWhileTests.swift in Sources */,

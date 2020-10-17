@@ -59,7 +59,7 @@ public struct LiveView: CameraFunction {
         public static let startWithQuality = LiveView(function: .startLiveViewWithQuality)
     }
     
-    public enum Quality {
+    public enum Quality: CaseIterable {
         case imageQuality // On Sony API is "L", PTP is 0d26a -> 0x0d
         case displaySpeed // On Sony API is "M", PTP is 0xd26a -> 0x01
     }

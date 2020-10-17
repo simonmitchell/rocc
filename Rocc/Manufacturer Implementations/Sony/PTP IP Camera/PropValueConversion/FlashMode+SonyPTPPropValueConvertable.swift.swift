@@ -23,7 +23,6 @@ extension Flash.Mode.Value: SonyPTPPropValueConvertable {
         case .off:
             return Word(0x0002)
         default:
-            //TODO: Investigate other values!
             return Word(0)
         }
     }

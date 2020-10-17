@@ -22,6 +22,8 @@ extension Focus.Mode.Value: SonyPTPPropValueConvertable {
             return Word(0x8006)
         case .manual:
             return Word(0x0001)
+        case .powerFocus:
+            return Word(0x8009)
         }
     }
     
@@ -46,6 +48,8 @@ extension Focus.Mode.Value: SonyPTPPropValueConvertable {
             self = .auto
         case 0x8006:
             self = .directManual
+        case 0x8009:
+            self = .powerFocus
         default:
             return nil
         }

@@ -50,7 +50,7 @@ public struct StillCapture: CameraFunction {
     public struct Quality: CameraFunction {
         
         /// A structural representation of image still quality
-        public enum Value {
+        public enum Value: CaseIterable {
             case standard
             case fine
             case extraFine
@@ -77,6 +77,8 @@ public struct StillCapture: CameraFunction {
             case jpeg(String)
             case raw
             case rawAndJpeg
+            case rawAndHeif
+            case heif
         }
         
         public var function: _CameraFunction

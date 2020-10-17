@@ -47,7 +47,7 @@ public struct Exposure {
             public typealias ReturnType = Value
             
             /// An enum representing the value of `DialControl` setting
-            public enum Value {
+            public enum Value: CaseIterable {
                 /// The dial is controlled by the physical dial on the camera
                 case camera
                 /// The dial is controlled by the app

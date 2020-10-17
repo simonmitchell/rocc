@@ -55,6 +55,69 @@ class SonyPTPPropConversionTests: XCTestCase {
         }
     }
     
+    func testContinuousBracketInitialisedCorrectly() throws {
+        
+        let testCases: [(PTPDevicePropertyDataType, ContinuousBracketCapture.Bracket.Value?)] = [
+            (DWord(0x00048337), .init(mode: .exposure, interval: .custom(images: 3, interval: 0.3))),
+            (DWord(0x00048337), .init(mode: .exposure, interval: .custom(images: 3, interval: 0.3))),
+            (DWord(0x00048537), .init(mode: .exposure, interval: .custom(images: 5, interval: 0.3))),
+            (DWord(0x00048937), .init(mode: .exposure, interval: .custom(images: 9, interval: 0.3))),
+            (DWord(0x00048357), .init(mode: .exposure, interval: .custom(images: 3, interval: 0.5))),
+            (DWord(0x00048557), .init(mode: .exposure, interval: .custom(images: 5, interval: 0.5))),
+            (DWord(0x00048957), .init(mode: .exposure, interval: .custom(images: 9, interval: 0.5))),
+            (DWord(0x00048377), .init(mode: .exposure, interval: .custom(images: 3, interval: 0.7))),
+            (DWord(0x00048577), .init(mode: .exposure, interval: .custom(images: 5, interval: 0.7))),
+            (DWord(0x00048977), .init(mode: .exposure, interval: .custom(images: 9, interval: 0.7))),
+            (DWord(0x00048311), .init(mode: .exposure, interval: .custom(images: 3, interval: 1))),
+            (DWord(0x00048511), .init(mode: .exposure, interval: .custom(images: 5, interval: 1))),
+            (DWord(0x00048911), .init(mode: .exposure, interval: .custom(images: 9, interval: 1))),
+            (DWord(0x00048321), .init(mode: .exposure, interval: .custom(images: 3, interval: 2))),
+            (DWord(0x00048521), .init(mode: .exposure, interval: .custom(images: 5, interval: 2))),
+            (DWord(0x00048331), .init(mode: .exposure, interval: .custom(images: 3, interval: 3))),
+            (DWord(0x00048531), .init(mode: .exposure, interval: .custom(images: 5, interval: 3))),
+            ("Hello World", nil)
+        ]
+        
+        testCases.forEach { (testCase) in
+            XCTAssertEqual(
+                testCase.1,
+                ContinuousBracketCapture.Bracket.Value(sonyValue: testCase.0)
+            )
+        }
+    }
+    
+    func testContinuousBracketConvertsToDataCorrectly() throws {
+        
+        let testCases: [(DWord, ContinuousBracketCapture.Bracket.Value)] = [
+            (DWord(0x00048337), .init(mode: .exposure, interval: .custom(images: 3, interval: 0.3))),
+            (DWord(0x00048537), .init(mode: .exposure, interval: .custom(images: 5, interval: 0.3))),
+            (DWord(0x00048937), .init(mode: .exposure, interval: .custom(images: 9, interval: 0.3))),
+            (DWord(0x00048357), .init(mode: .exposure, interval: .custom(images: 3, interval: 0.5))),
+            (DWord(0x00048557), .init(mode: .exposure, interval: .custom(images: 5, interval: 0.5))),
+            (DWord(0x00048957), .init(mode: .exposure, interval: .custom(images: 9, interval: 0.5))),
+            (DWord(0x00048377), .init(mode: .exposure, interval: .custom(images: 3, interval: 0.7))),
+            (DWord(0x00048577), .init(mode: .exposure, interval: .custom(images: 5, interval: 0.7))),
+            (DWord(0x00048977), .init(mode: .exposure, interval: .custom(images: 9, interval: 0.7))),
+            (DWord(0x00048311), .init(mode: .exposure, interval: .custom(images: 3, interval: 1))),
+            (DWord(0x00048511), .init(mode: .exposure, interval: .custom(images: 5, interval: 1))),
+            (DWord(0x00048911), .init(mode: .exposure, interval: .custom(images: 9, interval: 1))),
+            (DWord(0x00048321), .init(mode: .exposure, interval: .custom(images: 3, interval: 2))),
+            (DWord(0x00048521), .init(mode: .exposure, interval: .custom(images: 5, interval: 2))),
+            (DWord(0x00048331), .init(mode: .exposure, interval: .custom(images: 3, interval: 3))),
+            (DWord(0x00048531), .init(mode: .exposure, interval: .custom(images: 5, interval: 3))),
+        ]
+        
+        XCTAssertEqual(testCases.first?.1.type, .uint32)
+        XCTAssertEqual(testCases.first?.1.code, .stillCaptureMode)
+        
+        testCases.forEach { (testCase) in
+            XCTAssertEqual(
+                testCase.0,
+                testCase.1.sonyPTPValue as? DWord
+            )
+        }
+    }
+    
     func testExposureCompensationInitialisedCorrectly() throws {
         
         let testCases: [(PTPDevicePropertyDataType, Exposure.Compensation.Value?)] = [
@@ -239,6 +302,480 @@ class SonyPTPPropConversionTests: XCTestCase {
             XCTAssertEqual(
                 testCase.0,
                 testCase.1.sonyPTPValue as? DWord
+            )
+        }
+    }
+    
+    func testExposureModeDialControlInitialisedCorrectly() throws {
+        
+        let testCases: [(PTPDevicePropertyDataType, Exposure.Mode.DialControl.Value?)] = [
+            (Byte(0x00), .camera),
+            (Byte(0x01), .app),
+            ("Hello World", nil)
+        ]
+        
+        // Make sure all enum cases are tested for
+        XCTAssertEqual(
+            Exposure.Mode.DialControl.Value.allCases,
+            testCases.compactMap({ $0.1 }),
+            "Missing VideoCapture.FileFormat.Value in test cases"
+        )
+        
+        testCases.forEach { (testCase) in
+            XCTAssertEqual(
+                testCase.1,
+                Exposure.Mode.DialControl.Value(sonyValue: testCase.0)
+            )
+        }
+    }
+    
+    func testExposureModeDialControlConvertsToDataCorrectly() throws {
+        
+        let testCases: [(Byte, Exposure.Mode.DialControl.Value)] = [
+            (Byte(0x00), .camera),
+            (Byte(0x01), .app),
+        ]
+        
+        XCTAssertEqual(testCases.first?.1.type, .uint8)
+        XCTAssertEqual(testCases.first?.1.code, .exposureProgramModeControl)
+        
+        // Make sure all enum cases are tested for
+        XCTAssertEqual(
+            Exposure.Mode.DialControl.Value.allCases,
+            testCases.compactMap({ $0.1 }),
+            "Missing VideoCapture.FileFormat.Value in test cases"
+        )
+        
+        testCases.forEach { (testCase) in
+            XCTAssertEqual(
+                testCase.0,
+                testCase.1.sonyPTPValue as? Byte
+            )
+        }
+    }
+    
+    func testFocusModeInitialisedCorrectly() throws {
+        
+        let testCases: [(PTPDevicePropertyDataType, Focus.Mode.Value?)] = [
+            (Word(0x8005), .auto),
+            (Word(0x0002), .autoSingle),
+            (Word(0x8004), .autoContinuous),
+            (Word(0x8006), .directManual),
+            (Word(0x0001), .manual),
+            (Word(0x8009), .powerFocus),
+            ("Hello World", nil)
+        ]
+        
+        // Make sure all enum cases are tested for
+        XCTAssertEqual(
+            Focus.Mode.Value.allCases,
+            testCases.compactMap({ $0.1 }),
+            "Missing Focus.Mode.Valud in test cases"
+        )
+        
+        testCases.forEach { (testCase) in
+            XCTAssertEqual(
+                testCase.1,
+                Focus.Mode.Value(sonyValue: testCase.0)
+            )
+        }
+    }
+    
+    func testFocusModeConvertsToDataCorrectly() throws {
+        
+        let testCases: [(Word, Focus.Mode.Value)] = [
+            (Word(0x8005), .auto),
+            (Word(0x0002), .autoSingle),
+            (Word(0x8004), .autoContinuous),
+            (Word(0x8006), .directManual),
+            (Word(0x0001), .manual),
+            (Word(0x8009), .powerFocus)
+        ]
+        
+        XCTAssertEqual(testCases.first?.1.type, .uint16)
+        XCTAssertEqual(testCases.first?.1.code, .focusMode)
+        
+        // Make sure all enum cases are tested for
+        XCTAssertEqual(
+            Focus.Mode.Value.allCases,
+            testCases.compactMap({ $0.1 }),
+            "Missing Focus.Mode.Valud in test cases"
+        )
+        
+        testCases.forEach { (testCase) in
+            XCTAssertEqual(
+                testCase.0,
+                testCase.1.sonyPTPValue as? Word
+            )
+        }
+    }
+    
+    func testFocusStatusInitialisedCorrectly() throws {
+        
+        let testCases: [(PTPDevicePropertyDataType, FocusStatus?)] = [
+            (Byte(2), .focused),
+            (Byte(1), .notFocussing),
+            ("Hello World", nil)
+        ]
+        
+        testCases.forEach { (testCase) in
+            XCTAssertEqual(
+                testCase.1,
+                FocusStatus(sonyValue: testCase.0)
+            )
+        }
+    }
+    
+    func testFocusStatusConvertsToDataCorrectly() throws {
+        
+        let testCases: [(Byte, FocusStatus)] = [
+            (Byte(2), .focused),
+            (Byte(1), .notFocussing)
+        ]
+        
+        XCTAssertEqual(testCases.first?.1.type, .uint8)
+        XCTAssertEqual(testCases.first?.1.code, .focusFound)
+        
+        testCases.forEach { (testCase) in
+            XCTAssertEqual(
+                testCase.0,
+                testCase.1.sonyPTPValue as? Byte
+            )
+        }
+    }
+    
+    func testISOInitialisedCorrectly() throws {
+        
+        let testCases: [(PTPDevicePropertyDataType, ISO.Value?)] = [
+            (DWord(0x00ffffff), .auto),
+            (DWord(0x01ffffff), .multiFrameNRAuto),
+            (DWord(0x02ffffff), .multiFrameNRHiAuto),
+            (DWord(0x00000032), .native(50)),
+            (DWord(0x00000040), .native(64)),
+            (DWord(0x00000064), .native(100)),
+            (DWord(0x0000007d), .native(125)),
+            (DWord(0x0000007d), .native(125)),
+            (DWord(0x00000400), .native(1024)),
+            (DWord(0x00001900), .native(6400)),
+            (DWord(0x00100032), .native(50)),
+            (DWord(0x00200040), .native(64)),
+            (DWord(0x00300064), .native(100)),
+            (DWord(0x0040007d), .native(125)),
+            (DWord(0x0050007d), .native(125)),
+            (DWord(0x00600400), .native(1024)),
+            (DWord(0x00701900), .native(6400)),
+            (DWord(0x10000032), .extended(50)),
+            (DWord(0x10000040), .extended(64)),
+            (DWord(0x10000064), .extended(100)),
+            (DWord(0x1000007d), .extended(125)),
+            (DWord(0x1000007d), .extended(125)),
+            (DWord(0x10000400), .extended(1024)),
+            (DWord(0x10001900), .extended(6400)),
+            (DWord(0x01000032), .multiFrameNR(50)),
+            (DWord(0x01000040), .multiFrameNR(64)),
+            (DWord(0x01000064), .multiFrameNR(100)),
+            (DWord(0x0100007d), .multiFrameNR(125)),
+            (DWord(0x0100007d), .multiFrameNR(125)),
+            (DWord(0x01000400), .multiFrameNR(1024)),
+            (DWord(0x01001900), .multiFrameNR(6400)),
+            (DWord(0x02000032), .multiFrameNRHi(50)),
+            (DWord(0x02000040), .multiFrameNRHi(64)),
+            (DWord(0x02000064), .multiFrameNRHi(100)),
+            (DWord(0x0200007d), .multiFrameNRHi(125)),
+            (DWord(0x0200007d), .multiFrameNRHi(125)),
+            (DWord(0x02000400), .multiFrameNRHi(1024)),
+            (DWord(0x02001900), .multiFrameNRHi(6400)),
+            ("Hello World", nil)
+        ]
+        
+        testCases.forEach { (testCase) in
+            XCTAssertEqual(
+                testCase.1,
+                ISO.Value(sonyValue: testCase.0)
+            )
+        }
+    }
+    
+    func testISOConvertsToDataCorrectly() throws {
+        
+        let testCases: [(DWord, ISO.Value)] = [
+            (DWord(0x00ffffff), .auto),
+            (DWord(0x01ffffff), .multiFrameNRAuto),
+            (DWord(0x02ffffff), .multiFrameNRHiAuto),
+            (DWord(0x00000032), .native(50)),
+            (DWord(0x00000040), .native(64)),
+            (DWord(0x00000064), .native(100)),
+            (DWord(0x0000007d), .native(125)),
+            (DWord(0x0000007d), .native(125)),
+            (DWord(0x00000400), .native(1024)),
+            (DWord(0x00001900), .native(6400)),
+            (DWord(0x10000032), .extended(50)),
+            (DWord(0x10000040), .extended(64)),
+            (DWord(0x10000064), .extended(100)),
+            (DWord(0x1000007d), .extended(125)),
+            (DWord(0x1000007d), .extended(125)),
+            (DWord(0x10000400), .extended(1024)),
+            (DWord(0x10001900), .extended(6400)),
+            (DWord(0x01000032), .multiFrameNR(50)),
+            (DWord(0x01000040), .multiFrameNR(64)),
+            (DWord(0x01000064), .multiFrameNR(100)),
+            (DWord(0x0100007d), .multiFrameNR(125)),
+            (DWord(0x0100007d), .multiFrameNR(125)),
+            (DWord(0x01000400), .multiFrameNR(1024)),
+            (DWord(0x01001900), .multiFrameNR(6400)),
+            (DWord(0x02000032), .multiFrameNRHi(50)),
+            (DWord(0x02000040), .multiFrameNRHi(64)),
+            (DWord(0x02000064), .multiFrameNRHi(100)),
+            (DWord(0x0200007d), .multiFrameNRHi(125)),
+            (DWord(0x0200007d), .multiFrameNRHi(125)),
+            (DWord(0x02000400), .multiFrameNRHi(1024)),
+            (DWord(0x02001900), .multiFrameNRHi(6400)),
+        ]
+        
+        XCTAssertEqual(testCases.first?.1.type, .uint32)
+        XCTAssertEqual(testCases.first?.1.code, .ISO)
+        
+        testCases.forEach { (testCase) in
+            XCTAssertEqual(
+                testCase.0,
+                testCase.1.sonyPTPValue as? DWord
+            )
+        }
+    }
+    
+    func testLiveViewQualityInitialisedCorrectly() throws {
+        
+        let testCases: [(PTPDevicePropertyDataType, LiveView.Quality?)] = [
+            (Byte(0x02), .imageQuality),
+            (Byte(0x01), .displaySpeed),
+            ("Hello World", nil)
+        ]
+        
+        // Make sure all enum cases are tested for
+        XCTAssertEqual(
+            LiveView.Quality.allCases,
+            testCases.compactMap({ $0.1 }),
+            "Missing LiveView.Quality in test cases"
+        )
+        
+        testCases.forEach { (testCase) in
+            XCTAssertEqual(
+                testCase.1,
+                LiveView.Quality(sonyValue: testCase.0)
+            )
+        }
+    }
+    
+    func testLiveViewQualityConvertsToDataCorrectly() throws {
+        
+        let testCases: [(Byte, LiveView.Quality)] = [
+            (Byte(0x02), .imageQuality),
+            (Byte(0x01), .displaySpeed),
+        ]
+        
+        XCTAssertEqual(testCases.first?.1.type, .uint8)
+        XCTAssertEqual(testCases.first?.1.code, .liveViewQuality)
+        
+        // Make sure all enum cases are tested for
+        XCTAssertEqual(
+            LiveView.Quality.allCases,
+            testCases.compactMap({ $0.1 }),
+            "Missing LiveView.Quality in test cases"
+        )
+        
+        testCases.forEach { (testCase) in
+            XCTAssertEqual(
+                testCase.0,
+                testCase.1.sonyPTPValue as? Byte
+            )
+        }
+    }
+    
+    func testShutterSpeedInitialisedCorrectly() throws {
+        
+        let testCases: [(PTPDevicePropertyDataType, ShutterSpeed?)] = [
+            (DWord(0x00010bb8), ShutterSpeed(numerator: 1, denominator: 3000)),
+            (DWord(0x00010078), ShutterSpeed(numerator: 1, denominator: 120)),
+            (DWord(0x00190001), ShutterSpeed(numerator: 25, denominator: 1)),
+            (DWord(0x012c000a), ShutterSpeed(numerator: 300, denominator: 10)),
+            (DWord(0x000d000a), ShutterSpeed(numerator: 13, denominator: 10)),
+            (DWord(0x00fa000a), ShutterSpeed(numerator: 250, denominator: 10)),
+            (DWord(0x00000000), ShutterSpeed(numerator: 0, denominator: 0)),
+            ("Hello World", nil)
+        ]
+        
+        XCTAssertTrue(ShutterSpeed(sonyValue: DWord(0x00000000))?.isBulb ?? false)
+        
+        testCases.forEach { (testCase) in
+            XCTAssertEqual(
+                testCase.1,
+                ShutterSpeed(sonyValue: testCase.0)
+            )
+        }
+    }
+    
+    func testShutterSpeedConvertsToDataCorrectly() throws {
+        
+        let testCases: [(DWord, ShutterSpeed)] = [
+            (DWord(0x00010bb8), ShutterSpeed(numerator: 1, denominator: 3000)),
+            (DWord(0x00010078), ShutterSpeed(numerator: 1, denominator: 120)),
+            (DWord(0x00190001), ShutterSpeed(numerator: 25, denominator: 1)),
+            (DWord(0x012c000a), ShutterSpeed(numerator: 300, denominator: 10)),
+            (DWord(0x000d000a), ShutterSpeed(numerator: 13, denominator: 10)),
+            (DWord(0x00fa000a), ShutterSpeed(numerator: 250, denominator: 10)),
+            (DWord(0x00000000), ShutterSpeed(numerator: 0, denominator: 0)),
+            (DWord(0x00000000), .bulb),
+        ]
+        
+        XCTAssertEqual(testCases.first?.1.type, .uint32)
+        XCTAssertEqual(testCases.first?.1.code, .shutterSpeed)
+        
+        testCases.forEach { (testCase) in
+            XCTAssertEqual(
+                testCase.0,
+                testCase.1.sonyPTPValue as? DWord
+            )
+        }
+    }
+    
+    func testSingleBracketInitialisedCorrectly() throws {
+        
+        let testCases: [(PTPDevicePropertyDataType, SingleBracketCapture.Bracket.Value?)] = [
+            (DWord(0x00058336), .init(mode: .exposure, interval: .custom(images: 3, interval: 0.3))),
+            (DWord(0x00058536), .init(mode: .exposure, interval: .custom(images: 5, interval: 0.3))),
+            (DWord(0x00058936), .init(mode: .exposure, interval: .custom(images: 9, interval: 0.3))),
+            (DWord(0x00058356), .init(mode: .exposure, interval: .custom(images: 3, interval: 0.5))),
+            (DWord(0x00058556), .init(mode: .exposure, interval: .custom(images: 5, interval: 0.5))),
+            (DWord(0x00058956), .init(mode: .exposure, interval: .custom(images: 9, interval: 0.5))),
+            (DWord(0x00058376), .init(mode: .exposure, interval: .custom(images: 3, interval: 0.7))),
+            (DWord(0x00058576), .init(mode: .exposure, interval: .custom(images: 5, interval: 0.7))),
+            (DWord(0x00058976), .init(mode: .exposure, interval: .custom(images: 9, interval: 0.7))),
+            (DWord(0x00058310), .init(mode: .exposure, interval: .custom(images: 3, interval: 1))),
+            (DWord(0x00058510), .init(mode: .exposure, interval: .custom(images: 5, interval: 1))),
+            (DWord(0x00058910), .init(mode: .exposure, interval: .custom(images: 9, interval: 1))),
+            (DWord(0x00058320), .init(mode: .exposure, interval: .custom(images: 3, interval: 2))),
+            (DWord(0x00058520), .init(mode: .exposure, interval: .custom(images: 5, interval: 2))),
+            (DWord(0x00058330), .init(mode: .exposure, interval: .custom(images: 3, interval: 3))),
+            (DWord(0x00058530), .init(mode: .exposure, interval: .custom(images: 5, interval: 3))),
+            ("Hello World", nil)
+        ]
+        
+        testCases.forEach { (testCase) in
+            XCTAssertEqual(
+                testCase.1,
+                SingleBracketCapture.Bracket.Value(sonyValue: testCase.0)
+            )
+        }
+    }
+    
+    func testSingleBracketConvertsToDataCorrectly() throws {
+        
+        let testCases: [(DWord, SingleBracketCapture.Bracket.Value)] = [
+            (DWord(0x00058336), .init(mode: .exposure, interval: .custom(images: 3, interval: 0.3))),
+            (DWord(0x00058536), .init(mode: .exposure, interval: .custom(images: 5, interval: 0.3))),
+            (DWord(0x00058936), .init(mode: .exposure, interval: .custom(images: 9, interval: 0.3))),
+            (DWord(0x00058356), .init(mode: .exposure, interval: .custom(images: 3, interval: 0.5))),
+            (DWord(0x00058556), .init(mode: .exposure, interval: .custom(images: 5, interval: 0.5))),
+            (DWord(0x00058956), .init(mode: .exposure, interval: .custom(images: 9, interval: 0.5))),
+            (DWord(0x00058376), .init(mode: .exposure, interval: .custom(images: 3, interval: 0.7))),
+            (DWord(0x00058576), .init(mode: .exposure, interval: .custom(images: 5, interval: 0.7))),
+            (DWord(0x00058976), .init(mode: .exposure, interval: .custom(images: 9, interval: 0.7))),
+            (DWord(0x00058310), .init(mode: .exposure, interval: .custom(images: 3, interval: 1))),
+            (DWord(0x00058510), .init(mode: .exposure, interval: .custom(images: 5, interval: 1))),
+            (DWord(0x00058910), .init(mode: .exposure, interval: .custom(images: 9, interval: 1))),
+            (DWord(0x00058320), .init(mode: .exposure, interval: .custom(images: 3, interval: 2))),
+            (DWord(0x00058520), .init(mode: .exposure, interval: .custom(images: 5, interval: 2))),
+            (DWord(0x00058330), .init(mode: .exposure, interval: .custom(images: 3, interval: 3))),
+            (DWord(0x00058530), .init(mode: .exposure, interval: .custom(images: 5, interval: 3))),
+        ]
+        
+        XCTAssertEqual(testCases.first?.1.type, .uint32)
+        XCTAssertEqual(testCases.first?.1.code, .stillCaptureMode)
+        
+        testCases.forEach { (testCase) in
+            XCTAssertEqual(
+                testCase.0,
+                testCase.1.sonyPTPValue as? DWord
+            )
+        }
+    }
+    
+    func testStillQualityInitialisedCorrectly() throws {
+        
+        let testCases: [(PTPDevicePropertyDataType, StillCapture.Quality.Value?)] = [
+            (Byte(0x03), .standard),
+            (Byte(0x02), .fine),
+            (Byte(0x01), .extraFine),
+            ("Hello World", nil)
+        ]
+        
+        XCTAssertEqual(StillCapture.Quality.Value.allCases, testCases.compactMap({ $0.1 }))
+        
+        testCases.forEach { (testCase) in
+            XCTAssertEqual(
+                testCase.1,
+                StillCapture.Quality.Value(sonyValue: testCase.0)
+            )
+        }
+    }
+    
+    func testStillQualityConvertsToDataCorrectly() throws {
+        
+        let testCases: [(Byte, StillCapture.Quality.Value)] = [
+            (Byte(0x03), .standard),
+            (Byte(0x02), .fine),
+            (Byte(0x01), .extraFine),
+        ]
+        
+        XCTAssertEqual(StillCapture.Quality.Value.allCases, testCases.compactMap({ $0.1 }))
+        
+        XCTAssertEqual(testCases.first?.1.type, .uint8)
+        XCTAssertEqual(testCases.first?.1.code, .stillQuality)
+        
+        testCases.forEach { (testCase) in
+            XCTAssertEqual(
+                testCase.0,
+                testCase.1.sonyPTPValue as? Byte
+            )
+        }
+    }
+    
+    func testStillFormatInitialisedCorrectly() throws {
+        
+        let testCases: [(PTPDevicePropertyDataType, StillCapture.Format.Value?)] = [
+            (Byte(0x01), .raw),
+            (Byte(0x02), .rawAndJpeg),
+            (Byte(0x03), .jpeg("")),
+            (Byte(0x04), .rawAndHeif),
+            (Byte(0x05), .heif),
+            ("Hello World", nil)
+        ]
+                
+        testCases.forEach { (testCase) in
+            XCTAssertEqual(
+                testCase.1,
+                StillCapture.Format.Value(sonyValue: testCase.0)
+            )
+        }
+    }
+    
+    func testStillFormatConvertsToDataCorrectly() throws {
+        
+        let testCases: [(Byte, StillCapture.Format.Value)] = [
+            (Byte(0x01), .raw),
+            (Byte(0x02), .rawAndJpeg),
+            (Byte(0x03), .jpeg("")),
+            (Byte(0x04), .rawAndHeif),
+            (Byte(0x05), .heif)
+        ]
+                
+        XCTAssertEqual(testCases.first?.1.type, .uint8)
+        XCTAssertEqual(testCases.first?.1.code, .stillFormat)
+        
+        testCases.forEach { (testCase) in
+            XCTAssertEqual(
+                testCase.0,
+                testCase.1.sonyPTPValue as? Byte
             )
         }
     }
@@ -510,6 +1047,82 @@ class SonyPTPPropConversionTests: XCTestCase {
             VideoCapture.Quality.Value.allCases,
             testCases.compactMap({ $0.1 }),
             "Missing VideoCapture.Quality.Value in test cases"
+        )
+        
+        testCases.forEach { (testCase) in
+            XCTAssertEqual(
+                testCase.0,
+                testCase.1.sonyPTPValue as? Word
+            )
+        }
+    }
+    
+    func testWhiteBalanceModeInitialisedCorrectly() throws {
+        
+        let testCases: [(PTPDevicePropertyDataType, WhiteBalance.Mode?)] = [
+            (Word(0x0002), .auto),
+            (Word(0x0004), .daylight),
+            (Word(0x8011), .shade),
+            (Word(0x8010), .cloudy),
+            (Word(0x0006), .incandescent),
+            (Word(0x8001), .fluorescentWarmWhite),
+            (Word(0x8002), .fluorescentCoolWhite),
+            (Word(0x8003), .fluorescentDayWhite),
+            (Word(0x8004), .fluorescentDaylight),
+            (Word(0x0007), .flash),
+            (Word(0x8030), .underwaterAuto),
+            (Word(0x8012), .colorTemp),
+            (Word(0x8020), .custom1),
+            (Word(0x8021), .custom2),
+            (Word(0x8022), .custom3),
+            (Word(0x8023), .custom),
+            ("Hello World", nil)
+        ]
+        
+        // Make sure all enum cases are tested for
+        XCTAssertEqual(
+            WhiteBalance.Mode.allCases.filter({ $0 != .custom }),
+            testCases.compactMap({ $0.1 }),
+            "Missing WhiteBalance.Mode in test cases"
+        )
+        
+        testCases.forEach { (testCase) in
+            XCTAssertEqual(
+                testCase.1,
+                WhiteBalance.Mode(sonyValue: testCase.0)
+            )
+        }
+    }
+    
+    func testWhiteBalanceModeConvertsToDataCorrectly() throws {
+        
+        let testCases: [(Word, WhiteBalance.Mode)] = [
+            (Word(0x0002), .auto),
+            (Word(0x0004), .daylight),
+            (Word(0x8011), .shade),
+            (Word(0x8010), .cloudy),
+            (Word(0x0006), .incandescent),
+            (Word(0x8001), .fluorescentWarmWhite),
+            (Word(0x8002), .fluorescentCoolWhite),
+            (Word(0x8003), .fluorescentDayWhite),
+            (Word(0x8004), .fluorescentDaylight),
+            (Word(0x0007), .flash),
+            (Word(0x8030), .underwaterAuto),
+            (Word(0x8012), .colorTemp),
+            (Word(0x8020), .custom1),
+            (Word(0x8021), .custom2),
+            (Word(0x8022), .custom3),
+            (Word(0x8023), .custom),
+        ]
+        
+        XCTAssertEqual(testCases.first?.1.type, .uint16)
+        XCTAssertEqual(testCases.first?.1.code, .whiteBalance)
+        
+        // Make sure all enum cases are tested for
+        XCTAssertEqual(
+            WhiteBalance.Mode.allCases.filter({ $0 != .custom }),
+            testCases.compactMap({ $0.1 }),
+            "Missing WhiteBalance.Mode in test cases"
         )
         
         testCases.forEach { (testCase) in

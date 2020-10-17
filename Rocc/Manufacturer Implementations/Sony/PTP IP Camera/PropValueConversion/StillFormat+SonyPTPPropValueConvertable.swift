@@ -18,6 +18,10 @@ extension StillCapture.Format.Value: SonyPTPPropValueConvertable {
             return Byte(0x02)
         case .jpeg(_):
             return Byte(0x03)
+        case .rawAndHeif:
+            return Byte(0x04)
+        case .heif:
+            return Byte(0x05)
         }
     }
     
@@ -38,6 +42,10 @@ extension StillCapture.Format.Value: SonyPTPPropValueConvertable {
             self = .rawAndJpeg
         case 0x03:
             self = .jpeg("")
+        case 0x04:
+            self = .rawAndHeif
+        case 0x05:
+            self = .heif
         default:
             return nil
         }

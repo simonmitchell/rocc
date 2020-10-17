@@ -180,6 +180,8 @@ fileprivate extension Focus.Mode.Value {
             self = .autoContinuous
         case "dmf":
             self = .directManual
+        case "pf":
+            self = .powerFocus
         default:
             return nil
         }
@@ -197,6 +199,8 @@ fileprivate extension Focus.Mode.Value {
             return "AF-C"
         case .directManual:
             return "DMF"
+        case .powerFocus:
+            return "PF"
         }
     }
 }

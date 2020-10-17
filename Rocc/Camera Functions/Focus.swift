@@ -14,13 +14,14 @@ public struct Focus {
     /// Functions for controlling the focus mode of the camera
     public struct Mode: CameraFunction {
         
-        public enum Value {
+        public enum Value: CaseIterable {
             
             case auto
             case autoSingle
             case autoContinuous
             case directManual
             case manual
+            case powerFocus
             
             var isAutoFocus: Bool {
                 return [.auto, .autoSingle, .autoContinuous].contains(self)
