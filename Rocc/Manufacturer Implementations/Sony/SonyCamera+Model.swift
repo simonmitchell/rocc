@@ -21,6 +21,7 @@ extension SonyCamera {
         case a7s = "ILCE-7S"
         case a7sii = "ILCE-7SM2"
         case a7siii = "ILCE-7SM3"
+        case a7c = "ILCE-7C"
         case a9 = "ILCE-9"
         case a9ii = "ILCE-9M2"
         case a5000 = "ILCE-5000"
@@ -69,6 +70,7 @@ extension SonyCamera {
         case QX10 = "DSC-QX10"
         case QX100 = "DSC-QX100"
         case QX30 = "DSC-QX30"
+        case ZV_1 = "ZV-1"
         
         var friendlyName: String {
             switch self {
@@ -82,6 +84,7 @@ extension SonyCamera {
             case .a7s: return "ɑ7S"
             case .a7sii: return "ɑ7S II"
             case .a7siii: return "ɑ7S III"
+            case .a7c: return "ɑ7C"
             case .a9: return "ɑ9"
             case .a9ii: return "ɑ9 II"
             case .a5000: return "ɑ5000"
@@ -130,6 +133,7 @@ extension SonyCamera {
             case .QX10: return "QX10"
             case .QX100: return "QX100"
             case .QX30: return "QX30"
+            case .ZV_1: return "ZV-1"
             }
         }
         
