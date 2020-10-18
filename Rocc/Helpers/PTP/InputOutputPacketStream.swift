@@ -29,7 +29,7 @@ final class InputOutputPacketStream: NSObject, PTPPacketStream {
     
     private var openStreams: [Stream] = []
     
-    private var awaitingFurtherDataCommandResponsePacket: CommandResponsePacket?
+    internal var awaitingFurtherDataPacket: Packetable?
 
     init?(camera: Camera, port: Int = 15740) {
         
@@ -50,7 +50,7 @@ final class InputOutputPacketStream: NSObject, PTPPacketStream {
         
         disconnect()
         
-        awaitingFurtherDataCommandResponsePacket = nil
+        awaitingFurtherDataPacket = nil
         
         Logger.log(message: "Creating streams to host \(host):\(port)", category: "PTPIPClient", level: .debug)
         os_log("Creating streams to host %@", log: log, type: .debug, "\(host):\(port)")
@@ -165,11 +165,11 @@ final class InputOutputPacketStream: NSObject, PTPPacketStream {
             os_log("Read control available bytes (%i)", log: log, type: .debug, mainLoopByteBuffer.length)
             
             // If we have a command response packet awaiting further data
-            if var awaitingCommandResponsePacket = awaitingFurtherDataCommandResponsePacket {
+            if var awaitingCommandResponsePacket = awaitingFurtherDataPacket {
                 // Create a new packet by appending new data
                 if let fullPacket = awaitingCommandResponsePacket.addingAwaitedData(mainLoopByteBuffer) {
                     
-                    awaitingFurtherDataCommandResponsePacket = nil
+                    awaitingFurtherDataPacket = nil
                     // Make sure set to false, otherwise we end up in an infinite loop
                     var packet = fullPacket.packet
                     packet.awaitingFurtherData = false
@@ -185,7 +185,7 @@ final class InputOutputPacketStream: NSObject, PTPPacketStream {
                     delegate?.packetStream(self, didReceive: [awaitingCommandResponsePacket])
                 }
                 
-                awaitingFurtherDataCommandResponsePacket = nil
+                awaitingFurtherDataPacket = nil
             }
             
             packets = mainLoopByteBuffer.parsePackets()
@@ -195,6 +195,9 @@ final class InputOutputPacketStream: NSObject, PTPPacketStream {
         
         
         guard let _packets = packets, !_packets.isEmpty else { return }
+        
+        awaitingFurtherDataPacket = _packets.first(where: { $0.awaitingFurtherData })
+        
         delegate?.packetStream(self, didReceive: _packets)
     }
     

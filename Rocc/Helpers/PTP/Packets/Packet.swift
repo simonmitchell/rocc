@@ -28,7 +28,25 @@ protocol Packetable {
     
     var data: ByteBuffer { get }
     
+    var awaitingFurtherData: Bool { get set }
+    
     init?(length: DWord, name: Packet.Name, data: ByteBuffer)
+    
+    mutating func addingAwaitedData(_ data: ByteBuffer) -> (packet: CommandResponsePacket, length: DWord)?
+}
+
+extension Packetable {
+
+    var awaitingFurtherData: Bool {
+        get {
+            return false
+        }
+        set { }
+    }
+    
+    func addingAwaitedData(_ data: ByteBuffer) -> (packet: CommandResponsePacket, length: DWord)? {
+        return nil
+    }
 }
     
 struct Packet: Packetable {

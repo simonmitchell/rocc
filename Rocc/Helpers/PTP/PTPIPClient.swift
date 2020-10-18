@@ -233,15 +233,12 @@ final class PTPIPClient {
     }
     
     //MARK: Commands
-    
-    private var awaitingFurtherDataCommandResponsePacket: CommandResponsePacket?
-    
+        
     fileprivate func handleCommandResponsePacket(_ packet: CommandResponsePacket) {
         
         // Need to catch this, as sometimes cameras send invalid command responses, but sometimes they just
         // come through in multiple bundles, so we wait and augment them with further data
         guard !packet.awaitingFurtherData else {
-            awaitingFurtherDataCommandResponsePacket = packet
             return
         }
         
