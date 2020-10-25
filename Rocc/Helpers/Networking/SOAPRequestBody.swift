@@ -9,8 +9,6 @@
 import os.log
 
 import Foundation
-import ThunderRequest
-
 
 struct SOAPRequestBody {
     

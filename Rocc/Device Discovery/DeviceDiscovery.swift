@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import ThunderRequest
 
 import SystemConfiguration
 import os

@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import ThunderRequest
 import os
 
 extension SonyTransferDevice {

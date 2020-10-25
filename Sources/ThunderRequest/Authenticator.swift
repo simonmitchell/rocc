@@ -18,7 +18,7 @@ import Foundation
 ///
 /// Setting the `RequestController`'s `sharedRequestCredential` using `set(sharedRequestCredentials:savingToKeychain:)`
 /// with savingToKeychain as true will also achieve the same affect.
-public protocol Authenticator {
+internal protocol Authenticator {
     
     /// This method will be called if a request is made without a `RequestCredential` object having
     /// been saved to the keychain under the provided value from `self.authIdentifier`

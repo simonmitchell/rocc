@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import ThunderRequest
 
 internal final class SystemClient: ServiceClient {
     

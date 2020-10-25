@@ -8,7 +8,6 @@
 
 import Foundation
 import os.log
-import ThunderRequest
 
 /// A protocol that can be implemented to act as a logger for ROCC.
 /// this allows you to collate logs in any way you wish, rather than relying

@@ -8,7 +8,6 @@
 
 import Foundation
 import os
-import ThunderRequest
 import SystemConfiguration
 
 extension UserDefaults {

@@ -9,9 +9,9 @@
 import Foundation
 import os.log
 
-public typealias RequestCompletion = (_ response: RequestResponse?, _ error: Error?) -> Void
-public typealias TransferCompletion = (_ response: RequestResponse?, _ fileLocation: URL?, _ error: Error?) -> Void
-public typealias ProgressHandler = (_ progress: Double, _ totalBytes: Int64, _ transferredBytes: Int64) -> Void
+internal typealias RequestCompletion = (_ response: RequestResponse?, _ error: Error?) -> Void
+internal typealias TransferCompletion = (_ response: RequestResponse?, _ fileLocation: URL?, _ error: Error?) -> Void
+internal typealias ProgressHandler = (_ progress: Double, _ totalBytes: Int64, _ transferredBytes: Int64) -> Void
 
 /// An instance of `RequestController` lets you asynchronously perform HTTP requests with a closure being called upon completion.
 ///
@@ -24,15 +24,15 @@ public typealias ProgressHandler = (_ progress: Double, _ totalBytes: Int64, _ t
 /// 3. Use any of the GET/POST e.t.c. methods to perform requests
 ///
 /// IMPORTANT --- `RequestController` uses URLSession internally which hold a strong reference to their delegate. You must therefore call `invalidateAndCancel` when done with your `RequestController` object.
-open class RequestController {
+internal class RequestController {
     
-    public enum UploadError: Error {
+    internal enum UploadError: Error {
         case saveToDiskFailed
         case noFileOrDataProvided
     }
     
     /// A shared user agent which will be used for all instances of `RequestController`
-    public class var sharedUserAgent: String? {
+    internal class var sharedUserAgent: String? {
         get {
             return UserDefaults.standard.string(forKey: "TSCUserAgent")
         }
@@ -42,18 +42,18 @@ open class RequestController {
     }
     
     /// The user agent to use with this instance of `RequestController` overrides `RequestController.sharedUserAgent`
-    public var userAgent: String?
+    internal var userAgent: String?
     
     /// The shared Base URL for all requests routed through the controller
     ///
     /// This is most commonly set via the init(baseURL:) method
-    public var sharedBaseURL: URL
+    internal var sharedBaseURL: URL
     
     /// A custom queue to dispatch all request callbacks onto
-    public var callbackQueue: DispatchQueue?
+    internal var callbackQueue: DispatchQueue?
     
     /// A custom logger to have log messages passed to it as well as os.log logging
-    public var logger: LogReceiver?
+    internal var logger: LogReceiver?
     
     private var _requestLog: Any? = nil
     @available(macOS 10.12, watchOSApplicationExtension 3.0, *)
@@ -65,19 +65,19 @@ open class RequestController {
     }
     
     /// The request controller for making re-authentication requests on
-    public var authenticationRequestController: RequestController?
+    internal var authenticationRequestController: RequestController?
     
     /// The user is re-authenticating
     var reAuthenticating: Bool = false
     
     /// The shared request headers for all requests routed through the controller
-    public var sharedRequestHeaders: [String : String?] = [:]
+    internal var sharedRequestHeaders: [String : String?] = [:]
     
     /// The shared request credentials to be used for authorization with any authentication challenge
-    public var sharedRequestCredentials: RequestCredential?
+    internal var sharedRequestCredentials: RequestCredential?
     
     /// The authenticator object which will respond to unauthenticated responses e.t.c.
-    public var authenticator: Authenticator? {
+    internal var authenticator: Authenticator? {
         didSet {
             guard let authenticator = authenticator else { return }
             sharedRequestCredentials = CredentialStore.retrieve(withIdentifier: authenticator.authIdentifier, from: dataStore)
@@ -92,7 +92,7 @@ open class RequestController {
     /// This should not be done with requests running on the main thread. The primary use case
     /// for this functionality was to support HTTP requests in OSX CLI.
     /// - Warning: Setting this to true could cause un-expected behaviours
-    public var runSynchronously: Bool = false
+    internal var runSynchronously: Bool = false
     
     /// The operation queue that contains all requests added to a default session
     private var defaultRequestQueue: OperationQueue?
@@ -115,7 +115,7 @@ open class RequestController {
     
     /// Returns the session identifier that was used to create the background session's `URLSessionConfiguration` object
     /// this is useful for checking session identifiers when working with "Background Transfer Service"
-    public var backgroundSessionIdentifier: String? {
+    internal var backgroundSessionIdentifier: String? {
         return backgroundSession.configuration.identifier
     }
     
@@ -126,7 +126,7 @@ open class RequestController {
     /// Initialises a request controller with a given base url and data store for url/auth credentials
     /// - Parameter baseURL: The base URL to use for all requests
     /// - Parameter dataStore: The data store used to save/retrieve auth and url credentials
-    public init(baseURL: URL, dataStore: DataStore = KeychainStore(serviceName: kTSCAuthServiceName)) {
+    internal init(baseURL: URL, dataStore: DataStore = KeychainStore(serviceName: kTSCAuthServiceName)) {
         
         self.dataStore = dataStore
         
@@ -144,7 +144,7 @@ open class RequestController {
     /// Initialises a request controller with a given base address
     ///
     /// - Parameter baseAddress: The base address to use for all requests
-    public convenience init?(baseAddress: String) {
+    internal convenience init?(baseAddress: String) {
         guard let url = URL(string: baseAddress) else { return nil }
         self.init(baseURL: url)
     }
@@ -275,7 +275,7 @@ open class RequestController {
     ///   - progress: (Optional) A closure to be called as the upload progresses
     ///   - completion: (Optional) A closure to be called once the upload has completed
     /// - Returns: The request which has been made
-    @discardableResult public func uploadFile(
+    @discardableResult internal func uploadFile(
         _ fileURL: URL,
         to path: String?,
         tag: Int = Int.random(in: 0...1000),
@@ -302,64 +302,6 @@ open class RequestController {
         return request
     }
     
-    /// Performs a HTTP request to upload some given data
-    ///
-    /// If you already have a `Request` object, use one of the `schedule` methods instead.
-    ///
-    /// - Parameters:
-    ///   - data: The data to upload
-    ///   - path: The path to append to `sharedBaseURL`
-    ///   - tag: A tag to apply to the request so it can be cancelled later
-    ///   - contentType: (Optional) an override to the content type provided by `body`
-    ///   - overrideURL: (Optional) an override for `sharedBaseURL`
-    ///   - queryItems: (Optional) query items to append to the url
-    ///   - headers: (Optional) a dictionary of override headers to be merged with `sharedRequestHeaders`
-    ///   - progress: (Optional) A closure to be called as the upload progresses
-    ///   - completion: (Optional) A closure to be called once the upload has completed
-    /// - Returns: The request which has been made
-    @discardableResult public func uploadData(
-        _ data: Data,
-        to path: String?,
-        tag: Int = Int.random(in: 0...1000),
-        contentType: String? = nil,
-        overrideURL: URL? = nil,
-        queryItems: [URLQueryItem]? = nil,
-        headers: [String: String?]? = nil,
-        progress: ProgressHandler? = nil,
-        completion: TransferCompletion? = nil
-    ) -> Request {
-        
-        let request = Request(
-            baseURL: overrideURL ?? sharedBaseURL,
-            path: path,
-            method: .POST,
-            queryItems: queryItems
-        )
-        
-        guard let cachesDirectory = NSSearchPathForDirectoriesInDomains(.cachesDirectory, .userDomainMask, true).last else {
-            completion?(nil, nil, UploadError.saveToDiskFailed)
-            return request
-        }
-        
-        let cacheURL = URL(fileURLWithPath: cachesDirectory).appendingPathComponent(NSUUID().uuidString)
-        
-        do {
-            try data.write(to: cacheURL)
-        } catch let error {
-            completion?(nil, nil, error)
-            return request
-        }
-        
-        request.contentType = contentType
-        request.tag = tag
-        request.body = data
-        setHeaders(headers, for: request)
-        
-        scheduleUpload(request, on: nil, fileURL: cacheURL, progress: progress, completion: completion)
-        
-        return request
-    }
-    
     /// Performs a HTTP request to upload to the given path using the parameters provided
     ///
     /// If you already have a `Request` object, use one of the `schedule` methods instead.
@@ -375,7 +317,7 @@ open class RequestController {
     ///   - progress: (Optional) A closure to be called as the upload progresses
     ///   - completion: (Optional) A closure to be called once the upload has completed
     /// - Returns: The request object that will be run
-    @discardableResult public func upload(
+    @discardableResult internal func upload(
         _ path: String?,
         body: RequestBody?,
         tag: Int = Int.random(in: 0...1000),
@@ -419,7 +361,7 @@ open class RequestController {
     ///   - progress: (Optional) A closure to be called as the download progresses
     ///   - completion: (Optional) A closure to be called once the download has completed
     /// - Returns: The request object that will be run
-    @discardableResult public func download(
+    @discardableResult internal func download(
         _ path: String?,
         inBackground: Bool = false,
         on: Date? = nil,
@@ -452,11 +394,9 @@ open class RequestController {
     /// - Parameters:
     ///   - request: The request to be made.
     ///   - completion: A closure to be called once the request has finished.
-    public func schedule(request: Request, completion: RequestCompletion?) {
+    internal func schedule(request: Request, completion: RequestCompletion?) {
         
         // Set activity indicator (Only if we're the first request)
-        RequestController.showApplicationActivityIndicator()
-        
         if let userAgent = userAgent ?? RequestController.sharedUserAgent, !request.headers.keys.contains("User-Agent") {
             request.headers["User-Agent"] = userAgent
         }
@@ -464,8 +404,6 @@ open class RequestController {
         checkAuthStatusFor(request: request) { [weak self] (authenticated, error, needsQueueing) in
             
             if let error = error, !authenticated, !needsQueueing {
-                
-                RequestController.hideApplicationActivityIndicator()
                 completion?(nil, error)
                 return
             }
@@ -486,12 +424,10 @@ open class RequestController {
                     
                     let response = this.defaultSession.sendSynchronousDataTaskWith(request: &urlRequest)
                     this.callCompletionHandlersFor(request: request, urlRequest: urlRequest, data: response.data, response: response.response, error: response.error, completion: completion)
-                    RequestController.hideApplicationActivityIndicator()
                     
                 } else {
                     
                     let dataTask = this.defaultSession.dataTask(with: urlRequest, completionHandler: { [weak this] (data, response, error) in
-                        RequestController.hideApplicationActivityIndicator()
                         guard let _this = this else { return }
                         _this.callCompletionHandlersFor(request: request, urlRequest: urlRequest, data: data, response: response, error: error, completion: completion)
                     })
@@ -517,10 +453,7 @@ open class RequestController {
     ///   - fileURL: The file url to upload from.
     ///   - progress: A closure to be called with progress updates.
     ///   - completion: A closure to be called once the upload has finished.
-    public func scheduleUpload(_ request: Request, on date: Date? = nil, fileURL: URL?, progress: ProgressHandler?, completion: TransferCompletion?) {
-        
-        // Set activity indicator (Only if we're the first request)
-        RequestController.showApplicationActivityIndicator()
+    internal func scheduleUpload(_ request: Request, on date: Date? = nil, fileURL: URL?, progress: ProgressHandler?, completion: TransferCompletion?) {
         
         if let userAgent = UserDefaults.standard.string(forKey: "TSCUserAgent"), !request.headers.keys.contains("User-Agent") {
             request.headers["User-Agent"] = userAgent
@@ -529,8 +462,6 @@ open class RequestController {
         checkAuthStatusFor(request: request) { [weak self] (authenticated, error, needsQueueing) in
             
             if error != nil || !authenticated {
-                
-                RequestController.hideApplicationActivityIndicator()
                 completion?(nil, nil, error)
                 return
             }
@@ -553,7 +484,6 @@ open class RequestController {
                         return
                     }
                     
-                    RequestController.hideApplicationActivityIndicator()
                     var returnResponse: RequestResponse?
                     if let requestResponse = response.response {
                         returnResponse = RequestResponse(response: requestResponse, data: response.data)
@@ -599,10 +529,7 @@ open class RequestController {
     ///   - date: When to make the request (defaults to current date).
     ///   - progress: A closure to be called with progress updates.
     ///   - completion: A closure to be called once the download has finished.
-    public func scheduleDownload(_ request: Request, inBackground: Bool = false, on date: Date? = nil, progress: ProgressHandler?, completion: TransferCompletion?) {
-        
-        // Set activity indicator (Only if we're the first request)
-        RequestController.showApplicationActivityIndicator()
+    internal func scheduleDownload(_ request: Request, inBackground: Bool = false, on date: Date? = nil, progress: ProgressHandler?, completion: TransferCompletion?) {
         
         if let userAgent = UserDefaults.standard.string(forKey: "TSCUserAgent"), !request.headers.keys.contains("User-Agent") {
             request.headers["User-Agent"] = userAgent
@@ -611,8 +538,6 @@ open class RequestController {
         checkAuthStatusFor(request: request) { [weak self] (authenticated, error, needsQueueing) in
             
             if error != nil || !authenticated {
-                
-                RequestController.hideApplicationActivityIndicator()
                 completion?(nil, nil, error)
                 return
             }
@@ -627,7 +552,6 @@ open class RequestController {
                     
                     let response = this.backgroundSession.sendSynchronousDownloadTaskWith(request: &urlRequest)
                     
-                    RequestController.hideApplicationActivityIndicator()
                     var returnResponse: RequestResponse?
                     if let requestResponse = response.response {
                         returnResponse = RequestResponse(response: requestResponse, data: nil, fileURL: response.downloadURL)
@@ -659,7 +583,7 @@ open class RequestController {
     
     /// Cancels all requests in any of the queues, calling the completion
     /// block with a cancellation error
-    public func cancelAllRequests() {
+    internal func cancelAllRequests() {
         defaultSession.invalidateAndCancel()
         backgroundSession.invalidateAndCancel()
         ephemeralSession.invalidateAndCancel()
@@ -670,7 +594,7 @@ open class RequestController {
     /// calling the completion with a cancellation error
     ///
     /// - Parameter tag: The tag to cancel the requests for
-    public func cancelRequestsWith(tag: Int) {
+    internal func cancelRequestsWith(tag: Int) {
         
         defaultSession.getAllTasks { (tasks) in
             tasks.filter({ $0.tag == tag }).forEach({ (task) in
@@ -693,7 +617,7 @@ open class RequestController {
     
     /// Calls invalidateAndCancel on all internal `URLSession` objects
     /// to allow self to be deallocated
-    public func invalidateAndCancel() {
+    internal func invalidateAndCancel() {
         defaultSession.invalidateAndCancel()
         backgroundSession.invalidateAndCancel()
         ephemeralSession.invalidateAndCancel()
@@ -711,7 +635,7 @@ open class RequestController {
     /// service identifier is set on the request controller. If `OAuth2Delegate` is non-nil
     /// when this method is called it will be saved under the current delegate's service
     /// identifier. Otherwise it will be saved under a string appended by `sharedBaseURL`
-    public func set(sharedRequestCredentials: RequestCredential?, savingToKeychain: Bool, accessibility: CredentialStore.Accessibility = .afterFirstUnlock) {
+    internal func set(sharedRequestCredentials: RequestCredential?, savingToKeychain: Bool, accessibility: CredentialStore.Accessibility = .afterFirstUnlock) {
         
         self.sharedRequestCredentials = sharedRequestCredentials
         if let credential = sharedRequestCredentials, let authToken = credential.authorizationToken {
@@ -720,29 +644,6 @@ open class RequestController {
         
         guard savingToKeychain else { return }
         CredentialStore.store(credential: sharedRequestCredentials, identifier: authenticator?.authIdentifier ?? "thundertable.com.threesidedcube-\(sharedBaseURL)", accessibility: accessibility)
-    }
-}
-
-extension RequestController {
-    
-    static let hideActivityIndicatorPlistKey = "TSCThunderRequestShouldHideActivityIndicator"
-    
-    fileprivate static func showApplicationActivityIndicator() {
-        #if os(iOS)
-        if let option = Bundle.main.object(forInfoDictionaryKey: RequestController.hideActivityIndicatorPlistKey) as? Bool, !option {
-            return
-        }
-        ApplicationLoadingIndicatorManager.shared.showActivityIndicator()
-        #endif
-    }
-    
-    fileprivate static func hideApplicationActivityIndicator() {
-        #if os(iOS)
-        if let option = Bundle.main.object(forInfoDictionaryKey: RequestController.hideActivityIndicatorPlistKey) as? Bool, !option {
-            return
-        }
-        ApplicationLoadingIndicatorManager.shared.hideActivityIndicator()
-        #endif
     }
 }
 

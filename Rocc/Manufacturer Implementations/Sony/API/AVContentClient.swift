@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import ThunderRequest
 
 fileprivate extension File.Content {
     
