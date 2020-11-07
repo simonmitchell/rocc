@@ -76,7 +76,7 @@ extension Pinger: SimplePingDelegate {
             this.completion?(nil, PingerError.timeout)
             this.stop()
         })
-        pinger.send(with: nil)
+        pinger.send(ping: "Hello".data(using: .utf8) ?? Data())
     }
     
     func simplePing(_ pinger: SimplePing, didSendPacket packet: Data, sequenceNumber: UInt16) {

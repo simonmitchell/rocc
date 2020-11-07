@@ -23,4 +23,3 @@ FOUNDATION_EXPORT double RoccVersionNumber;
 FOUNDATION_EXPORT const unsigned char RoccVersionString[];
 
 // In this header, you should import all the public headers of your framework using statements like #import <Rocc/PublicHeader.h>
-#import "SimplePing.h"
