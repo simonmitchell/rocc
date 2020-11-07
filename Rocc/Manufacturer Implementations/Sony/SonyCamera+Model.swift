@@ -153,7 +153,7 @@ extension SonyCamera {
             case .startBulbCapture, .endBulbCapture:
                 return []
             case .startRecordMode:
-                return allExcept([.a9, .a7iii, .a7riii, .a7siii])
+                return allExcept([.a9, .a7iii, .a7riii, .a7siii, .a6400])
             case .ping:
                 return allCases
             case .takePicture:
@@ -277,7 +277,7 @@ extension SonyCamera {
                 _supportingModels.append(contentsOf: cyberShotSeries)
                 _supportingModels.append(contentsOf: [.QX30, .QX1, .HDR_AZ1, .HDR_AS200V, .FDR_X1000V, .FDR_X3000, .HDR_AS300, .HDR_AS50])
                 // Not these models!
-                _supportingModels = _supportingModels.filter({ ![.a7, .a7r, .a7iii, .a7riii, .a7siii, .a9, .a5000, .a5100, .a6000, .cyberShot_HX60, .cyberShot_HX60V, .cyberShot_HX400].contains($0) })
+                _supportingModels = _supportingModels.filter({ ![.a7, .a7r, .a7iii, .a7riii, .a7siii, .a9, .a5000, .a5100, .a6000, .a6400, .cyberShot_HX60, .cyberShot_HX60V, .cyberShot_HX400].contains($0) })
                 return _supportingModels
             case .listContent, .listSchemes, .listSources, .deleteContent, .getStorageInformation, .getContentCount:
                 var _supportingModels = alphaSeries
@@ -351,7 +351,7 @@ extension SonyCamera {
         }
         
         static var alphaSeries: [Model] {
-            return [.a7, .a7ii, .a7iii, .a7r, .a7rii, .a7riii, .a7s, .a7sii, .a7siii, .a5000, .a5100, .a6000, .a6100, .a6300, .a6400, .a6500, .a6600]
+            return [.a7, .a7ii, .a7iii, .a7r, .a7rii, .a7riii, .a7s, .a7sii, .a7siii, .a7c, .a5000, .a5100, .a6000, .a6100, .a6300, .a6400, .a6500, .a6600]
         }
         
         var latestFirmwareVersion: String? {
@@ -398,6 +398,7 @@ extension SonyCamera {
         
         var requiresHalfPressToCapture: Bool {
             let modelsWhichRequireHalfPressToCapture: [Model] = [
+                .a6400,
                 .a7iii,
                 .a7riii,
                 .a9,
