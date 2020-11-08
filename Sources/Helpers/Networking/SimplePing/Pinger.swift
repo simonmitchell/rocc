@@ -8,7 +8,7 @@
 
 import Foundation
 
-internal final class Pinger: NSObject {
+internal final class Pinger {
     
     typealias Completion = (_ time: TimeInterval?, _ error: Error?) -> Void
     
@@ -24,17 +24,11 @@ internal final class Pinger: NSObject {
     
     fileprivate var startTime: TimeInterval?
     
-    class func ping(hostName: String, timeout: TimeInterval = 3.0, completion: @escaping Completion) {
-        let ping = Pinger(hostName: hostName)
-        ping.ping(timeout: timeout, completion: completion)
-    }
-    
     init(hostName: String) {
         self.hostName = hostName
-        super.init()
     }
     
-    private func ping(timeout: TimeInterval, completion: @escaping Completion) {
+    func ping(timeout: TimeInterval, completion: @escaping Completion) {
         
         self.pinger = SimplePing(hostName: hostName)
         self.timeoutDuration = timeout
@@ -43,7 +37,7 @@ internal final class Pinger: NSObject {
         pinger!.start()
     }
     
-    private func stop() {
+    func stop() {
         
         pinger?.stop()
         pinger = nil
@@ -76,7 +70,6 @@ extension Pinger: SimplePingDelegate {
             this.completion?(nil, PingerError.timeout)
             this.stop()
         })
-        pinger.send(ping: "Hello".data(using: .utf8) ?? Data())
     }
     
     func simplePing(_ pinger: SimplePing, didSendPacket packet: Data, sequenceNumber: UInt16) {

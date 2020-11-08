@@ -33,6 +33,8 @@ fileprivate extension CountRequest {
 
 internal final class SonyAPICameraDevice: SonyCamera {
     
+    fileprivate var pinger: Pinger?
+    
     private let apiClient: SonyCameraAPIClient
     
     fileprivate var lastShutterSpeed: ShutterSpeed?
@@ -1546,9 +1548,11 @@ extension SonyAPICameraDevice: Camera {
                 return
             }
             
-            Pinger.ping(hostName: host, timeout: 2.0) { (interval, error) in
+            // Have to strongly retain pinger, otherwise it's released due to delegate being `weak`
+            pinger = Pinger(hostName: host)
+            pinger?.ping(timeout: 2.0, completion: { (interval, error) in
                 callback(error, nil)
-            }
+            })
             
             return
         }

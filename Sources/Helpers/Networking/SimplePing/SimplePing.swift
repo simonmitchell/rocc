@@ -1,10 +1,10 @@
-//
-//  SimplePing.swift
-//  Rocc
-//
-//  Created by Simon Mitchell on 25/10/2020.
-//  Copyright © 2020 Simon Mitchell. All rights reserved.
-//
+/*
+    Copyright (C) 2016 Apple Inc. All Rights Reserved.
+    See LICENSE.txt for this sample’s licensing information
+    
+    Abstract:
+    An object wrapper around the low-level BSD Sockets ping function.
+ */
 
 import Foundation
 
@@ -59,15 +59,15 @@ struct ICMPHeader {
     
     init?(_ data: Data) {
         
-        guard data.count > MemoryLayout<Self>.size else {
+        guard data.count >= MemoryLayout<ICMPHeader>.size else {
             return nil
         }
         
-        data[0...1].withUnsafeBytes { type = $0.bindMemory(to: UInt8.self).first ?? type }
-        data[1...2].withUnsafeBytes { code = $0.bindMemory(to: UInt8.self).first ?? code }
-        data[2...4].withUnsafeBytes { checksum = $0.bindMemory(to: UInt16.self).first ?? checksum }
-        data[4...6].withUnsafeBytes { identifier = $0.bindMemory(to: UInt16.self).first ?? identifier }
-        data[6...8].withUnsafeBytes { sequenceNumber = $0.bindMemory(to: UInt16.self).first ?? sequenceNumber }
+        data[0..<1].withUnsafeBytes { type = $0.bindMemory(to: UInt8.self).first ?? type }
+        data[1..<2].withUnsafeBytes { code = $0.bindMemory(to: UInt8.self).first ?? code }
+        data[2..<4].withUnsafeBytes { checksum = $0.bindMemory(to: UInt16.self).first ?? checksum }
+        data[4..<6].withUnsafeBytes { identifier = $0.bindMemory(to: UInt16.self).first ?? identifier }
+        data[6..<8].withUnsafeBytes { sequenceNumber = $0.bindMemory(to: UInt16.self).first ?? sequenceNumber }
     }
 }
 
@@ -140,7 +140,7 @@ func in_cksum(_ buffer: UnsafePointer<UInt16>, bufferLen: size_t) -> UInt16 {
     // Add back carry outs from top 16 bits to low 16 bits
     sum = (sum >> 16) + (sum & 0xffff) // Add hi 16 to low 16
     sum += (sum >> 16) // Add carry
-    answer = UInt16(~sum) // Truncate to 16 bits
+    answer = UInt16(truncatingIfNeeded: ~sum) // Truncate to 16 bits
     
     return answer
 }
@@ -173,7 +173,7 @@ protocol SimplePingDelegate: class {
 
 extension sockaddr {
     init?(_ data: Data) {
-        guard data.count > MemoryLayout<sockaddr>.size else {
+        guard data.count >= MemoryLayout<sockaddr>.size else {
             return nil
         }
         var result: sockaddr?
@@ -252,7 +252,7 @@ class SimplePing {
     ///
     /// When you create an instance of this object it generates a
     /// random ientifier that it uses to identify it's own pings
-    let identifier: UInt16 = UInt16.rand(0, UInt16.max)
+    let identifier: UInt16 = UInt16.random(in: 0..<UInt16.max)
     
     /// The next sequence number to be used by this object.
     ///
@@ -297,18 +297,21 @@ class SimplePing {
                 
         var context = CFHostClientContext(
             version: 0,
-            info: unsafeBitCast(self, to: UnsafeMutableRawPointer.self),
+            info: Unmanaged.passRetained(self).toOpaque(),
             retain: nil,
             release: nil,
-            copyDescription: nil
+            copyDescription: unsafeBitCast(kCFAllocatorDefault, to: CFAllocatorCopyDescriptionCallBack.self)
         )
         
         CFHostSetClient(
-            localHost,
+            host!,
             { (host, typeInfo, error, info) in
-                let simplePing = unsafeBitCast(info, to: SimplePing.self)
+                guard let info = info else {
+                    return
+                }
+                let simplePing = Unmanaged<SimplePing>.fromOpaque(info).takeRetainedValue()
                 guard host == simplePing.host else { return }
-                if let error = error {
+                if let error = error, error.pointee.domain != 0 {
                     simplePing.didFail(hostStreamError: error.pointee)
                 } else {
                     simplePing.hostResolutionDone()
@@ -318,14 +321,14 @@ class SimplePing {
         )
         
         CFHostScheduleWithRunLoop(
-            localHost,
+            host!,
             CFRunLoopGetCurrent(),
             CFRunLoopMode.defaultMode.rawValue
         )
         
         var streamError: CFStreamError = CFStreamError()
         let success = CFHostStartInfoResolution(
-            localHost,
+            host!,
             .addresses,
             &streamError
         )
@@ -359,7 +362,7 @@ class SimplePing {
             err = EPROTONOSUPPORT
         }
         
-        guard err != 0 else {
+        guard err == 0 else {
             let error = NSError(
                 domain: NSPOSIXErrorDomain,
                 code: Int(err),
@@ -371,20 +374,22 @@ class SimplePing {
         
         var context = CFSocketContext(
             version: 0,
-            info: unsafeBitCast(self, to: UnsafeMutableRawPointer.self),
+            info: Unmanaged.passRetained(self).toOpaque(),
             retain: nil,
             release: nil,
             copyDescription: nil
         )
-        
-        let callbackOpts : CFSocketCallBackType = [.readCallBack]
-        
+                
         icmpSocket = CFSocketCreateWithNative(
             nil,
             fd,
-            callbackOpts.rawValue,
+            CFOptionFlags(CFSocketCallBackType.readCallBack.rawValue),
             { (_, _, _, _, info) in
-                let simplePing = unsafeBitCast(info, to: SimplePing.self)
+                guard let info = info else {
+                    return
+                }
+                let simplePing = Unmanaged<SimplePing>.fromOpaque(info).takeRetainedValue()
+                print("Read data")
                 simplePing.readData()
             },
             &context
@@ -396,7 +401,7 @@ class SimplePing {
         CFRunLoopAddSource(
             CFRunLoopGetCurrent(),
             rls,
-            CFRunLoopMode.defaultMode
+            .defaultMode
         )
         
         delegate?.simplePing(self, didStartWithAddress: hostAddress)
@@ -413,13 +418,13 @@ class SimplePing {
         
         // 65535 is the maximum IP packet size, which seems like a reasonable bound
         // here (plus it's what <x-man-page://8/ping> uses).
-        var buffer = Data(capacity: kBufferSize)
+        var buffer = [UInt8](repeating: 0, count: kBufferSize)
         
         // Actually read the data.  We use recvfrom(), and thus get back the source address,
         // but we don't actually do anything with it.  It would be trivial to pass it to
         // the delegate but we don't need it in this example.
         
-        var addrLen: socklen_t = socklen_t(MemoryLayout<sockaddr_storage>.size)
+        var addrLen: socklen_t = socklen_t(MemoryLayout<sockaddr_in>.size)
         let bytesRead: ssize_t = recvfrom(
             CFSocketGetNative(icmpSocket),
             &buffer,
@@ -452,7 +457,7 @@ class SimplePing {
         }
         
         var sequenceNumber: UInt16 = 0
-        
+                
         buffer.withUnsafeBytes { (bufferPointer)  in
             
             guard let bufferUnsafeRawPointer = bufferPointer.baseAddress else {
@@ -500,19 +505,21 @@ class SimplePing {
             return false
         }
         
-        let icmpHeaderData = data.suffix(from: Data.Index(icmpHeaderOffset))
+        var icmpHeaderData = Data(data.suffix(from: Data.Index(icmpHeaderOffset)))
         
-        guard let icmpHeader = ICMPHeader(icmpHeaderData) else { return false }
+        guard let icmpHeader = ICMPHeader(icmpHeaderData) else {
+            return false
+        }
         
         let receivedChecksum = icmpHeader.checksum
         
-        let previousChecksumOffset = data[Int(icmpHeaderOffset) + ICMPHeader.checksumOffset]
-        let previousChecksumOffsetPlusOne = data[Int(icmpHeaderOffset) + ICMPHeader.checksumOffset + 1]
-        data[Int(icmpHeaderOffset) + ICMPHeader.checksumOffset] = 0
-        data[Int(icmpHeaderOffset) + ICMPHeader.checksumOffset + 1] = 0
+        // Set checksum to zero for in_cksum calculation
+        withUnsafeBytes(of: 0 as UInt16) {
+            icmpHeaderData.replaceSubrange(2..<4, with: $0)
+        }
         
         var dataBuffer: UnsafePointer<UInt16>?
-        data.withUnsafeBytes { (body) in
+        icmpHeaderData.withUnsafeBytes { (body) in
             dataBuffer = body.bindMemory(to: UInt16.self).baseAddress
         }
         
@@ -521,8 +528,6 @@ class SimplePing {
         }
         
         let calculatedChecksum = in_cksum(buffer, bufferLen: data.count - Int(icmpHeaderOffset))
-        data[Int(icmpHeaderOffset) + ICMPHeader.checksumOffset] = previousChecksumOffset
-        data[Int(icmpHeaderOffset) + ICMPHeader.checksumOffset + 1] = previousChecksumOffsetPlusOne
         
         guard receivedChecksum == calculatedChecksum else {
             return false
@@ -547,20 +552,26 @@ class SimplePing {
     /// - Returns: `true` if the packet looks like a reasonable IPv6 ping response.
     private func validatePing6ResponsePacket(data: inout Data, sequenceNumber: inout UInt16) -> Bool {
         
-        guard let icmpHeader = ICMPHeader(data) else { return false }
+        guard let icmpHeader = ICMPHeader(data) else {
+            return false
+        }
         return validateICMPHeader(icmpHeader, matchesType: ICMPv6TypeEchoReply, sequenceNumber: &sequenceNumber)
     }
     
     private func validateICMPHeader(_ header: ICMPHeader, matchesType type: Int, sequenceNumber: inout UInt16) -> Bool {
         
-        guard header.type == type, header.code == 0 else { return false }
+        guard header.type == type, header.code == 0 else {
+            return false
+        }
         
         guard CFSwapInt16BigToHost(header.identifier) == identifier else {
             return false
         }
         
         let packetSequenceNumber = CFSwapInt16BigToHost(header.sequenceNumber)
-        guard validateSequenceNumber(packetSequenceNumber) else { return false }
+        guard validateSequenceNumber(packetSequenceNumber) else {
+            return false
+        }
         
         sequenceNumber = packetSequenceNumber
         return true
@@ -660,8 +671,10 @@ class SimplePing {
             
             for data in addresses {
                 
-                guard let address = sockaddr(data) else { continue }
-                
+                guard let address = sockaddr(data) else {
+                    continue
+                }
+                    
                 switch Int32(address.sa_family) {
                 case AF_INET:
                     if addressStyle != .ICMPv6 {
@@ -781,47 +794,35 @@ class SimplePing {
     /// - Returns: A ping packet suitable to be passed to the kernel.
     private func createPingPacket(type: UInt8, payload: Data, requiresChecksum: Bool) -> Data {
         
-//        var packet = Data(capacity: MemoryLayout<ICMPHeader>.size + payload.count)
+        var packetData = Data(capacity: MemoryLayout<ICMPHeader>.size + payload.count)
         
-        let stride = MemoryLayout<UInt8>.stride
-        let alignment = MemoryLayout<UInt8>.alignment
-        let uint16Stride = MemoryLayout<UInt16>.stride
-        
-        // 3
-          let packet = UnsafeMutableRawPointer.allocate(
-            byteCount: MemoryLayout<ICMPHeader>.size + payload.count,
-            alignment: alignment
-          )
-          // 4
-          defer {
-            packet.deallocate()
-          }
-          
-          // 5
-        packet.storeBytes(of: type, as: UInt8.self)
-        packet.advanced(by: stride).storeBytes(of: 0, as: UInt8.self)
-        packet.advanced(by: stride).storeBytes(of: 0, as: UInt16.self)
-        packet.advanced(by: uint16Stride).storeBytes(of: CFSwapInt16HostToBig(identifier), as: UInt16.self)
-        packet.advanced(by: uint16Stride).storeBytes(of: CFSwapInt16HostToBig(nextSequenceNumber), as: UInt16.self)
-       
-        payload.withUnsafeBytes({
-            var offs = $0[0]
-            memcpy(&offs, $0.baseAddress!, payload.count)
-        })
+        withUnsafeBytes(of: type) { packetData.append(contentsOf: $0) }
+        withUnsafeBytes(of: 0 as UInt8) { packetData.append(contentsOf: $0) }
+        withUnsafeBytes(of: 0 as UInt16) { packetData.append(contentsOf: $0) }
+        withUnsafeBytes(of: CFSwapInt16HostToBig(identifier)) { packetData.append(contentsOf: $0) }
+        withUnsafeBytes(of: CFSwapInt16HostToBig(nextSequenceNumber)) { packetData.append(contentsOf: $0) }
+               
+        packetData.append(payload)
         
         if requiresChecksum {
             
-            let dataBuffer = packet.bindMemory(to: UInt16.self, capacity: MemoryLayout<ICMPHeader>.size + payload.count)
+            var dataBuffer: UnsafePointer<UInt16>?
+            packetData.withUnsafeBytes { (body) in
+                dataBuffer = body.bindMemory(to: UInt16.self).baseAddress
+            }
             
-            // The IP checksum routine returns a 16-bit number that's already in correct byte order
-            // (due to wacky 1's complement maths), so we just put it into the packet as a 16-bit unit.
-            packet.storeBytes(
-                of: in_cksum(dataBuffer, bufferLen: MemoryLayout<ICMPHeader>.size + payload.count),
-                toByteOffset: stride * 2,
-                as: UInt16.self
-            )
+            guard let buffer = dataBuffer else {
+                return packetData
+            }
+            
+            let checksum = in_cksum(buffer, bufferLen: MemoryLayout<ICMPHeader>.size + payload.count)
+            withUnsafeBytes(
+                of: checksum
+            ) {
+                packetData.replaceSubrange(2..<4, with: $0)
+            }
         }
         
-        return Data(bytes: packet, count: MemoryLayout<ICMPHeader>.size + payload.count)
+        return packetData
     }
 }

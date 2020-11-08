@@ -10,6 +10,8 @@ import Foundation
 
 internal final class SonyTransferDevice {
     
+    fileprivate var pinger: Pinger?
+    
     var ipAddress: sockaddr_in?
     
     var apiVersion: String?
@@ -302,15 +304,17 @@ extension SonyTransferDevice: Camera {
                 return
             }
             
-            Pinger.ping(hostName: host, timeout: 2.0) { (interval, error) in
+            // Have to strongly retain pinger, otherwise it's released due to delegate being `weak`
+            pinger = Pinger(hostName: host)
+            pinger?.ping(timeout: 2.0, completion: { (interval, error) in
                 callback(error, nil)
-            }
+            })
                 
         default:
             callback(CameraError.noSuchMethod(function.function.sonyCameraMethodName ?? "Unknown"), nil)
         }
     }
-    
+        
     /// Loads the files from a set of UPnP folders based on a given file request
     ///
     /// - Parameters:

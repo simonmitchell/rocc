@@ -273,8 +273,6 @@
 		B164F02521811BD400590A05 /* SonyCameraDiscoverer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SonyCameraDiscoverer.swift; sourceTree = "<group>"; };
 		B164F02821811C1200590A05 /* String+Regex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Regex.swift"; sourceTree = "<group>"; };
 		B16BFBC220A49F91006BD081 /* Storage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Storage.swift; sourceTree = "<group>"; };
-		B16BFD0F21F5F0E600AF3F24 /* SimplePing.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SimplePing.m; sourceTree = "<group>"; };
-		B16BFD1021F5F0E600AF3F24 /* SimplePing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SimplePing.h; sourceTree = "<group>"; };
 		B16BFD1521F5F0F100AF3F24 /* Pinger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pinger.swift; sourceTree = "<group>"; };
 		B1751E7320A316C2001D05F1 /* SystemClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SystemClient.swift; sourceTree = "<group>"; };
 		B17B27192533220800B441E2 /* SonyPTPPropConversionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SonyPTPPropConversionTests.swift; sourceTree = "<group>"; };
@@ -512,8 +510,6 @@
 			isa = PBXGroup;
 			children = (
 				B16BFD1521F5F0F100AF3F24 /* Pinger.swift */,
-				B16BFD1021F5F0E600AF3F24 /* SimplePing.h */,
-				B16BFD0F21F5F0E600AF3F24 /* SimplePing.m */,
 				B1F181102546307C00453668 /* SimplePing.swift */,
 			);
 			path = SimplePing;
