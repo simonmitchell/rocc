@@ -1072,10 +1072,10 @@ class SonyPTPPropConversionTests: XCTestCase {
             (Word(0x0007), .flash),
             (Word(0x8030), .underwaterAuto),
             (Word(0x8012), .colorTemp),
+            (Word(0x8023), .custom),
             (Word(0x8020), .custom1),
             (Word(0x8021), .custom2),
             (Word(0x8022), .custom3),
-            (Word(0x8023), .custom),
             ("Hello World", nil)
         ]
         
@@ -1109,10 +1109,10 @@ class SonyPTPPropConversionTests: XCTestCase {
             (Word(0x0007), .flash),
             (Word(0x8030), .underwaterAuto),
             (Word(0x8012), .colorTemp),
+            (Word(0x8023), .custom),
             (Word(0x8020), .custom1),
             (Word(0x8021), .custom2),
             (Word(0x8022), .custom3),
-            (Word(0x8023), .custom),
         ]
         
         XCTAssertEqual(testCases.first?.1.type, .uint16)

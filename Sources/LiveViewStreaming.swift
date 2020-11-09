@@ -6,12 +6,13 @@
 //  Copyright © 2018 Simon Mitchell. All rights reserved.
 //
 
-import Foundation
 import os.log
 
-#if os(iOS)
+#if canImport(UIKit)
+import UIKit
 public typealias Image = UIImage
-#else
+#elseif canImport(AppKit)
+import AppKit
 public typealias Image = NSImage
 #endif
 

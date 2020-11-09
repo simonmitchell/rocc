@@ -9,6 +9,12 @@
 import Foundation
 import os.log
 
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
+
 typealias CommandRequestPacketResponse = (_ packet: CommandResponsePacket) -> Void
 
 extension Packetable {
@@ -75,7 +81,13 @@ final class PTPIPClient {
     
     var onDisconnect: (() -> Void)?
     
+    #if canImport(UIKit)
     var deviceName: String = UIDevice.current.name
+    #elseif canImport(AppKit)
+    var deviceName: String = Host.current().name ?? UUID().uuidString
+    #else
+    var deviceName: String = UUID().uuidString
+    #endif
     
     //MARK: - Connection -
     

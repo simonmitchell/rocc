@@ -37,7 +37,6 @@
 		B128D0DC23F9A198007B37F8 /* StillFormat+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B128D0DB23F9A198007B37F8 /* StillFormat+SonyPTPPropValueConvertable.swift */; };
 		B128D0DF23F9D60D007B37F8 /* Array+Unique.swift in Sources */ = {isa = PBXBuildFile; fileRef = B128D0DE23F9D60D007B37F8 /* Array+Unique.swift */; };
 		B12CCC93247DAEF100BCD2D1 /* Wrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B12CCC92247DAEF100BCD2D1 /* Wrapper.swift */; };
-		B1316A572089C08F006BD136 /* Rocc.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1316A4D2089C08F006BD136 /* Rocc.framework */; };
 		B1316A5C2089C08F006BD136 /* RoccTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1316A5B2089C08F006BD136 /* RoccTests.swift */; };
 		B1316A5E2089C08F006BD136 /* Rocc.h in Headers */ = {isa = PBXBuildFile; fileRef = B1316A502089C08F006BD136 /* Rocc.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		B1316A722089C0F6006BD136 /* DeviceDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1316A712089C0F6006BD136 /* DeviceDiscovery.swift */; };
@@ -150,7 +149,6 @@
 		B1F180DD2545792000453668 /* HTTP.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F180B52545791F00453668 /* HTTP.swift */; };
 		B1F180DE2545792000453668 /* RequestController+SessionDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F180B62545791F00453668 /* RequestController+SessionDelegate.swift */; };
 		B1F180DF2545792000453668 /* CustomisableRecoverableError.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F180B72545791F00453668 /* CustomisableRecoverableError.swift */; };
-		B1F180E12545792000453668 /* UIAlertController+ErrorRecovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F180B92545791F00453668 /* UIAlertController+ErrorRecovery.swift */; };
 		B1F180E22545792000453668 /* ErrorRecoveryOption.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F180BA2545791F00453668 /* ErrorRecoveryOption.swift */; };
 		B1F180E42545792000453668 /* Data+Mutate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F180BC2545791F00453668 /* Data+Mutate.swift */; };
 		B1F180E52545792000453668 /* CredentialStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1F180BD2545791F00453668 /* CredentialStore.swift */; };
@@ -253,10 +251,10 @@
 		B128D0DB23F9A198007B37F8 /* StillFormat+SonyPTPPropValueConvertable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StillFormat+SonyPTPPropValueConvertable.swift"; sourceTree = "<group>"; };
 		B128D0DE23F9D60D007B37F8 /* Array+Unique.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+Unique.swift"; sourceTree = "<group>"; };
 		B12CCC92247DAEF100BCD2D1 /* Wrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Wrapper.swift; sourceTree = "<group>"; };
-		B1316A4D2089C08F006BD136 /* Rocc.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Rocc.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		B1316A4D2089C08F006BD136 /* Rocc.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; name = Rocc.framework; path = "/Users/simonmitchell/Coding/Camrote/rocc/build/Debug-iphoneos/Rocc.framework"; sourceTree = "<absolute>"; };
 		B1316A502089C08F006BD136 /* Rocc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Rocc.h; sourceTree = "<group>"; };
 		B1316A512089C08F006BD136 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		B1316A562089C08F006BD136 /* RoccTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RoccTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B1316A562089C08F006BD136 /* RoccTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = RoccTests.xctest; path = "/Users/simonmitchell/Coding/Camrote/rocc/build/Debug-iphoneos/RoccTests.xctest"; sourceTree = "<absolute>"; };
 		B1316A5B2089C08F006BD136 /* RoccTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoccTests.swift; sourceTree = "<group>"; };
 		B1316A5D2089C08F006BD136 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B1316A712089C0F6006BD136 /* DeviceDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceDiscovery.swift; sourceTree = "<group>"; };
@@ -321,10 +319,6 @@
 		B1AEE514237612DE00224152 /* WhiteBalanceValue+SonyPTPPropValueConvertable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "WhiteBalanceValue+SonyPTPPropValueConvertable.swift"; sourceTree = "<group>"; };
 		B1AEE51E2376C3DE00224152 /* ExposureCompensation+SonyPTPPropValueConvertable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ExposureCompensation+SonyPTPPropValueConvertable.swift"; sourceTree = "<group>"; };
 		B1AF5029208A51D00029336B /* NetworkInterface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkInterface.swift; sourceTree = "<group>"; };
-		B1AF508A208DC3A80029336B /* RoccMac.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RoccMac.h; sourceTree = "<group>"; };
-		B1AF508B208DC3A80029336B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		B1AF5095208DC3A80029336B /* RoccMacTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoccMacTests.swift; sourceTree = "<group>"; };
-		B1AF5097208DC3A80029336B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B1B38046239EE9090088E254 /* LiveViewStreamingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveViewStreamingTests.swift; sourceTree = "<group>"; };
 		B1B4342920939EF500A81B9D /* FileSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSystem.swift; sourceTree = "<group>"; };
 		B1B4344F209746B000A81B9D /* CameraFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraFunctions.swift; sourceTree = "<group>"; };
@@ -370,7 +364,6 @@
 		B1F180B52545791F00453668 /* HTTP.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = HTTP.swift; path = Sources/ThunderRequest/HTTP.swift; sourceTree = "<group>"; };
 		B1F180B62545791F00453668 /* RequestController+SessionDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "RequestController+SessionDelegate.swift"; path = "Sources/ThunderRequest/RequestController+SessionDelegate.swift"; sourceTree = "<group>"; };
 		B1F180B72545791F00453668 /* CustomisableRecoverableError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CustomisableRecoverableError.swift; path = Sources/ThunderRequest/CustomisableRecoverableError.swift; sourceTree = "<group>"; };
-		B1F180B92545791F00453668 /* UIAlertController+ErrorRecovery.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIAlertController+ErrorRecovery.swift"; path = "Sources/ThunderRequest/UIAlertController+ErrorRecovery.swift"; sourceTree = "<group>"; };
 		B1F180BA2545791F00453668 /* ErrorRecoveryOption.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ErrorRecoveryOption.swift; path = Sources/ThunderRequest/ErrorRecoveryOption.swift; sourceTree = "<group>"; };
 		B1F180BC2545791F00453668 /* Data+Mutate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Data+Mutate.swift"; path = "Sources/ThunderRequest/Data+Mutate.swift"; sourceTree = "<group>"; };
 		B1F180BD2545791F00453668 /* CredentialStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CredentialStore.swift; path = Sources/ThunderRequest/CredentialStore.swift; sourceTree = "<group>"; };
@@ -430,7 +423,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B1316A572089C08F006BD136 /* Rocc.framework in Frameworks */,
 				B15CE11A244AEBCE0025AD1D /* ThunderRequest.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -444,20 +436,8 @@
 				B1F180A02545790200453668 /* ThunderRequest */,
 				B1316A4F2089C08F006BD136 /* Rocc */,
 				B1316A5A2089C08F006BD136 /* RoccTests */,
-				B1AF5089208DC3A80029336B /* RoccMac */,
-				B1AF5094208DC3A80029336B /* RoccMacTests */,
-				B1316A4E2089C08F006BD136 /* Products */,
 				B1AF504A208D345A0029336B /* Frameworks */,
 			);
-			sourceTree = "<group>";
-		};
-		B1316A4E2089C08F006BD136 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				B1316A4D2089C08F006BD136 /* Rocc.framework */,
-				B1316A562089C08F006BD136 /* RoccTests.xctest */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		B1316A4F2089C08F006BD136 /* Rocc */ = {
@@ -589,24 +569,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		B1AF5089208DC3A80029336B /* RoccMac */ = {
-			isa = PBXGroup;
-			children = (
-				B1AF508A208DC3A80029336B /* RoccMac.h */,
-				B1AF508B208DC3A80029336B /* Info.plist */,
-			);
-			path = RoccMac;
-			sourceTree = "<group>";
-		};
-		B1AF5094208DC3A80029336B /* RoccMacTests */ = {
-			isa = PBXGroup;
-			children = (
-				B1AF5095208DC3A80029336B /* RoccMacTests.swift */,
-				B1AF5097208DC3A80029336B /* Info.plist */,
-			);
-			path = RoccMacTests;
-			sourceTree = "<group>";
-		};
 		B1B3803E239EE8F70088E254 /* Live View */ = {
 			isa = PBXGroup;
 			children = (
@@ -729,7 +691,6 @@
 				B1F180BE2545791F00453668 /* RequestResponse.swift */,
 				B1F180BF2545792000453668 /* RequestResponse+Codable.swift */,
 				B1F180C22545792000453668 /* String+MD5.swift */,
-				B1F180B92545791F00453668 /* UIAlertController+ErrorRecovery.swift */,
 				B1F180AF2545791F00453668 /* URLRequest+Backgroundable.swift */,
 				B1F180C72545792000453668 /* URLRequest+TaskIdentifier.swift */,
 				B1F180AC2545791E00453668 /* URLSession+Synchronous.swift */,
@@ -968,7 +929,7 @@
 				en,
 			);
 			mainGroup = B1316A432089C08E006BD136;
-			productRefGroup = B1316A4E2089C08F006BD136 /* Products */;
+			productRefGroup = B1316A432089C08E006BD136;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -1175,7 +1136,6 @@
 				B1D3591120AADC810069C698 /* Data+Conversion.swift in Sources */,
 				B1F180D82545792000453668 /* JSONRequestBody.swift in Sources */,
 				B100E1A520A09986004F7AB8 /* ProgramShift.swift in Sources */,
-				B1F180E12545792000453668 /* UIAlertController+ErrorRecovery.swift in Sources */,
 				B19DDEE82372F211004C0EBF /* PTPDeviceInfo+SDIO.swift in Sources */,
 				B10A22F9237060D3000BEA56 /* EventPacket.swift in Sources */,
 				B1F7CEC9236D81A8007E3921 /* SonyCameraDeviceInfoParser.swift in Sources */,

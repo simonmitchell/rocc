@@ -9,6 +9,12 @@
 import Foundation
 import os.log
 
+#if canImport(UIKit)
+import UIKit
+#elseif canImport(AppKit)
+import AppKit
+#endif
+
 extension SonyPTPIPDevice {
     
     typealias CaptureCompletion = (Result<URL?, Error>) -> Void
@@ -358,7 +364,7 @@ extension SonyPTPIPDevice {
         })
         
         let imageData = Data(data)
-        guard UIImage(data: imageData) != nil else {
+        guard Image(data: imageData) != nil else {
             Logger.log(message: "Image data not valid", category: "SonyPTPIPCamera", level: .error)
             os_log("Image data not valud", log: self.log, type: .error)
             return
