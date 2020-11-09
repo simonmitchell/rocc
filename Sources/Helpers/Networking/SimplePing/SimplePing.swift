@@ -134,7 +134,7 @@ func in_cksum(_ buffer: UnsafePointer<UInt16>, bufferLen: size_t) -> UInt16 {
     
     // Mop up an odd byte, if necessary
     if bytesLeft == 1 {
-        sum += Int32(merge(UInt8(cursor.pointee), 0))
+        sum += Int32(merge(UInt8(truncatingIfNeeded:cursor.pointee), 0))
     }
     
     // Add back carry outs from top 16 bits to low 16 bits
@@ -389,7 +389,6 @@ class SimplePing {
                     return
                 }
                 let simplePing = Unmanaged<SimplePing>.fromOpaque(info).takeRetainedValue()
-                print("Read data")
                 simplePing.readData()
             },
             &context

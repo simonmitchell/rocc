@@ -128,6 +128,11 @@ public final class DeviceConnectivityNotifier {
         
         if flags.contains(.reachable) && !flags.contains(.connectionRequired) {
             
+            guard Reachability.currentWiFiSSID == initialSSID else {
+                os_log("Reachable, but not connected to same WiFi network!", log: logger, type: .debug)
+                return
+            }
+            
             Logger.log(message: "Reachable and no connection required", category: "DeviceConnectivity", level: .debug)
             os_log("Reachable and no connection required", log: logger, type: .debug)
             
@@ -145,7 +150,7 @@ public final class DeviceConnectivityNotifier {
             Logger.log(message: "Not reachable", category: "DeviceConnectivity", level: .debug)
             os_log("Not reachable", log: logger, type: .debug)
             camera.performFunction(Ping.perform, payload: nil) { [weak self] (error, _) in
-                self?.handle(reachable: error != nil)
+                self?.handle(reachable: error == nil)
             }
         }
     }

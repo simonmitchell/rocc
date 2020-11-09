@@ -6,6 +6,7 @@
 //  Copyright © 2018 Simon Mitchell. All rights reserved.
 //
 
+import CoreGraphics
 import Foundation
 
 /// Functions for configuring tracking focus on the camera
