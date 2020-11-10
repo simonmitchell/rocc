@@ -8,8 +8,11 @@
   <a href="https://github.com/Carthage/Carthage">
   	<img alt="Carthage Compatible" src="https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat">
   </a>
-  <a href="https://swift.org/blog/swift-5-2-released/">
-  	<img alt="Swift 5.2" src="http://img.shields.io/badge/swift-5.2-brightgreen.svg">
+  <a href="https://swift.org/package-manager/">
+  	<img alt="Carthage Compatible" src="https://img.shields.io/badge/SPM-compatible-4BC51D.svg?style=flat">
+  </a>
+  <a href="https://swift.org/blog/swift-5-3-released/">
+  	<img alt="Swift 5.2" src="http://img.shields.io/badge/swift-5.3-brightgreen.svg">
   </a>
   <a href="https://github.com/simonmitchell/rocc/blob/master/README.md">
   	<img alt="MIT" src="https://img.shields.io/badge/license-MIT-brightgreen.svg">
@@ -24,16 +27,26 @@ Rocc is designed to be as generic as possible, both from a coding point of view 
 
 ## Installation
 
+### Swift Package Manager
+
+[Swift package manager](https://swift.org/package-manager/) is swift's de-facto distribution mechanism for code distribution. 
+
+Once you have your swift project/package setup, add Rocc as a dependency in your `Package.swift` file:
+
+```
+dependencies: [
+    .package(url: "https://github.com/simonmitchell/rocc.git", .upToNextMajor(from: "2.0.0"))
+]
+```
+
 ### Carthage
 
 Carthage is a dependency manager which builds frameworks for you or downloads pre-built binaries from a specific tag on GitHub
 
 1. If you haven't already, setup Carthage as outlined [here](https://github.com/Carthage/Carthage#quick-start).
 1. Add Rocc as a dependency in your Cartfile: `github "simonmitchell/rocc" == 2.0.0`.
-1. Drag both `Rocc.framework` and `ThunderRequest.framework` into your project's  `Frameworks, Libraries and Embedded Content` section.
-1. Make sure that both frameworks are included in your carthage copy files build phase. 
-
-**We will be removing the dependency on `ThunderRequest` in a future release**
+1. Drag the `Rocc.framework` into your project's  `Frameworks, Libraries and Embedded Content` section.
+1. Make sure that Rocc is included in your carthage copy files build phase. 
 
 ### Manual
 
@@ -42,7 +55,6 @@ Manual installation is a bit more involved, and not the suggested approach.
 1. Clone, download or add the repo as a submodule to your repo.
 1. Drag the Rocc project file into your main app's project.
 1. Add `Rocc` (Or the platform appropriate equivalent) to the `Frameworks, Libraries and Embedded Content` section of your app's target in the General panel of your project. Making sure you set it to `Embed & Sign`.
-1. Add `ThunderRequest` (make sure you choose the correct framework for your OS) to the `Frameworks, Libraries and Embedded Content` section of your app's target, again making sure to set it to `Embed & Sign`
 1. Import `Rocc` and you're ready to go!
 
 ## Examples
