@@ -9,7 +9,7 @@
   	<img alt="Carthage Compatible" src="https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat">
   </a>
   <a href="https://swift.org/package-manager/">
-  	<img alt="Carthage Compatible" src="https://img.shields.io/badge/SPM-compatible-4BC51D.svg?style=flat">
+  	<img alt="Swift Package Manager Compatible" src="https://img.shields.io/badge/SPM-compatible-4BC51D.svg?style=flat">
   </a>
   <a href="https://swift.org/blog/swift-5-3-released/">
   	<img alt="Swift 5.2" src="http://img.shields.io/badge/swift-5.3-brightgreen.svg">
