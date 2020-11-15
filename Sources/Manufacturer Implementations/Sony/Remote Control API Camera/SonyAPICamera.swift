@@ -40,7 +40,7 @@ internal final class SonyAPICameraDevice: SonyCamera {
     
     fileprivate var lastShutterSpeed: ShutterSpeed?
     
-    fileprivate var lastShootMode: ShootingMode?
+    fileprivate var lastShootMode: (current: ShootingMode, available: [ShootingMode]?, supported: [ShootingMode]?)?
     
     var lastEvent: CameraEvent? {
         return nil
@@ -443,7 +443,7 @@ extension SonyAPICameraDevice: Camera {
     private func setToShootModeIfRequired(camera: CameraClient, shootMode: ShootingMode, _ completion: @escaping ((Error?) -> Void)) {
         
         // Last shoot mode should be up to date so do a quick check if we're already in the correct shoot mode
-        guard lastShootMode != shootMode else {
+        guard lastShootMode?.current != shootMode else {
             completion(nil)
             return
         }
@@ -461,7 +461,11 @@ extension SonyAPICameraDevice: Camera {
                     guard error == nil else {
                         return
                     }
-                    self?.lastShootMode = shootMode
+                    self?.lastShootMode = (
+                        current: shootMode,
+                        available: self?.lastShootMode?.available,
+                        supported: self?.lastShootMode?.supported
+                    )
                 })
             case .failure(_):
                 camera.setShootMode(shootMode, completion: { [weak self] (error) in
@@ -469,7 +473,11 @@ extension SonyAPICameraDevice: Camera {
                     guard error == nil else {
                         return
                     }
-                    self?.lastShootMode = shootMode
+                    self?.lastShootMode = (
+                        current: shootMode,
+                        available: self?.lastShootMode?.available,
+                        supported: self?.lastShootMode?.supported
+                    )
                 })
             }
         }
@@ -2910,15 +2918,42 @@ extension SonyAPICameraDevice: Camera {
                         // Check if shutterSpeed has changed away from Bulb! Sony doesn't have a "Bulb" shooting mode, so
                         // we need to do this automatically!
                         if let shutterSpeed = informations.shutterSpeed, let lastShootMode = self.lastShootMode, !shutterSpeed.current.isBulb && self.lastShutterSpeed?.isBulb == true {
-                            event.shootMode = (current: lastShootMode, available: informations.shootMode?.available ?? [], supported: informations.shootMode?.supported ?? [])
+                            // This may look strange but we need to null-coalesce twice because `firstNotNilOrEmpty` is `Element??`
+                            let available = [informations.shootMode?.available, lastShootMode.available].firstNotNilOrEmpty ?? []
+                            let supported = [informations.shootMode?.supported, lastShootMode.supported].firstNotNilOrEmpty ?? []
+                            event.shootMode = (
+                                current: lastShootMode.current,
+                                available: available ?? [],
+                                supported: supported ?? []
+                            )
                         }
                         
                         // Only track this if we're not bulb shooting
                         if let shootMode = event.shootMode?.current, shootMode != .bulb {
-                            self.lastShootMode = shootMode
-                            // If the camera was launched in bulb mode!
-                        } else if let shootMode = event.shootMode?.current, shootMode == .bulb, self.lastShootMode == nil {
-                            self.lastShootMode = .photo
+                            self.lastShootMode = event.shootMode
+                            // If the camera was launched in bulb mode
+                        } else if let shootMode = event.shootMode,
+                                  shootMode.current == .bulb,
+                                  self.lastShootMode == nil {
+                            let available = [event.shootMode?.available, self.lastShootMode?.available].firstNotNilOrEmpty ?? []
+                            let supported = [event.shootMode?.supported, self.lastShootMode?.supported].firstNotNilOrEmpty ?? []
+                            self.lastShootMode = (
+                                current: .photo,
+                                available: available ?? [],
+                                supported: supported ?? []
+                            )
+                        }
+                        
+                        // For `.bulb` the available and supported shoot modes are often returned as `[]` so we'll re-fill them
+                        if let shootMode = event.shootMode, shootMode.current == .bulb,
+                           (shootMode.available ?? []).isEmpty || shootMode.supported.isEmpty {
+                            let available = [event.shootMode?.available, self.lastShootMode?.available].firstNotNilOrEmpty ?? []
+                            let supported = [event.shootMode?.supported, self.lastShootMode?.supported].firstNotNilOrEmpty ?? []
+                            event.shootMode = (
+                                current: shootMode.current,
+                                available: available ?? [],
+                                supported: supported ?? []
+                            )
                         }
                         
                         if let shutterSpeed = informations.shutterSpeed {
