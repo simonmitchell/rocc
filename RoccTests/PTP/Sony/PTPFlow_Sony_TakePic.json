@@ -230,7 +230,7 @@
                     "direction": "received"
                 },
                 {
-                    "data": "0c 00 00 00 08 00 00 00 03 c2",
+                    "data": "0c 00 00 00 08 00 00 00 03 c2 04 00 00 00",
                     "loop": "event",
                     "direction": "received"
                 }
@@ -295,7 +295,7 @@
                     "direction": "received"
                 },
                 {
-                    "data": "0e 00 00 00 08 00 00 00 01 c2 08 00 00 00",
+                    "data": "12 00 00 00 08 00 00 00 01 c2 08 00 00 00 00 25 ff ff",
                     "loop": "event",
                     "direction": "received"
                 }
@@ -303,7 +303,7 @@
         },
         {
             "packetReceived": {
-                "data": "16 00 00 00 06 00 00 00 01 00 00 00 08 10 07 00 00 00 08 00 00 00",
+                "data": "16 00 00 00 06 00 00 00 01 00 00 00 08 10 07 00 00 00 00 25 ff ff",
                 "loop": "control",
                 "direction": "sent"
             },
