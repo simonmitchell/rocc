@@ -12,7 +12,7 @@
   	<img alt="Swift Package Manager Compatible" src="https://img.shields.io/badge/SPM-compatible-4BC51D.svg?style=flat">
   </a>
   <a href="https://swift.org/blog/swift-5-3-released/">
-  	<img alt="Swift 5.2" src="http://img.shields.io/badge/swift-5.3-brightgreen.svg">
+  	<img alt="Swift 5.3" src="http://img.shields.io/badge/swift-5.3-brightgreen.svg">
   </a>
   <a href="https://github.com/simonmitchell/rocc/blob/master/README.md">
   	<img alt="MIT" src="https://img.shields.io/badge/license-MIT-brightgreen.svg">
@@ -199,7 +199,7 @@ func eventNotifier(_ notifier: CameraEventNotifier, receivedEvent event: CameraE
 
 It is important to note that the information provided by `CameraEventNotifier` will vary by manufacturer, and even by model of camera for the same manufacturer, so you may not always be able to rely on it solely! 
 
-**IMPORTANT:** The `CameraEvent` object will have `nil` values for properties that haven't changed with a given `event` occuring. For example if only the aperture has changed things like `cameraStatus` will be `nil`, which doesn't mean the camera is now `idle`.
+**IMPORTANT:** The `CameraEvent` object may have `nil` values for properties that haven't changed with a given `event` occuring. For example if only the aperture has changed things like `cameraStatus` could be `nil`, which doesn't mean the camera is now `idle`. This depends on whether the camera is API driven (e.g. a7ii) or PTP/IP model (e.g. a9ii). This behaviour will be bought in line across all models in a future release of ROCC.
 
 ### Performing Camera Functions
 -----
