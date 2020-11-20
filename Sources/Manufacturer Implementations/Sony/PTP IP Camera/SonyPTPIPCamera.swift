@@ -463,7 +463,7 @@ internal final class SonyPTPIPDevice: SonyCamera {
 extension SonyPTPIPDevice: Camera {
     
     var isInBeta: Bool {
-        return true
+        return false
     }
         
     func connect(completion: @escaping SonyPTPIPDevice.ConnectedCompletion) {
