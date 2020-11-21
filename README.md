@@ -5,8 +5,14 @@
   <a href="https://travis-ci.org/simonmitchell/rocc">
   	<img alt="Build Status" src="https://travis-ci.org/simonmitchell/rocc.svg">
   </a>
-  <a href="https://swift.org/blog/swift-5-1-released/">
-  	<img alt="Swift 5.0" src="http://img.shields.io/badge/swift-5.1-brightgreen.svg">
+  <a href="https://github.com/Carthage/Carthage">
+  	<img alt="Carthage Compatible" src="https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat">
+  </a>
+  <a href="https://swift.org/package-manager/">
+  	<img alt="Swift Package Manager Compatible" src="https://img.shields.io/badge/SPM-compatible-4BC51D.svg?style=flat">
+  </a>
+  <a href="https://swift.org/blog/swift-5-3-released/">
+  	<img alt="Swift 5.3" src="http://img.shields.io/badge/swift-5.3-brightgreen.svg">
   </a>
   <a href="https://github.com/simonmitchell/rocc/blob/master/README.md">
   	<img alt="MIT" src="https://img.shields.io/badge/license-MIT-brightgreen.svg">
@@ -21,11 +27,34 @@ Rocc is designed to be as generic as possible, both from a coding point of view 
 
 ## Installation
 
-Currently only manual installation is supported, Rocc relies on a library developed by the company I work for which isn't yet configured for a package manager such as CocoaPods or Carthage, however this is something that will be coming in the future.
+### Swift Package Manager
+
+[Swift package manager](https://swift.org/package-manager/) is swift's de-facto distribution mechanism for code distribution. 
+
+Once you have your swift project/package setup, add Rocc as a dependency in your `Package.swift` file:
+
+```
+dependencies: [
+    .package(url: "https://github.com/simonmitchell/rocc.git", .upToNextMajor(from: "2.0.0"))
+]
+```
+
+### Carthage
+
+Carthage is a dependency manager which builds frameworks for you or downloads pre-built binaries from a specific tag on GitHub
+
+1. If you haven't already, setup Carthage as outlined [here](https://github.com/Carthage/Carthage#quick-start).
+1. Add Rocc as a dependency in your Cartfile: `github "simonmitchell/rocc" == 2.0.0`.
+1. Drag the `Rocc.framework` into your project's  `Frameworks, Libraries and Embedded Content` section.
+1. Make sure that Rocc is included in your carthage copy files build phase. 
+
+### Manual
+
+Manual installation is a bit more involved, and not the suggested approach.
 
 1. Clone, download or add the repo as a submodule to your repo.
 1. Drag the Rocc project file into your main app's project.
-1. Add `Rocc` and `ThunderRequest` (Or the platform appropriate equivalents) to the `Embedded Binaries` of your app's target in the General panel of your project.
+1. Add `Rocc` (Or the platform appropriate equivalent) to the `Frameworks, Libraries and Embedded Content` section of your app's target in the General panel of your project. Making sure you set it to `Embed & Sign`.
 1. Import `Rocc` and you're ready to go!
 
 ## Examples
@@ -170,7 +199,7 @@ func eventNotifier(_ notifier: CameraEventNotifier, receivedEvent event: CameraE
 
 It is important to note that the information provided by `CameraEventNotifier` will vary by manufacturer, and even by model of camera for the same manufacturer, so you may not always be able to rely on it solely! 
 
-**IMPORTANT:** The `CameraEvent` object will have `nil` values for properties that haven't changed with a given `event` occuring. For example if only the aperture has changed things like `cameraStatus` will be `nil`, which doesn't mean the camera is now `idle`.
+**IMPORTANT:** The `CameraEvent` object may have `nil` values for properties that haven't changed with a given `event` occuring. For example if only the aperture has changed things like `cameraStatus` could be `nil`, which doesn't mean the camera is now `idle`. This depends on whether the camera is API driven (e.g. a7ii) or PTP/IP model (e.g. a9ii). This behaviour will be bought in line across all models in a future release of ROCC.
 
 ### Performing Camera Functions
 -----
