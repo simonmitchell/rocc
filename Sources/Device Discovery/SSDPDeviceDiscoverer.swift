@@ -77,6 +77,7 @@ internal final class SSDPDeviceDiscoverer: UDPDeviceDiscoverer {
                 }
                 
                 let deviceInfoParser = SSDPCameraDeviceInfoParser(xmlString: string)
+                deviceInfoParser.manufacturer = camera.manufacturer
                 deviceInfoParser.parse(completion: { [weak self] (result) in
 
                     guard let self = self else {
