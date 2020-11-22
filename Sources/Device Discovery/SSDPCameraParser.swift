@@ -44,9 +44,11 @@ extension Manufacturer {
     }
 }
 
-final class SSDPCameraParser: NSObject, XMLParserDelegate {
+final class SSDPCameraParser: NSObject, XMLStringParser, XMLParserDelegate {
     
-    typealias CompletionHandler = (_ device: SSDPCamera?, _ error: Error?) -> Void
+    typealias ReturnType = SSDPCamera
+    
+    typealias CompletionHandler = (Result<SSDPCamera, Error>) -> Void
     
     /// The parsed device, only available once parsing has finished.
     var device: SSDPCamera?
@@ -79,7 +81,7 @@ final class SSDPCameraParser: NSObject, XMLParserDelegate {
         self.completion = completion
         
         guard let data = xmlString.data(using: .utf8) else {
-            completion(nil, CameraParserError.couldntCreateData)
+            completion(.failure(CameraParserError.couldntCreateData))
             Logger.log(message: "Parser failed, couldn't create Data from XML string", category: "SonyCameraXMLParser", level: .error)
             os_log("Parse failed, couldn't create Data from XML string", log: log, type: .error)
             return
@@ -193,7 +195,12 @@ final class SSDPCameraParser: NSObject, XMLParserDelegate {
             }).first
         }
         
-        completion?(device, nil)
+        if let device = device {
+            completion?(.success(device))
+        } else {
+            completion?(.failure(CameraParserError.invalidPayload))
+        }
+        
         Logger.log(message: "Parser did end document with success: \(device != nil)", category: "SonyCameraXMLParser", level: .debug)
         os_log("Parser did end document", log: log, type: .debug)
     }
@@ -201,10 +208,11 @@ final class SSDPCameraParser: NSObject, XMLParserDelegate {
     func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
         Logger.log(message: "Parser error occured: \(parseError.localizedDescription)", category: "SonyCameraXMLParser", level: .error)
         os_log("Parse error occured: %@", log: log, type: .error, parseError.localizedDescription)
-        completion?(nil, parseError)
+        completion?(.failure(parseError))
     }
     
     enum CameraParserError: Error {
         case couldntCreateData
+        case invalidPayload
     }
 }

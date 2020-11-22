@@ -9,9 +9,11 @@
 import Foundation
 import os.log
 
-final class SonyTransferDeviceParser: NSObject, XMLParserDelegate {
+final class SonyTransferDeviceParser: NSObject, XMLStringParser, XMLParserDelegate {
     
-    typealias CompletionHandler = (_ device: SonyTransferDevice?, _ error: Error?) -> Void
+    typealias ReturnType = SonyTransferDevice
+    
+    typealias CompletionHandler = (Result<SonyTransferDevice, Error>) -> Void
     
     /// The parsed device, only available once parsing has finished.
     var device: SonyTransferDevice?
@@ -38,13 +40,13 @@ final class SonyTransferDeviceParser: NSObject, XMLParserDelegate {
         xmlString = string
         super.init()
     }
-    
+        
     func parse(completion: @escaping CompletionHandler) {
         
         self.completion = completion
         
         guard let data = xmlString.data(using: .utf8) else {
-            completion(nil, SonyCameraParserError.couldntCreateData)
+            completion(.failure(SonyCameraParserError.couldntCreateData))
             Logger.log(message: "Parse failed, couldn't create Data from XML string", category: "SonyTransferDeviceXMLParser", level: .error)
             os_log("Parse failed, couldn't create Data from XML string", log: log, type: .error)
             return
@@ -139,9 +141,9 @@ final class SonyTransferDeviceParser: NSObject, XMLParserDelegate {
     func parserDidEndDocument(_ parser: XMLParser) {
         do {
             device = try SonyTransferDevice(dictionary: deviceDictionary)
-            completion?(device, nil)
+            completion?(.success(device!))
         } catch let error {
-            completion?(nil, error)
+            completion?(.failure(error))
         }
         Logger.log(message: "Parser did end document with success: \(device != nil)", category: "SonyTransferDeviceXMLParser", level: .debug)
         os_log("Parser did end document", log: log, type: .debug)
@@ -150,7 +152,7 @@ final class SonyTransferDeviceParser: NSObject, XMLParserDelegate {
     func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
         Logger.log(message: "Parser error occured: \(parseError.localizedDescription)", category: "SonyTransferDeviceXMLParser", level: .error)
         os_log("Parse error occured: %@", log: log, type: .error, parseError.localizedDescription)
-        completion?(nil, parseError)
+        completion?(.failure(parseError))
     }
     
     enum SonyCameraParserError: Error {

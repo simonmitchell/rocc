@@ -9,12 +9,26 @@
 import Foundation
 import os.log
 
-class SonyCameraDeviceInfoParser: NSObject, XMLParserDelegate {
+extension Manufacturer {
     
-    typealias CompletionHandler = (_ device: SonyDeviceInfo?, _ error: Error?) -> Void
+    var deviceInfoClasses: [SSDPCameraInfo.Type] {
+        switch self {
+        case .sony:
+            return [SonyDeviceInfo.self]
+        case .canon:
+            return []
+        }
+    }
+}
+
+class SSDPCameraDeviceInfoParser: NSObject, XMLStringParser, XMLParserDelegate {
+    
+    typealias ReturnType = SSDPCameraInfo
+    
+    typealias CompletionHandler = (Result<SSDPCameraInfo, Error>) -> Void
     
     /// The parsed device info, only available once parsing has finished.
-    var deviceInfo: SonyDeviceInfo?
+    var deviceInfo: SSDPCameraInfo?
     
     /// Completion handler called when parsing has finished.
     var completion: CompletionHandler?
@@ -38,7 +52,9 @@ class SonyCameraDeviceInfoParser: NSObject, XMLParserDelegate {
     
     let xmlString: String
     
-    init(xmlString string: String) {
+    var manufacturer: Manufacturer?
+    
+    required init(xmlString string: String) {
         xmlString = string
         super.init()
     }
@@ -48,7 +64,7 @@ class SonyCameraDeviceInfoParser: NSObject, XMLParserDelegate {
         self.completion = completion
         
         guard let data = xmlString.data(using: .utf8) else {
-            completion(nil, SonyCameraParserError.couldntCreateData)
+            completion(.failure(SSDPCameraDeviceInfoParserError.couldntCreateData))
             Logger.log(message: "Parser failed, couldn't create Data from XML string", category: "DeviceInfoXMLParser", level: .error)
             os_log("Parse failed, couldn't create Data from XML string", log: log, type: .error)
             return
@@ -116,8 +132,19 @@ class SonyCameraDeviceInfoParser: NSObject, XMLParserDelegate {
     }
     
     func parserDidEndDocument(_ parser: XMLParser) {
-        deviceInfo = SonyDeviceInfo(dictionary: deviceDictionary)
-        completion?(deviceInfo, nil)
+        
+        if let manufacturer = manufacturer {
+            deviceInfo = manufacturer.deviceInfoClasses.compactMap({
+                return try? $0.init(dictionary: deviceDictionary)
+            }).first
+        }
+        
+        if let deviceInfo = deviceInfo {
+            completion?(.success(deviceInfo))
+        } else {
+            completion?(.failure(SSDPCameraDeviceInfoParserError.invalidPayload))
+        }
+        
         Logger.log(message: "Parser did end document with success: \(deviceInfo != nil)", category: "DeviceInfoXMLParser", level: .debug)
         os_log("Parser did end document", log: log, type: .debug)
     }
@@ -125,10 +152,11 @@ class SonyCameraDeviceInfoParser: NSObject, XMLParserDelegate {
     func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
         Logger.log(message: "Parse error occured: \(parseError.localizedDescription)", category: "DeviceInfoXMLParser", level: .error)
         os_log("Parse error occured: %@", log: log, type: .error, parseError.localizedDescription)
-        completion?(nil, parseError)
+        completion?(.failure(parseError))
     }
     
-    enum SonyCameraParserError: Error {
+    enum SSDPCameraDeviceInfoParserError: Error {
         case couldntCreateData
+        case invalidPayload
     }
 }

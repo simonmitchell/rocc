@@ -55,10 +55,12 @@ extension SonyTransferDevice {
                     return
                 }
                 
-                let deviceInfoParser = SonyCameraDeviceInfoParser(xmlString: xmlString)
-                deviceInfoParser.parse(completion: { [weak this] (deviceInfo, _) in
+                let deviceInfoParser = SSDPCameraDeviceInfoParser(xmlString: xmlString)
+                deviceInfoParser.parse(completion: { [weak this] result in
                     
-                    loadedDevice = loadedDevice.updated(with: deviceInfo)
+                    if case .success(let deviceInfo) = result {
+                        loadedDevice = loadedDevice.updated(with: deviceInfo as? SonyDeviceInfo)
+                    }
                     this?.loadTransferServices(completion: completion)
                 })
             }

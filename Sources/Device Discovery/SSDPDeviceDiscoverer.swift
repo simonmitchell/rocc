@@ -35,20 +35,19 @@ internal final class SSDPDeviceDiscoverer: UDPDeviceDiscoverer {
     private func parseCameraXML(string: String, baseURL: URL, isCached: Bool, callback: @escaping (Bool) -> Void) {
         
         let parser = SSDPCameraParser(xmlString: string)
-        parser.parse { [weak self] (cameraDevice, error) in
+        parser.parse { [weak self] result in
             
-            guard let camera = cameraDevice else {
-                callback(false)
+            guard let self = self else {
                 return
             }
             
-            guard let strongSelf = self else {
-                return
-            }
-            
-            guard let device = cameraDevice else {
+            guard case .success(let camera) = result else {
                 callback(false)
-                strongSelf.sendErrorToDelegate(error ?? CameraDiscoveryError.unknown)
+                var error: Error = CameraDiscoveryError.unknown
+                if case .failure(let parseError) = result {
+                    error = parseError
+                }
+                self.sendErrorToDelegate(error)
                 return
             }
             
@@ -59,35 +58,37 @@ internal final class SSDPDeviceDiscoverer: UDPDeviceDiscoverer {
             
             callback(true)
             
-            guard let digitalImagingService = device.services?.first(where: { $0.type?.isDigitalImaging == true }) else {
-                strongSelf.sendDeviceToDelegate(camera, isCached: isCached)
+            guard let digitalImagingService = camera.services?.first(where: { $0.type?.isDigitalImaging == true }) else {
+                self.sendDeviceToDelegate(camera, isCached: isCached)
                 return
             }
             
             let digitalImagingURL = digitalImagingService.SCPDURL
             
-            strongSelf.getFurtherInfoAt(path: digitalImagingURL, baseURL: baseURL, callback: { [weak strongSelf] (response, error) in
+            self.getFurtherInfoAt(path: digitalImagingURL, baseURL: baseURL, callback: { [weak self] (response, error) in
                 
-                guard let _strongSelf = strongSelf else {
+                guard let self = self else {
                     return
                 }
                 
                 guard let string = response?.string else {
-                    _strongSelf.sendDeviceToDelegate(camera, isCached: isCached)
+                    self.sendDeviceToDelegate(camera, isCached: isCached)
                     return
                 }
                 
-                //TODO: Add back in!
-//                let deviceInfoParser = SonyCameraDeviceInfoParser(xmlString: string)
-//                deviceInfoParser.parse(completion: { [weak _strongSelf] (deviceInfo, error) in
-//
-//                    guard let __strongSelf = _strongSelf else {
-//                        return
-//                    }
-//
-//                    device.update(with: deviceInfo)
-//                    __strongSelf.sendDeviceToDelegate(camera, isCached: isCached)
-//                })
+                let deviceInfoParser = SSDPCameraDeviceInfoParser(xmlString: string)
+                deviceInfoParser.parse(completion: { [weak self] (result) in
+
+                    guard let self = self else {
+                        return
+                    }
+                    
+                    if case .success(let deviceInfo) = result {
+                        camera.update(with: deviceInfo)
+                    }
+
+                    self.sendDeviceToDelegate(camera, isCached: isCached)
+                })
             })
             
             return
@@ -97,33 +98,37 @@ internal final class SSDPDeviceDiscoverer: UDPDeviceDiscoverer {
     private func parseTransferDeviceXML(string: String, baseURL: URL, isCached: Bool, callback: @escaping (Bool) -> Void) {
         
         let transferDeviceParser = SonyTransferDeviceParser(xmlString: string)
-        transferDeviceParser.parse { [weak self] (transferDevice, error) in
+        transferDeviceParser.parse { [weak self] (result) in
             
             guard let strongSelf = self else {
                 return
             }
             
-            guard let _transferDevice = transferDevice else {
+            guard case .success(let transferDevice) = result else {
                 callback(false)
-                strongSelf.sendErrorToDelegate(error ?? CameraDiscoveryError.unknown)
+                var error: Error = CameraDiscoveryError.unknown
+                if case .failure(let resultError) = result {
+                    error = resultError
+                }
+                strongSelf.sendErrorToDelegate(error)
                 return
             }
             
-            _transferDevice.baseURL = baseURL
-            _transferDevice.loadServiceInformation(completion: { [weak strongSelf] (error) in
+            transferDevice.baseURL = baseURL
+            transferDevice.loadServiceInformation(completion: { [weak strongSelf] (error) in
                 
                 guard let _strongSelf = strongSelf else {
                     return
                 }
                 
-                guard _transferDevice.contentDirectoryDevice?.actionFor(name: "Browse") != nil else {
+                guard transferDevice.contentDirectoryDevice?.actionFor(name: "Browse") != nil else {
                     callback(false)
                     _strongSelf.sendErrorToDelegate(error ?? CameraDiscoveryError.unknown)
                     return
                 }
                 
                 callback(true)
-                _strongSelf.sendDeviceToDelegate(_transferDevice, isCached: isCached)
+                _strongSelf.sendDeviceToDelegate(transferDevice, isCached: isCached)
             })
         }
     }
