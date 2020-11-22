@@ -138,7 +138,7 @@ public final class DummyCamera: Camera {
     
     public var apiVersion: String?
     
-    public var model: String?
+    public var model: CameraModel?
     
     public var identifier: String = "dummy"
     
@@ -146,7 +146,7 @@ public final class DummyCamera: Camera {
     
     public var baseURL: URL?
         
-    public var manufacturer: String = "Sony"
+    public var manufacturer: Manufacturer? = .sony
     
     public var name: String? = "Sony a7ii"
     

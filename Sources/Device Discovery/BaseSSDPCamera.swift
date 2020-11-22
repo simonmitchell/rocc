@@ -9,20 +9,22 @@
 import Foundation
 
 /// Common base class for all Sony cameras
-class SonyCamera {
+class BaseSSDPCamera {
     
     let udn: String?
-    
-    var modelEnum: SonyCamera.Model?
-    
+        
     let services: [UPnPService]?
     
     let manufacturerURL: URL?
     
     public var identifier: String
     
-    init?(dictionary: [AnyHashable : Any]) {
-        
+    var manufacturer: Manufacturer?
+    
+    var name: String?
+    
+    init(dictionary: [AnyHashable : Any]) throws {
+                
         udn = dictionary["UDN"] as? String
         identifier = udn ?? NSUUID().uuidString
 
@@ -37,9 +39,10 @@ class SonyCamera {
         } else {
             manufacturerURL = nil
         }
-    }
-    
-    func update(with deviceInfo: SonyDeviceInfo?) {
         
+        name = dictionary["friendlyName"] as? String
+        if let manufacturerString = dictionary["manufacturer"] as? String {
+            manufacturer = Manufacturer(rawValue: manufacturerString)
+        }
     }
 }

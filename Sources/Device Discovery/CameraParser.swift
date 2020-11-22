@@ -1,20 +1,40 @@
 //
-//  SonyTransferDeviceParser.swift
+//  CameraParser.swift
 //  Rocc
 //
-//  Created by Simon Mitchell on 02/11/2019.
-//  Copyright © 2019 Simon Mitchell. All rights reserved.
+//  Created by Simon Mitchell on 21/11/2020.
+//  Copyright © 2020 Simon Mitchell. All rights reserved.
 //
+
+import Foundation
 
 import Foundation
 import os.log
 
-final class SonyTransferDeviceParser: NSObject, XMLParserDelegate {
+protocol DictionaryInitialisableCamera: Camera {
     
-    typealias CompletionHandler = (_ device: SonyTransferDevice?, _ error: Error?) -> Void
+    init(dictionary: [AnyHashable : Any]) throws
+}
+
+extension Manufacturer {
+    
+    var deviceClasses: [DictionaryInitialisableCamera.Type] {
+        switch self {
+        case .sony:
+            return [SonyAPICameraDevice.self, SonyPTPIPDevice.self]
+        case .canon:
+            // TODO: Populate!
+            return []
+        }
+    }
+}
+
+final class SSDPCameraParser: NSObject, XMLParserDelegate {
+    
+    typealias CompletionHandler = (_ device: Camera?, _ error: Error?) -> Void
     
     /// The parsed device, only available once parsing has finished.
-    var device: SonyTransferDevice?
+    var device: Camera?
     
     /// Completion handler called when parsing has finished.
     var completion: CompletionHandler?
@@ -30,7 +50,7 @@ final class SonyTransferDeviceParser: NSObject, XMLParserDelegate {
     /// Represents the current scope of the XML parser
     private var scope: [String] = []
     
-    private let log = OSLog(subsystem: "com.yellow-brick-bear.rocc", category: "TransferDeviceXMLParser")
+    private let log = OSLog(subsystem: "com.yellow-brick-bear.rocc", category: "CameraXMLParser")
     
     let xmlString: String
     
@@ -44,8 +64,8 @@ final class SonyTransferDeviceParser: NSObject, XMLParserDelegate {
         self.completion = completion
         
         guard let data = xmlString.data(using: .utf8) else {
-            completion(nil, SonyCameraParserError.couldntCreateData)
-            Logger.log(message: "Parse failed, couldn't create Data from XML string", category: "SonyTransferDeviceXMLParser", level: .error)
+            completion(nil, CameraParserError.couldntCreateData)
+            Logger.log(message: "Parser failed, couldn't create Data from XML string", category: "SonyCameraXMLParser", level: .error)
             os_log("Parse failed, couldn't create Data from XML string", log: log, type: .error)
             return
         }
@@ -54,7 +74,7 @@ final class SonyTransferDeviceParser: NSObject, XMLParserDelegate {
         xmlParser?.delegate = self
         xmlParser?.parse()
         
-        Logger.log(message: "Beginning parsing", category: "SonyTransferDeviceXMLParser", level: .debug)
+        Logger.log(message: "Beginning parsing", category: "SonyCameraXMLParser", level: .debug)
         os_log("Beginning parsing", log: log, type: .debug)
     }
     
@@ -67,6 +87,8 @@ final class SonyTransferDeviceParser: NSObject, XMLParserDelegate {
     private var webApiServices: [[AnyHashable : Any]] = []
     
     private var currentWebApiService: [AnyHashable : Any] = [:]
+    
+    private var webApiImagingDevice: [AnyHashable : Any]? = [:]
     
     func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
         
@@ -81,9 +103,11 @@ final class SonyTransferDeviceParser: NSObject, XMLParserDelegate {
             webApiDeviceInfo = [:]
             webApiServices = []
             currentWebApiService = [:]
+        case "av:X_ScalarWebAPI_ImagingDevice":
+            webApiImagingDevice = [:]
         default:
             break
-        }        
+        }
     }
     
     func parser(_ parser: XMLParser, foundCharacters string: String) {
@@ -107,8 +131,15 @@ final class SonyTransferDeviceParser: NSObject, XMLParserDelegate {
         case "service":
             services.append(currentService)
             currentService = [:]
+        case "av:X_ScalarWebAPI_Service":
+            webApiServices.append(currentWebApiService)
+            currentWebApiService = [:]
+        case "av:X_ScalarWebAPI_ServiceList":
+            webApiDeviceInfo[elementName] = webApiServices
         case "av:X_ScalarWebAPI_DeviceInfo":
             deviceDictionary[elementName] = webApiDeviceInfo
+        case "av:X_ScalarWebAPI_ImagingDevice":
+            webApiDeviceInfo[elementName] = webApiImagingDevice
         default:
             
             // We are inside a service object
@@ -127,6 +158,8 @@ final class SonyTransferDeviceParser: NSObject, XMLParserDelegate {
                 deviceDictionary[elementName] = foundCharacters
             case "av:X_ScalarWebAPI_Service":
                 currentWebApiService[elementName] = foundCharacters
+            case "av:X_ScalarWebAPI_ImagingDevice":
+                webApiImagingDevice?[elementName] = foundCharacters
             default:
                 break
             }
@@ -137,23 +170,26 @@ final class SonyTransferDeviceParser: NSObject, XMLParserDelegate {
     }
     
     func parserDidEndDocument(_ parser: XMLParser) {
-        do {
-            device = try SonyTransferDevice(dictionary: deviceDictionary)
-            completion?(device, nil)
-        } catch let error {
-            completion?(nil, error)
+        
+        if let manufacturerString = deviceDictionary["manufacturer"] as? String,
+           let manufacturer = Manufacturer(rawValue: manufacturerString) {
+            device = manufacturer.deviceClasses.compactMap({
+                return try? $0.init(dictionary: deviceDictionary)
+            }).first
         }
-        Logger.log(message: "Parser did end document with success: \(device != nil)", category: "SonyTransferDeviceXMLParser", level: .debug)
+        
+        completion?(device, nil)
+        Logger.log(message: "Parser did end document with success: \(device != nil)", category: "SonyCameraXMLParser", level: .debug)
         os_log("Parser did end document", log: log, type: .debug)
     }
     
     func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
-        Logger.log(message: "Parser error occured: \(parseError.localizedDescription)", category: "SonyTransferDeviceXMLParser", level: .error)
+        Logger.log(message: "Parser error occured: \(parseError.localizedDescription)", category: "SonyCameraXMLParser", level: .error)
         os_log("Parse error occured: %@", log: log, type: .error, parseError.localizedDescription)
         completion?(nil, parseError)
     }
     
-    enum SonyCameraParserError: Error {
+    enum CameraParserError: Error {
         case couldntCreateData
     }
 }

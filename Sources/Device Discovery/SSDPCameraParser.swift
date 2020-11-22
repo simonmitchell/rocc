@@ -1,20 +1,55 @@
 //
-//  SonyCameraParser.swift
+//  CameraParser.swift
 //  Rocc
 //
-//  Created by Simon Mitchell on 02/11/2019.
-//  Copyright © 2019 Simon Mitchell. All rights reserved.
+//  Created by Simon Mitchell on 21/11/2020.
+//  Copyright © 2020 Simon Mitchell. All rights reserved.
 //
+
+import Foundation
 
 import Foundation
 import os.log
 
-final class SonyCameraParser: NSObject, XMLParserDelegate {
+protocol SSDPCameraInfo {
     
-    typealias CompletionHandler = (_ device: SonyCamera?, _ error: Error?) -> Void
+    init(dictionary: [AnyHashable : Any]) throws
+}
+
+/// A protocol which devices discoverable over SSDP should implement
+/// so they can be allocated from an XML dictionary
+protocol SSDPCamera: Camera {
+    
+    /// Default initialiser for an `SSDPCamera`
+    /// - Parameter dictionary: The XML received over SSDP as a dictionary
+    init(dictionary: [AnyHashable : Any]) throws
+    
+    /// The UPnP services available on the device
+    var services: [UPnPService]? { get }
+    
+    /// Updates the camera with more info from a subsequent call over SSDP
+    /// - Parameter deviceInfo: The camera info from the device
+    func update(with deviceInfo: SSDPCameraInfo)
+}
+
+extension Manufacturer {
+    
+    var deviceClasses: [SSDPCamera.Type] {
+        switch self {
+        case .sony:
+            return [SonyAPICameraDevice.self, PTPIPCamera.self]
+        case .canon:
+            return [CanonPTPIPCamera.self]
+        }
+    }
+}
+
+final class SSDPCameraParser: NSObject, XMLParserDelegate {
+    
+    typealias CompletionHandler = (_ device: SSDPCamera?, _ error: Error?) -> Void
     
     /// The parsed device, only available once parsing has finished.
-    var device: SonyCamera?
+    var device: SSDPCamera?
     
     /// Completion handler called when parsing has finished.
     var completion: CompletionHandler?
@@ -30,7 +65,7 @@ final class SonyCameraParser: NSObject, XMLParserDelegate {
     /// Represents the current scope of the XML parser
     private var scope: [String] = []
     
-    private let log = OSLog(subsystem: "com.yellow-brick-bear.rocc", category: "SonyCameraXMLParser")
+    private let log = OSLog(subsystem: "com.yellow-brick-bear.rocc", category: "CameraXMLParser")
     
     let xmlString: String
     
@@ -44,7 +79,7 @@ final class SonyCameraParser: NSObject, XMLParserDelegate {
         self.completion = completion
         
         guard let data = xmlString.data(using: .utf8) else {
-            completion(nil, SonyCameraParserError.couldntCreateData)
+            completion(nil, CameraParserError.couldntCreateData)
             Logger.log(message: "Parser failed, couldn't create Data from XML string", category: "SonyCameraXMLParser", level: .error)
             os_log("Parse failed, couldn't create Data from XML string", log: log, type: .error)
             return
@@ -150,7 +185,14 @@ final class SonyCameraParser: NSObject, XMLParserDelegate {
     }
     
     func parserDidEndDocument(_ parser: XMLParser) {
-        device = SonyAPICameraDevice(dictionary: deviceDictionary) ?? SonyPTPIPDevice(dictionary: deviceDictionary)
+        
+        if let manufacturerString = deviceDictionary["manufacturer"] as? String,
+           let manufacturer = Manufacturer(rawValue: manufacturerString) {
+            device = manufacturer.deviceClasses.compactMap({
+                return try? $0.init(dictionary: deviceDictionary)
+            }).first
+        }
+        
         completion?(device, nil)
         Logger.log(message: "Parser did end document with success: \(device != nil)", category: "SonyCameraXMLParser", level: .debug)
         os_log("Parser did end document", log: log, type: .debug)
@@ -162,7 +204,7 @@ final class SonyCameraParser: NSObject, XMLParserDelegate {
         completion?(nil, parseError)
     }
     
-    enum SonyCameraParserError: Error {
+    enum CameraParserError: Error {
         case couldntCreateData
     }
 }

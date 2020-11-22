@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension SonyPTPIPDevice {
+extension PTPIPCamera {
     
     func supportsFunction<T>(_ function: T, callback: @escaping ((Bool?, Error?, [T.SendType]?) -> Void)) where T : CameraFunction {
         

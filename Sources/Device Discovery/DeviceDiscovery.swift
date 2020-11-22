@@ -55,6 +55,7 @@ protocol DeviceDiscoverer {
 
 public enum CameraDiscoveryError: Error {
     case unknown
+    case invalidXML(String)
 }
 
 /// A protocol for receiving messages about camera discovery
@@ -95,7 +96,7 @@ public final class CameraDiscoverer {
     public init() {
         
         discoverers = [
-            SonyCameraDiscoverer(delegate: self)
+            SSDPDeviceDiscoverer(delegate: self)
         ]
     }
     

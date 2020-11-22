@@ -8,7 +8,7 @@
 
 import Foundation
 
-internal final class SonyTransferDevice {
+internal final class SonyTransferDevice: BaseSSDPCamera {
     
     fileprivate var pinger: Pinger?
     
@@ -18,36 +18,18 @@ internal final class SonyTransferDevice {
     
     var baseURL: URL?
     
-    var manufacturer: String
-    
-    var name: String?
-    
-    var model: String?
-    
-    var modelEnum: SonyCamera.Model?
-    
+    var model: CameraModel?
+        
     var firmwareVersion: String?
-    
-    public var latestFirmwareVersion: String? {
-        return modelEnum?.latestFirmwareVersion
-    }
     
     var remoteAppVersion: String?
     
     var latestRemoteAppVersion: String? {
         return "4.31"
     }
-    
-    var identifier: String
-    
+        
     var isConnected: Bool
-    
-    var services: [UPnPService]?
-    
-    let udn: String?
-    
-    let manufacturerURL: URL?
-    
+                
     var contentDirectoryDevice: UPnPDevice?
     
     var pushContentDevice: UPnPDevice?
@@ -56,36 +38,23 @@ internal final class SonyTransferDevice {
     
     var onDisconnected: (() -> Void)?
     
-    init?(dictionary: [AnyHashable : Any]) {
-        
-        guard let serviceDictionaries = dictionary["serviceList"] as? [[AnyHashable : Any]] else {
-            return nil
-        }
-        
-        services = serviceDictionaries.compactMap({ UPnPService(dictionary: $0) })
-                
-        model = dictionary["friendlyName"] as? String
-        udn = dictionary["UDN"] as? String
-        
-        identifier = udn ?? NSUUID().uuidString
-        
-        if let model = model {
-            modelEnum = SonyCamera.Model(rawValue: model)
-        } else {
-            modelEnum = nil
-        }
-        
-        name = modelEnum?.friendlyName
-        manufacturer = dictionary["manufacturer"] as? String ?? "Sony"
-        
-        if let manufacturerURLString = dictionary["manufacturerURL"] as? String {
-            manufacturerURL = URL(string: manufacturerURLString)
-        } else {
-            manufacturerURL = nil
-        }
-        
+    override init(dictionary: [AnyHashable : Any]) throws {
         
         isConnected = false
+        
+        do {
+            try super.init(dictionary: dictionary)
+        } catch let error {
+            throw error
+        }
+        
+        if let modelName = dictionary["friendlyName"] as? String {
+            model = Sony.Camera.Model(rawValue: modelName)
+        } else {
+            model = nil
+        }
+        
+        name = model?.friendlyName
     }
     
     internal var requestController: RequestController?

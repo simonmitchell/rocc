@@ -32,7 +32,7 @@ fileprivate extension CountRequest {
     static let sonyDefault = CountRequest(uri: "storage:memoryCard1", view: .flat, target: "all", types: nil)
 }
 
-internal final class SonyAPICameraDevice: SonyCamera {
+internal final class SonyAPICameraDevice: BaseSSDPCamera {
     
     fileprivate var pinger: Pinger?
     
@@ -56,7 +56,7 @@ internal final class SonyAPICameraDevice: SonyCamera {
             
             let accessType: String?
             
-            init?(dictionary: [AnyHashable : Any], model: SonyCamera.Model?) {
+            init?(dictionary: [AnyHashable : Any], model: Sony.Camera.Model?) {
                 
                 guard let _type = dictionary["av:X_ScalarWebAPI_ServiceType"] as? String else {
                     return nil
@@ -82,7 +82,7 @@ internal final class SonyAPICameraDevice: SonyCamera {
         
         let services: [Service]
         
-        init?(dictionary: [AnyHashable : Any], model: SonyCamera.Model?) {
+        init?(dictionary: [AnyHashable : Any], model: Sony.Camera.Model?) {
             
             guard let versionString = dictionary["av:X_ScalarWebAPI_Version"] as? String else { return nil }
             version = versionString
@@ -118,27 +118,19 @@ internal final class SonyAPICameraDevice: SonyCamera {
     public var onDisconnected: (() -> Void)?
     
     public var apiVersion: String?
-    
-    public var name: String?
+            
+    public var model: CameraModel?
         
-    public var model: String?
-    
-    public var manufacturer: String
-    
     public var ipAddress: sockaddr_in?
                 
     let apiDeviceInfo: ApiDeviceInfo
     
     public var firmwareVersion: String?
     
-    public var latestFirmwareVersion: String? {
-        return modelEnum?.latestFirmwareVersion
-    }
-    
     public var remoteAppVersion: String?
     
     public var latestRemoteAppVersion: String? {
-        return modelEnum?.latestRemoteAppVersion ?? "4.30"
+        return (model as? Sony.Camera.Model)?.latestRemoteAppVersion ?? "4.30"
     }
     
     public var lensModelName: String?
@@ -154,42 +146,47 @@ internal final class SonyAPICameraDevice: SonyCamera {
         return .remoteControl
     }
     
-    override init?(dictionary: [AnyHashable : Any]) {
+    override init(dictionary: [AnyHashable : Any]) throws {
         
         let _name = dictionary["friendlyName"] as? String
-        let _modelEnum: SonyCamera.Model?
+        let _modelEnum: Sony.Camera.Model?
         if let _name = _name {
-            _modelEnum = SonyCamera.Model(rawValue: _name)
+            _modelEnum = Sony.Camera.Model(rawValue: _name)
         } else {
             _modelEnum = nil
         }
                 
-        guard let apiDeviceInfoDict = dictionary["av:X_ScalarWebAPI_DeviceInfo"] as? [AnyHashable : Any], let apiInfo = ApiDeviceInfo(dictionary: apiDeviceInfoDict, model: _modelEnum) else {
-            return nil
+        guard let apiDeviceInfoDict = dictionary["av:X_ScalarWebAPI_DeviceInfo"] as? [AnyHashable : Any],
+              let apiInfo = ApiDeviceInfo(dictionary: apiDeviceInfoDict, model: _modelEnum) else {
+            throw CameraDiscoveryError.invalidXML("av:X_ScalarWebAPI_DeviceInfo key missing")
         }
         
         apiDeviceInfo = apiInfo
         apiClient = SonyCameraAPIClient(apiInfo: apiDeviceInfo)
         apiVersion = apiDeviceInfo.version
+                
+        do {
+            // Super doesn't throw, but we have to `try` anyways!
+            try super.init(dictionary: dictionary)
+        } catch let error {
+            throw error
+        }
         
-        name = _modelEnum?.friendlyName ?? _name
-        manufacturer = dictionary["manufacturer"] as? String ?? "Sony"
-        
-        super.init(dictionary: dictionary)
-        
-        modelEnum = _modelEnum
-        model = modelEnum?.friendlyName
+        model = _modelEnum
     }
     
-    override func update(with deviceInfo: SonyDeviceInfo?) {
+    func update(with deviceInfo: SSDPCameraInfo) {
+        
+        guard let sonyCameraInfo = deviceInfo as? SonyDeviceInfo else {
+            return
+        }
         
         // Keep name if modelEnum currently nil as user has renamed camera!
-        name = modelEnum == nil ? name : (deviceInfo?.model?.friendlyName ?? name)
-        modelEnum = deviceInfo?.model ?? modelEnum
-        model = modelEnum?.friendlyName ?? model
-        lensModelName = deviceInfo?.lensModelName
-        firmwareVersion = deviceInfo?.firmwareVersion
-        remoteAppVersion = deviceInfo?.installedPlayMemoriesApps.first(
+        name = model == nil ? name : (sonyCameraInfo.model?.friendlyName ?? name)
+        model = sonyCameraInfo.model ?? model
+        lensModelName = sonyCameraInfo.lensModelName
+        firmwareVersion = sonyCameraInfo.firmwareVersion
+        remoteAppVersion = sonyCameraInfo.installedPlayMemoriesApps.first(
             where: {
                 $0.name.lowercased() == "smart remote control" ||
                 $0.name.lowercased() == "smart remote embedded" ||
@@ -199,7 +196,7 @@ internal final class SonyAPICameraDevice: SonyCamera {
     }
 }
 
-extension SonyAPICameraDevice: Camera {
+extension SonyAPICameraDevice: SSDPCamera {
     
     var isInBeta: Bool {
         return false
@@ -236,7 +233,7 @@ extension SonyAPICameraDevice: Camera {
         }
         
         // If the camera model doesn't support getVersions then we don't need to worry!
-        if let modelEnum = modelEnum, modelEnum.usesLegacyAPI {
+        if let modelEnum = model as? Sony.Camera.Model, modelEnum.usesLegacyAPI {
             callback(Result.success(false))
         } else {
             cameraClient.getVersions { (result) in
@@ -306,7 +303,7 @@ extension SonyAPICameraDevice: Camera {
                 completion(error, false)
             case .success(let inTransferMode):
                 
-                guard self.modelEnum == nil || SonyCamera.Model.supporting(function: .startRecordMode).contains(self.modelEnum!) else {
+                guard self.model as? Sony.Camera.Model == nil || Sony.Camera.Model.supporting(function: .startRecordMode).contains(self.model as! Sony.Camera.Model) else {
                     completion(nil, inTransferMode)
                     return
                 }
@@ -519,7 +516,7 @@ extension SonyAPICameraDevice: Camera {
         }
         
         // Ignore models which don't require/support this...
-        guard let model = modelEnum, SonyCamera.Model.supporting(function: .getCameraFunction).contains(model) else {
+        guard let model = model as? Sony.Camera.Model, Sony.Camera.Model.supporting(function: .getCameraFunction).contains(model) else {
             callback(nil)
             return
         }
@@ -574,12 +571,12 @@ extension SonyAPICameraDevice: Camera {
         }
         
         // If not supported, don't bother getting values
-        if let model = modelEnum, !SonyCamera.Model.supporting(function: function.function).contains(model) && !function.function.requiresAPICheckForSupport {
+        if let model = model as? Sony.Camera.Model, !Sony.Camera.Model.supporting(function: function.function).contains(model) && !function.function.requiresAPICheckForSupport {
             callback(false, nil, nil)
             return
         }
 
-        guard modelEnum == nil else {
+        guard model == nil else {
             getSupportedValues(function, callback: callback)
             return
         }
@@ -949,7 +946,7 @@ extension SonyAPICameraDevice: Camera {
             return
         }
         
-        if let model = modelEnum, !SonyCamera.Model.supporting(function: function.function).contains(model) && !function.function.requiresAPICheckForSupport {
+        if let model = model as? Sony.Camera.Model, !Sony.Camera.Model.supporting(function: function.function).contains(model) && !function.function.requiresAPICheckForSupport {
             callback(false, nil, nil)
             return
         }
@@ -1804,8 +1801,8 @@ extension SonyAPICameraDevice: Camera {
                 }
                 
                 // Make sure our camera model requires this call! Only 3rd gen seem to
-                guard let _model = modelEnum, _model.requiresHalfPressToCapture else {
-                    Logger.log(message:"\(modelEnum?.friendlyName ?? "Unknown") doesn't require half press to focus, skipping step", category: "SonyCamera", level: .debug)
+                guard let _model = model as? Sony.Camera.Model, _model.requiresHalfPressToCapture else {
+                    Logger.log(message:"\(model?.friendlyName ?? "Unknown") doesn't require half press to focus, skipping step", category: "SonyCamera", level: .debug)
                     takePicture(false, nil)
                     return
                 }

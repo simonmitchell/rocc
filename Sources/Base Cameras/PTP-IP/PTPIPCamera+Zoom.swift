@@ -20,7 +20,7 @@ extension Zoom.Direction {
     }
 }
 
-extension SonyPTPIPDevice {
+extension PTPIPCamera {
     
     func startZooming(direction: Zoom.Direction, callback: @escaping (Error?) -> Void) {
         

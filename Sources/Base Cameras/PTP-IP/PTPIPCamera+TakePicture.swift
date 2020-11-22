@@ -15,7 +15,7 @@ import UIKit
 import AppKit
 #endif
 
-extension SonyPTPIPDevice {
+extension PTPIPCamera {
     
     typealias CaptureCompletion = (Result<URL?, Error>) -> Void
     

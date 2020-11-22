@@ -26,9 +26,9 @@ internal struct PlayMemoriesApp {
     }
 }
 
-internal struct SonyDeviceInfo {
+internal struct SonyDeviceInfo: SSDPCameraInfo {
     
-    let model: SonyCamera.Model?
+    let model: Sony.Camera.Model?
     
     let firmwareVersion: String?
     
@@ -45,7 +45,7 @@ internal struct SonyDeviceInfo {
     init(dictionary: [AnyHashable : Any]) {
         
         if let modelString = dictionary["X_ModelName"] as? String {
-            model = SonyCamera.Model(rawValue: modelString)
+            model = Sony.Camera.Model(rawValue: modelString)
         } else {
             model = nil
         }

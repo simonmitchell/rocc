@@ -83,6 +83,23 @@ public enum PollingMode {
     case none
 }
 
+public protocol CameraModel: CustomStringConvertible {
+    
+    init?(rawValue: String)
+    
+    /// Returns the friendly name of the camera model
+    var friendlyName: String { get }
+    
+    /// The latest firmware version supported on the camera model
+    var latestFirmwareVersion: String? { get }
+}
+
+extension CameraModel {
+    public var description: String {
+        return friendlyName
+    }
+}
+
 /// A protocol which defines the base functionality of a camera.
 public protocol Camera: class {
     
@@ -100,13 +117,13 @@ public protocol Camera: class {
     var baseURL: URL? { get set }
     
     /// The manufacturer of the camera.
-    var manufacturer: String { get }
+    var manufacturer: Manufacturer? { get }
     
     /// The name of the camera. A friendly version of the model.
     var name: String? { get }
     
     /// The model of the camera.
-    var model: String? { get }
+    var model: CameraModel? { get }
     
     /// The firmware version of the camera.
     var firmwareVersion: String? { get }
@@ -207,6 +224,18 @@ public protocol Camera: class {
     
     /// The last event which occured
     var lastEvent: CameraEvent? { get }
+}
+
+public extension Camera {
+    
+    var latestFirmwareVersion: String? {
+        get {
+            return model?.latestFirmwareVersion
+        }
+        set {
+            
+        }
+    }
 }
 
 /// An error for local issues before the API request has been made to the camera
