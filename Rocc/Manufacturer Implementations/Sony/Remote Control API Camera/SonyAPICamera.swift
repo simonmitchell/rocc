@@ -137,6 +137,8 @@ internal final class SonyAPICameraDevice: SonyCamera {
     public var latestRemoteAppVersion: String? {
         return modelEnum?.latestRemoteAppVersion ?? "4.30"
     }
+
+    public var eventVersion: String?
     
     public var lensModelName: String?
     
@@ -242,6 +244,8 @@ extension SonyAPICameraDevice: Camera {
                 if case let .failure(error) = result, (error as NSError).code != 404 {
                     callback(Result.failure(error))
                     return
+                } else if case let .success(versions) = result {
+                    self.eventVersion = versions.map { Double($0) }.compactMap { $0 }.max().map { String($0) }
                 }
                     
                 guard let avClient = self.apiClient.avContent else {

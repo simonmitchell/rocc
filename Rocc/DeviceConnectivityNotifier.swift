@@ -19,7 +19,15 @@ public protocol DeviceConnectivityNotifierDelegate {
     ///   - notifier: The notifier which detected the change
     ///   - device: The device which was disconnected
     func connectivityNotifier(_ notifier: DeviceConnectivityNotifier, didDisconnectFrom device: Camera)
-    
+
+
+    /// Called when the notifier detected that the socket was disconnected (either camera was disconnected, or the app slept for too long)
+    ///
+    /// - Parameters:
+    ///   - notifier: The notifier which detected the change
+    ///   - device: The device which was disconnected
+    func connectivityNotifier(_ notifier: DeviceConnectivityNotifier, didSocketDisconnectFrom device: Camera)
+
     /// Called when the notifier detected that the camera was re-connected / made available again
     ///
     /// - Parameters:
@@ -56,7 +64,9 @@ public final class DeviceConnectivityNotifier {
         self.isReachable = true
         camera.onDisconnected = { [weak self] in
             guard let self = self else { return }
-            self.delegate?.connectivityNotifier(self, didDisconnectFrom: self.camera)
+            if let _ = self.reachability, let delegate = self.delegate {
+                delegate.connectivityNotifier(self, didSocketDisconnectFrom: self.camera)
+            }
         }
     }
     
@@ -95,23 +105,30 @@ public final class DeviceConnectivityNotifier {
         isListening = true
         reachability = _reachability
         initialSSID = Reachability.currentWiFiSSID
-        
+
+        os_log("Initial SSID %s", log: self.logger, type: .debug, String(describing: initialSSID))
+        print("DEVICE_CONN_NOTIFIER INITIAL \(initialSSID)")
+
         reachability?.start(callback: { [weak self] (flags) in
-            self?.handle(flags: flags)
+            print("DEVICE_CONN_NOTIFIER A \(Reachability.currentWiFiSSID)")
+
+            //self?.handle(flags: flags)
         })
         reachability?.networkChangeCallback = { [weak self] (ssid) in
             
             guard let self = self else { return }
+
+            print("DEVICE_CONN_NOTIFIER B \(ssid)")
             
             guard ssid != self.initialSSID else {
                 Logger.log(message: "Re-connected to device's SSID", category: "DeviceConnectivity", level: .debug)
-                os_log("Re-connected to device's SSID", log: self.logger, type: .debug)
+                os_log("Re-connected to device's SSID %s", log: self.logger, type: .debug, String(describing: ssid))
                 self.handle(reachable: true)
                 return
             }
             
             Logger.log(message: "Disconnected from device's SSID", category: "DeviceConnectivity", level: .debug)
-            os_log("Disconnected from device's SSID", log: self.logger, type: .debug)
+            os_log("Disconnected from device's SSID %s", log: self.logger, type: .debug, String(describing: ssid))
             self.handle(reachable: false)
         }
     }
@@ -129,7 +146,7 @@ public final class DeviceConnectivityNotifier {
         if flags.contains(.reachable) && !flags.contains(.connectionRequired) {
             
             Logger.log(message: "Reachable and no connection required", category: "DeviceConnectivity", level: .debug)
-            os_log("Reachable and no connection required", log: logger, type: .debug)
+            os_log("Reachable and no connection required %s", log: logger, type: .debug, String(describing: initialSSID))
             
             camera.performFunction(Ping.perform, payload: nil) { [weak self] (error, _) in                
                 self?.handle(reachable: error == nil)
@@ -137,16 +154,14 @@ public final class DeviceConnectivityNotifier {
             
         } else if !flags.contains(.reachable) {
             
-            guard Reachability.currentWiFiSSID != initialSSID else {
-                os_log("Not reachable, but still connected to same WiFi network!", log: logger, type: .debug)
-                return
+            if Reachability.currentWiFiSSID == initialSSID {
+                os_log("Not reachable, but still connected to same WiFi network: %s!", log: logger, type: .debug, String(describing: initialSSID))
+                //return
             }
             
             Logger.log(message: "Not reachable", category: "DeviceConnectivity", level: .debug)
             os_log("Not reachable", log: logger, type: .debug)
-            camera.performFunction(Ping.perform, payload: nil) { [weak self] (error, _) in
-                self?.handle(reachable: error != nil)
-            }
+            handle(reachable: false)
         }
     }
     

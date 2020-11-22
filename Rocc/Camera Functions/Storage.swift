@@ -22,7 +22,7 @@ public struct Storage: CameraFunction {
 }
 
 /// A structural representation of information about camera storage
-public struct StorageInformation: Equatable {
+public struct StorageInformation: Equatable, Codable {
     
     /// A description of the storage option
     public let description: String?

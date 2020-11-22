@@ -27,8 +27,7 @@ public struct Event: CameraFunction {
 /// - failed: The focus operation failed
 /// - focusing: The camera is focussing
 /// - focussed: The camera has finished focussing
-public enum FocusStatus {
-    
+public enum FocusStatus: Equatable, Codable {
     case notFocussing
     case failed
     case focusing
@@ -46,6 +45,35 @@ public enum FocusStatus {
             return "Focused"
         }
     }
+    
+    enum CodingKeys: CodingKey {
+        case value
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        let type = try values.decode(String.self, forKey: .value)
+        
+        switch type {
+        case "Not Focusing": self = .notFocussing
+        case "Focusing": self = .focusing
+        case "Focused": self = .focused
+        case "Failed": self = .failed
+        default:
+            throw DecodingError .dataCorrupted(DecodingError .Context(codingPath: [CodingKeys.value], debugDescription: "invalid type"))
+        }
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        switch self {
+        case .failed: try container.encode("Failed", forKey: .value)
+        case .focused: try container.encode("Focused", forKey: .value)
+        case .focusing: try container.encode("Focusing", forKey: .value)
+        case .notFocussing: try container.encode("Not Focusing", forKey: .value)
+        }
+    }
+    
 }
 
 /// CameraEvent represents an overview of the camera's current setup.
@@ -311,4 +339,8 @@ public struct CameraEvent: Equatable {
     
     /// The time that the bulb shooting has been running for!
     public let bulbCapturingTime: TimeInterval?
+
+    /// URLs for postView BULB images that the camera has taken.
+    public var bulbShootingURLS: [[URL]]?
+
 }

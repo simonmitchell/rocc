@@ -78,10 +78,10 @@ enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
         case .continuous, .continuousS, .continuousLow, .continuousHigh, .continuousHighPlus:
             return .continuous
         default:
-            return nil
+            return .single
         }
     }
-    
+
     var continuousShootingSpeed: ContinuousCapture.Speed.Value? {
         switch self {
         case .continuous:
@@ -143,10 +143,10 @@ enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
             return .continuous
         case .timer2_3, .timer2_5, .timer5_3, .timer5_5, .timer10_3, .timer10_5:
             //TODO: Add "multi-timer" timer mode
-            return nil
+            return .loop
         case .singleBurstLow, .singleBurstMedium, .singleBurstHigh:
             //TODO: Add burst mode!
-            return nil
+            return .loop
         }
     }
     

@@ -31,6 +31,9 @@ protocol DeviceDiscovererDelegate {
     ///   - discovered: The device that it discovered.
     ///   - isCached: Whether the device was loaded from a cached xml discovery file.
     func deviceDiscoverer<T: DeviceDiscoverer>(_ discoverer: T, discovered device: Camera, isCached: Bool)
+
+    func deviceDiscoverer<T: DeviceDiscoverer>(_ discoverer: T, didDetectNetworkChange ssid: String?)
+
 }
 
 /// A protocol to be implemented by device discovery implementations
@@ -77,6 +80,8 @@ public protocol CameraDiscovererDelegate {
     ///   - discovered: The device that it discovered.
     ///   - isCached: Whether the camera was loaded from a cached xml file url.
     func cameraDiscoverer(_ discoverer: CameraDiscoverer, discovered device: Camera, isCached: Bool)
+
+    func cameraDiscoverer(_ discoverer: CameraDiscoverer, didDetectNetworkChange ssid: String?)
 }
 
 /// A class which enables the discovery of cameras
@@ -158,5 +163,9 @@ extension CameraDiscoverer: DeviceDiscovererDelegate {
     
     func deviceDiscoverer<T>(_ discoverer: T, didError error: Error) where T : DeviceDiscoverer {
         delegate?.cameraDiscoverer(self, didError: error)
+    }
+
+    func deviceDiscoverer<T>(_ discoverer: T, didDetectNetworkChange ssid: String?) where T : DeviceDiscoverer {
+        delegate?.cameraDiscoverer(self, didDetectNetworkChange: ssid)
     }
 }

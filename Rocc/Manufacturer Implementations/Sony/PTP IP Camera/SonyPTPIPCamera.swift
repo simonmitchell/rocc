@@ -34,6 +34,10 @@ internal final class SonyPTPIPDevice: SonyCamera {
     var remoteAppVersion: String? = nil
     
     var latestRemoteAppVersion: String? = nil
+
+    var eventVersion: String? {
+        return "2.0"
+    }
     
     var lensModelName: String? = nil
     
@@ -503,7 +507,7 @@ extension SonyPTPIPDevice: Camera {
             self?.onDisconnected?()
         }
     }
-    
+
     func disconnect(completion: @escaping DisconnectedCompletion) {
         ptpIPClient?.onDisconnect = nil
         ptpIPClient?.disconnect()

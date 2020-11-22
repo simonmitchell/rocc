@@ -39,7 +39,7 @@
 		B128D0D923F9A17C007B37F8 /* StillQuality+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B128D0D823F9A17C007B37F8 /* StillQuality+SonyPTPPropValueConvertable.swift */; };
 		B128D0DC23F9A198007B37F8 /* StillFormat+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B128D0DB23F9A198007B37F8 /* StillFormat+SonyPTPPropValueConvertable.swift */; };
 		B128D0DF23F9D60D007B37F8 /* Array+Unique.swift in Sources */ = {isa = PBXBuildFile; fileRef = B128D0DE23F9D60D007B37F8 /* Array+Unique.swift */; };
-		B12CCC93247DAEF100BCD2D1 /* Wrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B12CCC92247DAEF100BCD2D1 /* Wrapper.swift */; };
+		B12CCC93247DAEF100BCD2D1 /* (null) in Sources */ = {isa = PBXBuildFile; };
 		B1316A572089C08F006BD136 /* Rocc.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B1316A4D2089C08F006BD136 /* Rocc.framework */; };
 		B1316A5C2089C08F006BD136 /* RoccTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1316A5B2089C08F006BD136 /* RoccTests.swift */; };
 		B1316A5E2089C08F006BD136 /* Rocc.h in Headers */ = {isa = PBXBuildFile; fileRef = B1316A502089C08F006BD136 /* Rocc.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -163,7 +163,27 @@
 		B1FB48732092743100C33C86 /* Aperture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB48722092743100C33C86 /* Aperture.swift */; };
 		B1FF7A382371EC180010D5F0 /* SDIOExtDeviceInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FF7A372371EC180010D5F0 /* SDIOExtDeviceInfo.swift */; };
 		B1FF7A422371F4AB0010D5F0 /* DeviceProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FF7A412371F4AB0010D5F0 /* DeviceProperty.swift */; };
+		E14C0D1B24FD4D8E00F53111 /* Event.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A1AA1420A4E01D00FD0A4A /* Event.swift */; };
+		E14C0D2324FD4DAC00F53111 /* Capture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1561ED320976F7A0013D122 /* Capture.swift */; };
+		E14C0D2424FD4DC000F53111 /* Camera.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB486B2092579E00C33C86 /* Camera.swift */; };
+		E14C0D2524FD4DD400F53111 /* Storage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B16BFBC220A49F91006BD081 /* Storage.swift */; };
+		E14C0D2624FD4DE000F53111 /* ShootMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1561ECB20976B850013D122 /* ShootMode.swift */; };
+		E14C0D2724FD4DF100F53111 /* FlashMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1BFC98D2379C8A8004F9C56 /* FlashMode.swift */; };
+		E14C0D2824FD4DFE00F53111 /* TouchAF.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1CE444F2099B492001DB2B6 /* TouchAF.swift */; };
+		E14C0D2924FD4E0400F53111 /* WhiteBalance.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B4345C2097483300A81B9D /* WhiteBalance.swift */; };
+		E14C0D2B24FD4E3600F53111 /* FileSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B4342920939EF500A81B9D /* FileSystem.swift */; };
+		E186CEF824F50E1C006EDFB6 /* Focus.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100E1A120A04EE0004F7AB8 /* Focus.swift */; };
 		EF140C5A24902FC7001BAD7F /* Retries.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF140C5924902FC7001BAD7F /* Retries.swift */; };
+		EF2BF509251A28A100F46E47 /* Wrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF2BF508251A28A100F46E47 /* Wrapper.swift */; };
+		EF2BF50C251A28B000F46E47 /* Wrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF2BF508251A28A100F46E47 /* Wrapper.swift */; };
+		EF2BF50F251A28C600F46E47 /* LiveView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1CE24A72098FD1E0049EC87 /* LiveView.swift */; };
+		EFFB02C124E5403800A774AD /* RoccWatch.h in Headers */ = {isa = PBXBuildFile; fileRef = EFFB02BF24E5403800A774AD /* RoccWatch.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EFFB02CD24E541CD00A774AD /* Aperture.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FB48722092743100C33C86 /* Aperture.swift */; };
+		EFFB02CE24E541D200A774AD /* Exposure.swift in Sources */ = {isa = PBXBuildFile; fileRef = B100E19E20A04CEF004F7AB8 /* Exposure.swift */; };
+		EFFB02CF24E541D400A774AD /* ISO.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B43459209747C200A81B9D /* ISO.swift */; };
+		EFFB02D024E541E800A774AD /* CameraFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B4344F209746B000A81B9D /* CameraFunctions.swift */; };
+		EFFB02D124E5422E00A774AD /* ShutterSpeedFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A25F2021ADE6CE00D9EE81 /* ShutterSpeedFormatter.swift */; };
+		EFFB02D224E5429700A774AD /* ApertureFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1EF38D024793C5800E26C4E /* ApertureFormatter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -278,7 +298,6 @@
 		B128D0D823F9A17C007B37F8 /* StillQuality+SonyPTPPropValueConvertable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StillQuality+SonyPTPPropValueConvertable.swift"; sourceTree = "<group>"; };
 		B128D0DB23F9A198007B37F8 /* StillFormat+SonyPTPPropValueConvertable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "StillFormat+SonyPTPPropValueConvertable.swift"; sourceTree = "<group>"; };
 		B128D0DE23F9D60D007B37F8 /* Array+Unique.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+Unique.swift"; sourceTree = "<group>"; };
-		B12CCC92247DAEF100BCD2D1 /* Wrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Wrapper.swift; sourceTree = "<group>"; };
 		B1316A4D2089C08F006BD136 /* Rocc.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Rocc.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B1316A502089C08F006BD136 /* Rocc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Rocc.h; sourceTree = "<group>"; };
 		B1316A512089C08F006BD136 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -400,6 +419,10 @@
 		B1FF7A372371EC180010D5F0 /* SDIOExtDeviceInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDIOExtDeviceInfo.swift; sourceTree = "<group>"; };
 		B1FF7A412371F4AB0010D5F0 /* DeviceProperty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceProperty.swift; sourceTree = "<group>"; };
 		EF140C5924902FC7001BAD7F /* Retries.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Retries.swift; sourceTree = "<group>"; };
+		EF2BF508251A28A100F46E47 /* Wrapper.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Wrapper.swift; sourceTree = "<group>"; };
+		EFFB02BD24E5403800A774AD /* RoccWatch.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = RoccWatch.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		EFFB02BF24E5403800A774AD /* RoccWatch.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RoccWatch.h; sourceTree = "<group>"; };
+		EFFB02C024E5403800A774AD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -420,6 +443,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EFFB02BA24E5403800A774AD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -431,6 +461,7 @@
 				B1316A5A2089C08F006BD136 /* RoccTests */,
 				B1AF5089208DC3A80029336B /* RoccMac */,
 				B1AF5094208DC3A80029336B /* RoccMacTests */,
+				EFFB02BE24E5403800A774AD /* RoccWatch */,
 				B1316A4E2089C08F006BD136 /* Products */,
 				B1AF504A208D345A0029336B /* Frameworks */,
 			);
@@ -441,6 +472,7 @@
 			children = (
 				B1316A4D2089C08F006BD136 /* Rocc.framework */,
 				B1316A562089C08F006BD136 /* RoccTests.xctest */,
+				EFFB02BD24E5403800A774AD /* RoccWatch.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -629,8 +661,8 @@
 				B128D0DE23F9D60D007B37F8 /* Array+Unique.swift */,
 				B117F52A24027F560055ADF5 /* Array+BringToFront.swift */,
 				B17D74A4241D010500C75498 /* String+Truncate.swift */,
-				B12CCC92247DAEF100BCD2D1 /* Wrapper.swift */,
 				EF140C5924902FC7001BAD7F /* Retries.swift */,
+				EF2BF508251A28A100F46E47 /* Wrapper.swift */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -822,6 +854,15 @@
 			path = "Camera Functions";
 			sourceTree = "<group>";
 		};
+		EFFB02BE24E5403800A774AD /* RoccWatch */ = {
+			isa = PBXGroup;
+			children = (
+				EFFB02BF24E5403800A774AD /* RoccWatch.h */,
+				EFFB02C024E5403800A774AD /* Info.plist */,
+			);
+			path = RoccWatch;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -831,6 +872,14 @@
 			files = (
 				B16BFD1321F5F0E600AF3F24 /* SimplePing.h in Headers */,
 				B1316A5E2089C08F006BD136 /* Rocc.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EFFB02B824E5403800A774AD /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EFFB02C124E5403800A774AD /* RoccWatch.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -876,6 +925,24 @@
 			productReference = B1316A562089C08F006BD136 /* RoccTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		EFFB02BC24E5403800A774AD /* RoccWatch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EFFB02C224E5403800A774AD /* Build configuration list for PBXNativeTarget "RoccWatch" */;
+			buildPhases = (
+				EFFB02B824E5403800A774AD /* Headers */,
+				EFFB02B924E5403800A774AD /* Sources */,
+				EFFB02BA24E5403800A774AD /* Frameworks */,
+				EFFB02BB24E5403800A774AD /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = RoccWatch;
+			productName = RoccWatch;
+			productReference = EFFB02BD24E5403800A774AD /* RoccWatch.framework */;
+			productType = "com.apple.product-type.framework";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -892,6 +959,9 @@
 					};
 					B1316A552089C08F006BD136 = {
 						CreatedOnToolsVersion = 9.3;
+					};
+					EFFB02BC24E5403800A774AD = {
+						CreatedOnToolsVersion = 11.6;
 					};
 				};
 			};
@@ -915,6 +985,7 @@
 			targets = (
 				B1316A4C2089C08F006BD136 /* Rocc */,
 				B1316A552089C08F006BD136 /* RoccTests */,
+				EFFB02BC24E5403800A774AD /* RoccWatch */,
 			);
 		};
 /* End PBXProject section */
@@ -991,6 +1062,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		EFFB02BB24E5403800A774AD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
@@ -1039,7 +1117,7 @@
 				B182B9242383520B0054539E /* DispatchQueue+AsyncWhile.swift in Sources */,
 				B1A1AA1A20A4E01D00FD0A4A /* Event.swift in Sources */,
 				B1FF7A422371F4AB0010D5F0 /* DeviceProperty.swift in Sources */,
-				B12CCC93247DAEF100BCD2D1 /* Wrapper.swift in Sources */,
+				B12CCC93247DAEF100BCD2D1 /* (null) in Sources */,
 				B182B8F32381E1CD0054539E /* SonyPTPIPCamera+PerformFunction.swift in Sources */,
 				B164F02921811C1200590A05 /* String+Regex.swift in Sources */,
 				B185A4EE2394FCB400B87BC7 /* PainInTheArsePacket.swift in Sources */,
@@ -1110,6 +1188,7 @@
 				B115EF2F21E9FC3A00667FB7 /* SonyXMLParsers.swift in Sources */,
 				B180A7CC236F17EE001AAF5D /* PTP.swift in Sources */,
 				B19BD29F2413C4A100111539 /* SimulatedCamera.swift in Sources */,
+				EF2BF509251A28A100F46E47 /* Wrapper.swift in Sources */,
 				B1AEE4F9237586EC00224152 /* CameraEvent+SonyPTPIP.swift in Sources */,
 				B180A7D6236F1B9D001AAF5D /* CommandResponsePacket.swift in Sources */,
 				B154525C21EE61B800C59096 /* SOAPRequestBody.swift in Sources */,
@@ -1172,6 +1251,31 @@
 				B154535F21EFE3DC00C59096 /* Countable.swift in Sources */,
 				B1EF38D22479410300E26C4E /* ApertureFormatter.swift in Sources */,
 				B1AEE4E823755FEE00224152 /* PTPDevicePropertyTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EFFB02B924E5403800A774AD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E14C0D2924FD4E0400F53111 /* WhiteBalance.swift in Sources */,
+				E14C0D2624FD4DE000F53111 /* ShootMode.swift in Sources */,
+				E14C0D1B24FD4D8E00F53111 /* Event.swift in Sources */,
+				E14C0D2524FD4DD400F53111 /* Storage.swift in Sources */,
+				EFFB02CE24E541D200A774AD /* Exposure.swift in Sources */,
+				E14C0D2B24FD4E3600F53111 /* FileSystem.swift in Sources */,
+				EFFB02CF24E541D400A774AD /* ISO.swift in Sources */,
+				E14C0D2324FD4DAC00F53111 /* Capture.swift in Sources */,
+				E14C0D2824FD4DFE00F53111 /* TouchAF.swift in Sources */,
+				EF2BF50C251A28B000F46E47 /* Wrapper.swift in Sources */,
+				EFFB02D124E5422E00A774AD /* ShutterSpeedFormatter.swift in Sources */,
+				E186CEF824F50E1C006EDFB6 /* Focus.swift in Sources */,
+				EF2BF50F251A28C600F46E47 /* LiveView.swift in Sources */,
+				E14C0D2724FD4DF100F53111 /* FlashMode.swift in Sources */,
+				E14C0D2424FD4DC000F53111 /* Camera.swift in Sources */,
+				EFFB02D024E541E800A774AD /* CameraFunctions.swift in Sources */,
+				EFFB02D224E5429700A774AD /* ApertureFormatter.swift in Sources */,
+				EFFB02CD24E541CD00A774AD /* Aperture.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1314,6 +1418,7 @@
 		B1316A622089C08F006BD136 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
@@ -1347,6 +1452,7 @@
 		B1316A632089C08F006BD136 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Automatic;
@@ -1420,6 +1526,63 @@
 			};
 			name = Release;
 		};
+		EFFB02C324E5403800A774AD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = M83UW57364;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = RoccWatch/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.swirski.RoccWatch;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 5.0;
+			};
+			name = Debug;
+		};
+		EFFB02C424E5403800A774AD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = M83UW57364;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = RoccWatch/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.swirski.RoccWatch;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 5.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1446,6 +1609,15 @@
 			buildConfigurations = (
 				B1316A652089C08F006BD136 /* Debug */,
 				B1316A662089C08F006BD136 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		EFFB02C224E5403800A774AD /* Build configuration list for PBXNativeTarget "RoccWatch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EFFB02C324E5403800A774AD /* Debug */,
+				EFFB02C424E5403800A774AD /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -507,8 +507,8 @@ extension PTPIPClient: StreamDelegate {
             onDisconnect?()
             break
         case Stream.Event.hasSpaceAvailable:
-            Logger.log(message: "Stream has space available", category: "PTPIPClient", level: .debug)
-            os_log("Stream has space available", log: ptpClientLog, type: .debug)
+            //Logger.log(message: "Stream has space available", category: "PTPIPClient", level: .debug)
+            //os_log("Stream has space available", log: ptpClientLog, type: .debug)
             switch aStream {
             case eventWriteStream:
                 sendQueuedEventPackets()

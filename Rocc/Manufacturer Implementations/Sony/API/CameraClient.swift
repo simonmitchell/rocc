@@ -598,9 +598,9 @@ fileprivate func exposureCompensationsFor(lowerIndex: Int, upperIndex: Int, step
         step = 1.0/2.0
         break
     }
-    
-    for i in stride(from: Double(lowerIndex), to: Double(upperIndex), by: step) {
-        compensations.append(Exposure.Compensation.Value(value: i))
+
+    for i in lowerIndex...upperIndex {
+        compensations.append(Exposure.Compensation.Value(value: Double(i) * step))
     }
     
     return compensations

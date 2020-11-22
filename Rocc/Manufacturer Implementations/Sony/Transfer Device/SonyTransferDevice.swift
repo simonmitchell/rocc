@@ -36,6 +36,8 @@ internal final class SonyTransferDevice {
     var latestRemoteAppVersion: String? {
         return "4.31"
     }
+
+    var eventVersion: String?
     
     var identifier: String
     

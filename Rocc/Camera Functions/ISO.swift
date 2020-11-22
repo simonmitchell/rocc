@@ -55,3 +55,62 @@ public struct ISO: CameraFunction {
     /// Returns the current ISO of the camera
     public static let get = ISO(function: .getISO)
 }
+
+extension ISO.Value: Codable {
+    enum CodingKeys: CodingKey {
+        case type
+        case value
+    }
+
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        let type = try values.decode(String.self, forKey: .type)
+
+        switch type {
+        case "auto":
+            self = .auto
+        case "extended":
+            let value = try values.decode(Int.self, forKey: .value)
+            self = .extended(value)
+        case "native":
+            let value = try values.decode(Int.self, forKey: .value)
+            self = .native(value)
+        case "multiFrameNRAuto":
+            self = .multiFrameNRAuto
+        case "multiFrameNR":
+            let value = try values.decode(Int.self, forKey: .value)
+            self = .multiFrameNR(value)
+        case "multiFrameNRHiAuto":
+            self = .multiFrameNRHiAuto
+        case "multiFrameNRHi":
+            let value = try values.decode(Int.self, forKey: .value)
+            self = .multiFrameNRHi(value)
+        default:
+            throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: [CodingKeys.type], debugDescription: "invalid type"))
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        switch self {
+        case .auto:
+            try container.encode("auto", forKey: .type)
+        case .extended(let val):
+            try container.encode("extended", forKey: .type)
+            try container.encode(val, forKey: .value)
+        case .native(let val):
+            try container.encode("native", forKey: .type)
+            try container.encode(val, forKey: .value)
+        case .multiFrameNRAuto:
+            try container.encode("multiFrameNRAuto", forKey: .type)
+        case .multiFrameNR(let val):
+            try container.encode("multiFrameNR", forKey: .type)
+            try container.encode(val, forKey: .value)
+        case .multiFrameNRHiAuto:
+            try container.encode("multiFrameNRHiAuto", forKey: .type)
+        case .multiFrameNRHi(let val):
+            try container.encode("multiFrameNRHi", forKey: .type)
+            try container.encode(val, forKey: .value)
+        }
+    }
+}

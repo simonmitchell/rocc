@@ -363,12 +363,18 @@ extension SonyPTPIPDevice {
             os_log("Image data not valud", log: self.log, type: .error)
             return
         }
+
+        os_log("Got object data! BULB image received", log: self.log, type: .debug)
+
         
         let temporaryDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
         let imageURL = temporaryDirectoryURL.appendingPathComponent(fileName)
         do {
             try imageData.write(to: imageURL)
             imageURLs[shootingMode, default: []].append(imageURL)
+
+            os_log("Got object data! BULB image written", log: self.log, type: .debug)
+            print("ShootingMode \(shootingMode)")
             // Trigger dummy event
             onEventAvailable?()
         } catch let error {

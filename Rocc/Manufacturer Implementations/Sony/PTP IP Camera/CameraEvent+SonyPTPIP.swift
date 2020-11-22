@@ -165,7 +165,7 @@ extension CameraEvent {
                     as? PTP.DeviceProperty.Enum else {
                     return
                 }
-                
+               
                 focusStatus = FocusStatus(sonyValue: enumProperty.currentValue)
                 
             case .flashMode:

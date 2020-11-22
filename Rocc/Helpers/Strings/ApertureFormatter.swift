@@ -9,7 +9,9 @@
 import Foundation
 
 public class ApertureFormatter {
-    
+    public init() {
+    }
+
     public func string(for obj: Aperture.Value?) -> String? {
         
         guard let aperture = obj else {

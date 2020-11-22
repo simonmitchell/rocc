@@ -356,7 +356,7 @@ public struct VideoCapture: CameraFunction {
     public struct FileFormat: CameraFunction {
         
         /// Values for Video Capture file format
-        public enum Value: Int {
+        public enum Value: Int, Codable {
             case none
             case dvd
             case m2ps
@@ -387,7 +387,7 @@ public struct VideoCapture: CameraFunction {
     public struct Quality: CameraFunction {
         
         /// Values for Video Capture file quality
-        public enum Value {
+        public enum Value: Int, Codable {
             case none
             case ps
             case hq

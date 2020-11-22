@@ -109,9 +109,20 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
             SCNetworkReachabilityGetFlags(reachability.reachability, &flags)
             isReachable = flags.contains(.reachable)
         }
-        
+
+        var previousSsid: String?
+
         reachability?.networkChangeCallback = { [weak self] (ssid) in
+            guard previousSsid != ssid else {
+                print("DEVICE_CONN_NOTIFIER C NO CHANGE")
+                return
+            }
+            previousSsid = ssid
+            print("DEVICE_CONN_NOTIFIER C \(ssid)")
+
             guard let self = self else { return }
+            self.sendNetworkChangeToDelegate(ssid)
+
             Logger.log(message: "Network did change: \(ssid ?? "null")", category: "UDPDeviceDiscoverer", level: .debug)
             os_log("Network did change %{public}@", log: self.log, type: .debug, ssid ?? "Unknown")
             self.requestController.cancelAllRequests()
@@ -127,7 +138,8 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
             os_log("Device not reachable", log: log, type: .debug)
             
             reachability?.start(callback: { [weak self] (flags) in
-                
+                print("DEVICE_CONN_NOTIFIER D \(Reachability.currentWiFiSSID)")
+
                 guard let self = self else { return }
                 guard flags.contains(.reachable) else { return }
                 self.requestController.cancelAllRequests()
@@ -139,33 +151,40 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
             return
         }
         #endif
-        
+
+        print("DEVICE_CONN_NOTIFIER E \(Reachability.currentWiFiSSID)")
+
         // Start this so we also get network change callbacks!
         reachability?.start(callback: { (_) in
-            
+            print("DEVICE_CONN_NOTIFIER NO-OP \(Reachability.currentWiFiSSID)")
+
         })
         
+        startSearching()
+    }
+
+    func startSearching() {
         Logger.log(message: "Starting UDP device search on network: \(Reachability.currentWiFiSSID ?? "Unknown")", category: "UDPDeviceDiscoverer", level: .debug)
         os_log("Starting UDP device search on network: %{public}@", log: log, type: .debug, Reachability.currentWiFiSSID ?? "Unknown")
-        
+
         udpClient.startSearching { [weak self] (device, error) in
-            
+
             guard let self = self else { return }
-            
+
             guard let device = device else {
                 Logger.log(message: "Client did fail with error: \(error?.localizedDescription ?? "Unknown")", category: "UDPDeviceDiscoverer", level: .error)
                 os_log("Client did fail with error: %{public}@", log: self.log, type: .error, error?.localizedDescription ?? "Unknown")
                 self.delegate?.deviceDiscoverer(self, didError: error ?? CameraDiscoveryError.unknown)
                 return
             }
-            
+
             Logger.log(message: "Did find device at \(device.ddURL.absoluteString)", category: "UDPDeviceDiscoverer", level: .debug)
             os_log("Did find device at: %{public}@", log: self.log, type: .debug, device.ddURL.absoluteString)
-            
+
             self.parseDeviceInfo(at: device.ddURL, isCached: false)
         }
     }
-    
+
     func stop(_ callback: @escaping () -> Void) {
         
         Logger.log(message: "Stopping search for devices", category: "UDPDeviceDiscoverer", level: .debug)
@@ -255,5 +274,9 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
         Logger.log(message: "Letting delegate know about discovered device with name: \(camera.name ?? "Unknown")", category: "UDPDeviceDiscoverer", level: .debug)
         os_log("Letting delegate know about discovered device with name: %{public}@", log: log, type: .debug, camera.name ?? "Unknown")
         delegate?.deviceDiscoverer(self, discovered: camera, isCached: isCached)
+    }
+
+    func sendNetworkChangeToDelegate(_ ssid: String?) {
+        delegate?.deviceDiscoverer(self, didDetectNetworkChange: ssid)
     }
 }

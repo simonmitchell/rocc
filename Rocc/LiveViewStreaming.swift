@@ -420,17 +420,28 @@ public final class LiveViewStream: NSObject {
         } else if !isPacketedStream {
             isPacketedStream = true
         }
-        
+
+        var lastImage: Image?
+        var lastFrames: [FrameInfo]?
+
         payloads?.forEach({ (payload) in
-            
+
             if let image = payload.image {
-                delegate?.liveViewStream(self, didReceive: image)
+                lastImage = image
             }
             
             if let frames = payload.frames {
-                delegate?.liveViewStream(self, didReceive: frames)
+                lastFrames = frames
             }
         })
+
+        if let image = lastImage {
+            delegate?.liveViewStream(self, didReceive: image)
+        }
+
+        if let frames = lastFrames {
+            delegate?.liveViewStream(self, didReceive: frames)
+        }
         
         return payloads
     }
