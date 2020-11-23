@@ -102,6 +102,18 @@ struct PTP {
         case getPartialObject = 0x101b
         case initiateOpenCapture = 0x101c
         case okay = 0x2001
+        case canonGetStorageIDs = 0x9101
+        case canonGetStorageInfo = 0x9102
+        case canonGetObjectInfo = 0x9103
+        case canonGetPartialObject = 0x9107
+        case canonGetThumbEx = 0x910a
+        case canonSetRemoteMode = 0x9114
+        case canonSetEventMode = 0x9115
+        case canonGetEvent = 0x9116
+        case canonGetViewFinderData = 0x9153
+        case canonRemoteReleaseOn = 0x9128
+        case canonRemoteReleaseOff = 0x9129
+        case canonSetDevicePropValueEx = 0x9110
         case sdioConnect = 0x9201
         case sdioGetExtDeviceInfo = 0x9202
         case sonyGetDevicePropDesc = 0x9203
@@ -113,7 +125,7 @@ struct PTP {
         case startMovieRec = 0x920a
         case endMovieRec = 0x920b
         case terminateCapture = 0x920c
-        case unknownHandshakeRequest = 0x920D
+        case unknownHandshakeRequest = 0x920d
         case getObjectProperties = 0x9801
         case getObjectPropertyDescription = 0x9802
         case getObjectPropertyValue = 0x9803

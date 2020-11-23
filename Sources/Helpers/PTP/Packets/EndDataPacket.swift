@@ -22,11 +22,12 @@ struct EndDataPacket: Packetable {
         
         self.length = length
         self.name = name
-        
-        self.data = data
-        
+                
         guard let transactionId = data[dWord: 0] else { return nil }
         self.transactionId = transactionId
+        
+        // Use `length` here as otherwise we may end up stealing data from other packets!
+        self.data = data.sliced(MemoryLayout<DWord>.size, Int(length) - Packet.headerLength)
     }
     
     init(transactionId: DWord) {

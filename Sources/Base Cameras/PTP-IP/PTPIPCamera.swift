@@ -201,8 +201,9 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
                         // Sony app seems to jump current transaction ID back to 2 here, so we'll do the same
                         self.ptpIPClient?.resetTransactionId(to: 1)
                         self.performSdioConnect(
-                            completion: { [weak self] _ in
-                                self?.performInitialEventFetch(completion: completion)
+                            completion: { _ in
+                                // Think we can ignore this final error
+                                completion(nil, false)
                             },
                             number: 3,
                             transactionId: self.ptpIPClient?.getNextTransactionId() ?? 2
@@ -215,20 +216,13 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
         }, number: 1, transactionId: ptpIPClient?.getNextTransactionId() ?? 2)
     }
     
-    private func performInitialEventFetch(completion: @escaping PTPIPCamera.ConnectedCompletion) {
-        
-        self.ptpIPClient?.sendCommandRequestPacket(Packet.commandRequestPacket(
-            code: .unknownHandshakeRequest,
-            arguments: nil,
-            transactionId: self.ptpIPClient?.getNextTransactionId() ?? 7
-        ), callback: { (response) in
+    func performInitialEventFetch(completion: @escaping PTPIPCamera.ConnectedCompletion) {
+
+        self.performFunction(Event.get, payload: nil, callback: { [weak self] (error, event) in
             
-            self.performFunction(Event.get, payload: nil, callback: { [weak self] (error, event) in
-                
-                self?.lastEvent = event
-                // Can ignore errors as we don't really require this event for the connection process to complete!
-                completion(nil, false)
-            })
+            self?.lastEvent = event
+            // Can ignore errors as we don't really require this event for the connection process to complete!
+            completion(nil, false)
         })
     }
     
@@ -1098,11 +1092,8 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
             )
         }
     }
-}
-
-//MARK: - Camera protocol conformance -
-
-extension PTPIPCamera {
+    
+    //MARK: - Camera protocol conformance -
     
     var isInBeta: Bool {
         return false
@@ -1147,9 +1138,30 @@ extension PTPIPCamera {
                 }
             }
             self.ptpIPClient?.connect(callback: { [weak self] (error) in
-                self?.sendStartSessionPacket(completion: retriableCompletion)
+                guard let self = self else { return }
+                guard error == nil else {
+                    retriableCompletion(error, false)
+                    return
+                }
+                // Order is different here on Canon packet dump, calls `getDeviceInfo` and
+                // THEN `startSession` but libgphoto2 seems to call in "wrong"
+                // order (like we are) so we'll keep like this for now
+                self.sendStartSessionPacket(completion: { [weak self] (startSessionError, transferMode) in
+                    guard startSessionError == nil else {
+                        retriableCompletion(startSessionError, false)
+                        return
+                    }
+                    self?.performPostConnectCommands(completion: retriableCompletion)
+                })
             })
         }, attempts: 3)
+    }
+    
+    /// Perform any non-standard PTP IP Commands that should occur after connection
+    /// has been established. By default this fetches initial event
+    /// - Parameter completion: The closure to call when done
+    func performPostConnectCommands(completion: @escaping PTPIPCamera.ConnectedCompletion) {
+        performInitialEventFetch(completion: completion)
     }
     
     func disconnect(completion: @escaping DisconnectedCompletion) {

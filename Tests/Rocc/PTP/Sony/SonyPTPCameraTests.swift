@@ -9,16 +9,6 @@
 import XCTest
 @testable import Rocc
 
-extension Packetable {
-    var trimmedHexData: String {
-        return data.toHex.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-}
-
-func ==(lhs: TestPTPPacketStream.TestFlow, rhs: Array<PacketInfo>) -> Bool {
-    return lhs.packetsSentAndReceived == rhs
-}
-
 extension String {
     
     static let deviceInfoHex: Self = "64 00 11 00 00 00 64 00 14 53 00 6f 00 6e 00 79 00 20 00 50 00 54 00 50 00 20 00 45 00 78 00 74 00 65 00 6e 00 73 00 69 00 6f 00 6e 00 73 00 00 00 00 00 1b 00 00 00 01 10 02 10 03 10 04 10 05 10 06 10 07 10 08 10 09 10 0a 10 0d 10 1b 10 01 92 02 92 05 92 07 92 09 92 0a 92 0b 92 0c 92 0d 92 0e 92 0f 92 01 98 02 98 03 98 05 98 0c 00 00 00 01 c2 02 c2 03 c2 04 c2 05 c2 06 c2 07 c2 08 c2 09 c2 0a c2 0b c2 0c c2 00 00 00 00 00 00 00 00 03 00 00 00 01 38 01 b3 01 b1 11 53 00 6f 00 6e 00 79 00 20 00 43 00 6f 00 72 00 70 00 6f 00 72 00 61 00 74 00 69 00 6f 00 6e 00 00 00 0c 44 00 53 00 43 00 2d 00 52 00 58 00 31 00 30 00 30 00 4d 00 37 00 00 00 05 31 00 2e 00 30 00 30 00 00 00 21 30 00 30 00 30 00 30 00 30 00 30 00 30 00 30 00 30 00 30 00 30 00 30 00 30 00 30 00 30 00 30 00 38 00 30 00 38 00 31 00 38 00 38 00 36 00 30 00 30 00 32 00 38 00 39 00 35 00 32 00 35 00 31 00 00 00"
@@ -37,37 +27,20 @@ extension PTPIPCamera {
     }
 }
 
-extension TestPTPPacketStream.TestFlow {
-    
-    var packetsSentAndReceived: [PacketInfo] {
-        
-        var packets: [PacketInfo] = []
-        if let initialStepPacket = initialPacket {
-            packets.append(initialStepPacket)
-        }
-        
-        steps.forEach { (flowStep) in
-            packets.append(flowStep.packetReceived)
-            packets.append(contentsOf: flowStep.response ?? [])
-        }
-        return packets
-    }
-}
-
 class SonyPTPCameraTests: XCTestCase {
     
     override func setUpWithError() throws {
         camera.ptpIPClient = nil
     }
     
-    let camera = PTPIPCamera(dictionary: [
+    let camera = try! SonyPTPIPCamera(dictionary: [
         "av:X_ScalarWebAPI_DeviceInfo": [
             "av:X_ScalarWebAPI_ImagingDevice": [
                 "av:X_ScalarWebAPI_LiveView_URL": "192.168.0.1"
             ]
         ],
         "UDN": TestPTPPacketStream.TestFlow.Sony.guid
-    ])!
+    ])
 
     func testConnectionFlow() {
                 

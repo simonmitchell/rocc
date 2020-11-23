@@ -106,4 +106,16 @@ internal final class SonyPTPIPCamera: PTPIPCamera {
             super.performFunction(function, payload: payload, callback: callback)
         }
     }
+    
+    override func performInitialEventFetch(completion: @escaping PTPIPCamera.ConnectedCompletion) {
+        
+        // Sony PTP/IP cameras perform this unknown handshake request before fetching initial event!
+        self.ptpIPClient?.sendCommandRequestPacket(Packet.commandRequestPacket(
+            code: .unknownHandshakeRequest,
+            arguments: nil,
+            transactionId: self.ptpIPClient?.getNextTransactionId() ?? 7
+        ), callback: { (response) in
+            super.performInitialEventFetch(completion: completion)
+        })
+    }
 }

@@ -30,4 +30,50 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
         name = _modelEnum?.friendlyName ?? _name
         model = _modelEnum
     }
+    
+    override func performPostConnectCommands(completion: @escaping PTPIPCamera.ConnectedCompletion) {
+        
+        guard deviceInfo?.supportedOperations.contains(.canonSetRemoteMode) == true else {
+            setEventModeIfSupported(completion: completion)
+            return
+        }
+        
+        let packet = Packet.commandRequestPacket(
+            code: .canonSetRemoteMode,
+            arguments: [0x00000005], // TODO: Magic number.. for now!
+            transactionId: ptpIPClient?.getNextTransactionId() ?? 1
+        )
+        
+        ptpIPClient?.sendCommandRequestPacket(packet, callback: { [weak self] (response) in
+            guard response.code == .okay else {
+                completion(PTPError.commandRequestFailed(response.code), false)
+                return
+            }
+            self?.setEventModeIfSupported(completion: completion)
+        })
+    }
+    
+    private func setEventModeIfSupported(completion: @escaping PTPIPCamera.ConnectedCompletion) {
+        
+        guard deviceInfo?.supportedOperations.contains(.canonSetEventMode) == true else {
+            //TODO: Get initial event!
+            completion(nil, false)
+            return
+        }
+        
+        let packet = Packet.commandRequestPacket(
+            code: .canonSetEventMode,
+            arguments: [0x00000001], // TODO: Magic number.. for now!
+            transactionId: ptpIPClient?.getNextTransactionId() ?? 2
+        )
+        
+        ptpIPClient?.sendCommandRequestPacket(packet, callback: { [weak self] (response) in
+            guard response.code == .okay else {
+                completion(PTPError.commandRequestFailed(response.code), false)
+                return
+            }
+            completion(nil, false)
+            //TODO: Get initial event!
+        })
+    }
 }

@@ -264,7 +264,8 @@ extension ByteBuffer {
                 offset += UInt(string.count * MemoryLayout<Word>.size) + UInt(MemoryLayout<Word>.size)
             }
             
-            return string.count > 0 ? string : nil
+            // If length was reported as `0` then we still return the empty string!
+            return (string.count > 0 || length == 0) ? string : nil
             
         } else {
             

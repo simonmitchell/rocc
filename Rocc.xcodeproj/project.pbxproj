@@ -72,6 +72,10 @@
 		B182470B256A8287008268F4 /* CanonPTPIPCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = B182470A256A8287008268F4 /* CanonPTPIPCamera.swift */; };
 		B182470D256A8AEC008268F4 /* CanonCamera+Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = B182470C256A8AEC008268F4 /* CanonCamera+Model.swift */; };
 		B182470F256A9041008268F4 /* XMLParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = B182470E256A9041008268F4 /* XMLParser.swift */; };
+		B1824712256AFAE1008268F4 /* PTPTestUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1824711256AFAE0008268F4 /* PTPTestUtilities.swift */; };
+		B1824714256AFB6F008268F4 /* CanonPTPCameraTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1824713256AFB6F008268F4 /* CanonPTPCameraTests.swift */; };
+		B1824716256B12D2008268F4 /* PTPFlow+Canon.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1824715256B12D2008268F4 /* PTPFlow+Canon.swift */; };
+		B1824718256B2033008268F4 /* PTPFlow_Canon_Connect.json in Resources */ = {isa = PBXBuildFile; fileRef = B1824717256B2033008268F4 /* PTPFlow_Canon_Connect.json */; };
 		B182B889237DEA340054539E /* Event+FunctionSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = B182B888237DEA340054539E /* Event+FunctionSupport.swift */; };
 		B182B8EB237FF97E0054539E /* ContinuousShootingSpeed+SonyPTPPropValueConvertable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B182B8E3237FF97D0054539E /* ContinuousShootingSpeed+SonyPTPPropValueConvertable.swift */; };
 		B182B8EE23809CA40054539E /* PTPIPClient+DeviceProps.swift in Sources */ = {isa = PBXBuildFile; fileRef = B182B8ED23809CA40054539E /* PTPIPClient+DeviceProps.swift */; };
@@ -295,6 +299,10 @@
 		B182470A256A8287008268F4 /* CanonPTPIPCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanonPTPIPCamera.swift; sourceTree = "<group>"; };
 		B182470C256A8AEC008268F4 /* CanonCamera+Model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CanonCamera+Model.swift"; sourceTree = "<group>"; };
 		B182470E256A9041008268F4 /* XMLParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XMLParser.swift; sourceTree = "<group>"; };
+		B1824711256AFAE0008268F4 /* PTPTestUtilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PTPTestUtilities.swift; sourceTree = "<group>"; };
+		B1824713256AFB6F008268F4 /* CanonPTPCameraTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanonPTPCameraTests.swift; sourceTree = "<group>"; };
+		B1824715256B12D2008268F4 /* PTPFlow+Canon.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "PTPFlow+Canon.swift"; sourceTree = "<group>"; };
+		B1824717256B2033008268F4 /* PTPFlow_Canon_Connect.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = PTPFlow_Canon_Connect.json; sourceTree = "<group>"; };
 		B182B888237DEA340054539E /* Event+FunctionSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Event+FunctionSupport.swift"; sourceTree = "<group>"; };
 		B182B8E3237FF97D0054539E /* ContinuousShootingSpeed+SonyPTPPropValueConvertable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "ContinuousShootingSpeed+SonyPTPPropValueConvertable.swift"; sourceTree = "<group>"; };
 		B182B8ED23809CA40054539E /* PTPIPClient+DeviceProps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PTPIPClient+DeviceProps.swift"; sourceTree = "<group>"; };
@@ -556,6 +564,15 @@
 			path = "PTP IP Camera";
 			sourceTree = "<group>";
 		};
+		B1824710256AFA7B008268F4 /* Canon */ = {
+			isa = PBXGroup;
+			children = (
+				B1824713256AFB6F008268F4 /* CanonPTPCameraTests.swift */,
+				B1824715256B12D2008268F4 /* PTPFlow+Canon.swift */,
+			);
+			path = Canon;
+			sourceTree = "<group>";
+		};
 		B19A44132520EA7F0006915D /* Sony */ = {
 			isa = PBXGroup;
 			children = (
@@ -577,7 +594,9 @@
 		B1AEE4E623755FCE00224152 /* PTP */ = {
 			isa = PBXGroup;
 			children = (
+				B1824710256AFA7B008268F4 /* Canon */,
 				B19A44132520EA7F0006915D /* Sony */,
+				B1824711256AFAE0008268F4 /* PTPTestUtilities.swift */,
 				B1AEE4E723755FEE00224152 /* PTPDevicePropertyTests.swift */,
 				B18AEBAD23D9C3F7007B916A /* ByteBufferTests.swift */,
 				B1035B52238C51E80023270E /* PTPPacketParsingTests.swift */,
@@ -761,6 +780,7 @@
 		B1F180F525458D9200453668 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				B1824717256B2033008268F4 /* PTPFlow_Canon_Connect.json */,
 				B1F180F625458D9200453668 /* PTPFlow_Sony_GetEvent.json */,
 				B1F180F725458D9200453668 /* CmsDesc.xml */,
 				B1F180F825458D9200453668 /* PTPFlow_Sony_FunctionAvailability.json */,
@@ -1014,6 +1034,7 @@
 				B1F1810625458D9300453668 /* liveview-rx100m7-singleimage in Resources */,
 				B1F1810F25458D9300453668 /* PTPFlow_Sony_Connect_Already_Open.json in Resources */,
 				B1F1810925458D9300453668 /* CdsDesc.xml in Resources */,
+				B1824718256B2033008268F4 /* PTPFlow_Canon_Connect.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1215,6 +1236,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B18AEBAE23D9C3F7007B916A /* ByteBufferTests.swift in Sources */,
+				B1824712256AFAE1008268F4 /* PTPTestUtilities.swift in Sources */,
 				B19A4412251E7B4F0006915D /* TestPTPPacketStream.swift in Sources */,
 				B115EFD321ECFB6B00667FB7 /* ParserTests.swift in Sources */,
 				B1035B53238C51E80023270E /* PTPPacketParsingTests.swift in Sources */,
@@ -1227,8 +1249,10 @@
 				B1B38047239EE90A0088E254 /* LiveViewStreamingTests.swift in Sources */,
 				B154535E21EFE3D100C59096 /* ChildRangeTests.swift in Sources */,
 				B1316A5C2089C08F006BD136 /* RoccTests.swift in Sources */,
+				B1824716256B12D2008268F4 /* PTPFlow+Canon.swift in Sources */,
 				B154535F21EFE3DC00C59096 /* Countable.swift in Sources */,
 				B1AEE4E823755FEE00224152 /* PTPDevicePropertyTests.swift in Sources */,
+				B1824714256AFB6F008268F4 /* CanonPTPCameraTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

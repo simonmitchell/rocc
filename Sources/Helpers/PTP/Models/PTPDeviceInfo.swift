@@ -49,37 +49,59 @@ extension PTP {
             
             var offset: UInt = 0
             
-            guard let _version: Word = data.read(offset: &offset) else { return nil }
+            guard let _version: Word = data.read(offset: &offset) else {
+                return nil
+            }
             version = _version
             
-            guard let _vendorExtensionId: DWord = data.read(offset: &offset) else { return nil }
+            guard let _vendorExtensionId: DWord = data.read(offset: &offset) else {
+                return nil
+            }
             vendorExtensionId = _vendorExtensionId
             
-            guard let _vendorExtensionVersion: Word = data.read(offset: &offset) else { return nil }
+            guard let _vendorExtensionVersion: Word = data.read(offset: &offset) else {
+                return nil
+            }
             vendorExtensionVersion = _vendorExtensionVersion
             
-            guard let _vendorExtensionDescription: String = data.read(offset: &offset) else { return nil }
+            guard let _vendorExtensionDescription: String = data.read(offset: &offset) else {
+                return nil
+            }
             vendorExtensionDescription = _vendorExtensionDescription
             
-            guard let _functionalMode: Word = data.read(offset: &offset) else { return nil }
+            guard let _functionalMode: Word = data.read(offset: &offset) else {
+                return nil
+            }
             functionalMode = _functionalMode
             
-            guard let supportedOperationWords: [Word] = data.read(offset: &offset) else { return nil }
+            guard let supportedOperationWords: [Word] = data.read(offset: &offset) else {
+                return nil
+            }
             supportedOperations = supportedOperationWords.compactMap({ CommandCode(rawValue: $0) })
             
-            guard let supportedEventWords: [Word] = data.read(offset: &offset) else { return nil }
+            guard let supportedEventWords: [Word] = data.read(offset: &offset) else {
+                return nil
+            }
             supportedEventCodes = supportedEventWords.compactMap({ EventCode(rawValue: $0) })
             
-            guard let _supportedDeviceProperties: [Word] = data.read(offset: &offset) else { return nil }
+            guard let _supportedDeviceProperties: [Word] = data.read(offset: &offset) else {
+                return nil
+            }
             supportedDeviceProperties = _supportedDeviceProperties.compactMap({ DeviceProperty.Code(rawValue: $0) })
             
-            guard let _supportedCaptureFormats: [Word] = data.read(offset: &offset) else { return nil }
+            guard let _supportedCaptureFormats: [Word] = data.read(offset: &offset) else {
+                return nil
+            }
             supportedCaptureFormats = _supportedCaptureFormats
             
-            guard let _supportedImageFormats: [Word] = data.read(offset: &offset) else { return nil }
+            guard let _supportedImageFormats: [Word] = data.read(offset: &offset) else {
+                return nil
+            }
             supportedImageFormats = _supportedImageFormats.compactMap({ FileFormat(rawValue: $0) })
             
-            guard let _manufacturer: String = data.read(offset: &offset) else { return nil }
+            guard let _manufacturer: String = data.read(offset: &offset) else {
+                return nil
+            }
             manufacturer = _manufacturer
             
             // Above logic is a bit funny... we don't want to carry on if we can't parse the next element
