@@ -119,6 +119,10 @@ public struct Exposure {
         public struct Value: Equatable {
             /// The double value the given exposure compensation represents
             public let value: Double
+
+            public init(value: Double) {
+                self.value = value
+            }
         }
         
         public var function: _CameraFunction
