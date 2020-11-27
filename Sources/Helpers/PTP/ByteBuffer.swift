@@ -103,6 +103,11 @@ struct ByteBuffer {
         setLittleEndian(offset: offset, value: Int(value), nBytes: UInt(MemoryLayout<T>.size))
     }
     
+    /// Slices the data from the given offset to `end`
+    /// - Parameters:
+    ///   - offset: The index to slice from
+    ///   - end: The index to slice to (`endIndex` if nil)
+    /// - Returns: A slice of the original buffer
     func sliced(_ offset: Int, _ end: Int? = nil) -> ByteBuffer {
         let internalEnd = end ?? bytes.endIndex
         // Offset must be greater than startIndex

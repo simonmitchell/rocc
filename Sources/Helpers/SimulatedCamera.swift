@@ -146,7 +146,7 @@ public final class DummyCamera: Camera {
     
     public var baseURL: URL?
         
-    public var manufacturer: Manufacturer? = .sony
+    public var manufacturer: Manufacturer = .sony
     
     public var name: String? = "Sony a7ii"
     

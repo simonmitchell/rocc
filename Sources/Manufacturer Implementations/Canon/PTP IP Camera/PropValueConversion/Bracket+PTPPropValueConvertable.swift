@@ -1,5 +1,5 @@
 //
-//  Bracket+SonyPTPPropValueConvertable.swift
+//  Bracket+PTPPropValueConvertable.swift
 //  Rocc
 //
 //  Created by Simon Mitchell on 02/07/2020.
@@ -8,18 +8,38 @@
 
 import Foundation
 
-extension ContinuousBracketCapture.Bracket.Value: SonyPTPPropValueConvertable {
+extension ContinuousBracketCapture.Bracket.Value: PTPPropValueConvertable {
     
-    var sonyPTPValue: PTPDevicePropertyDataType {
-        return stillCaptureMode?.rawValue ?? 0x00
+    static func devicePropertyCode(for manufacturer: Manufacturer) -> PTP.DeviceProperty.Code {
+        switch manufacturer {
+        case .sony:
+            return .stillCaptureMode
+        case .canon:
+            //TODO: [Canon] Implement
+            return .stillCaptureMode
+        }
     }
     
-    var type: PTP.DeviceProperty.DataType {
-        return .uint32
+    init?(value: PTPDevicePropertyDataType, manufacturer: Manufacturer) {
+        switch manufacturer {
+        case .sony:
+            guard let stillCapMode = SonyStillCaptureMode(value: value, manufacturer: manufacturer) else {
+                return nil
+            }
+            self.init(stillCapMode)
+        case .canon:
+            return nil
+        }
     }
     
-    var code: PTP.DeviceProperty.Code {
-        return .stillCaptureMode
+    func value(for manufacturer: Manufacturer) -> PTPDevicePropertyDataType {
+        switch manufacturer {
+        case .sony:
+            return stillCaptureMode?.rawValue ?? 0x00
+        case .canon:
+            //TODO: [Canon] Implement
+            return Word(0x00)
+        }
     }
     
     var stillCaptureMode: SonyStillCaptureMode? {
@@ -100,27 +120,41 @@ extension ContinuousBracketCapture.Bracket.Value: SonyPTPPropValueConvertable {
         default: return nil
         }
     }
-    
-    init?(sonyValue: PTPDevicePropertyDataType) {
-        guard let stillCapMode = SonyStillCaptureMode(sonyValue: sonyValue) else {
-            return nil
-        }
-        self.init(stillCapMode)
-    }
 }
 
-extension SingleBracketCapture.Bracket.Value: SonyPTPPropValueConvertable {
+extension SingleBracketCapture.Bracket.Value: PTPPropValueConvertable {
     
-    var sonyPTPValue: PTPDevicePropertyDataType {
-        return stillCaptureMode?.rawValue ?? 0x00
+    static func devicePropertyCode(for manufacturer: Manufacturer) -> PTP.DeviceProperty.Code {
+        switch manufacturer {
+        case .sony:
+            return .stillCaptureMode
+        case .canon:
+            //TODO: [Canon] Implement
+            return .stillCaptureMode
+        }
     }
     
-    var type: PTP.DeviceProperty.DataType {
-        return .uint32
+    init?(value: PTPDevicePropertyDataType, manufacturer: Manufacturer) {
+        switch manufacturer {
+        case .sony:
+            guard let stillCapMode = SonyStillCaptureMode(value: value, manufacturer: manufacturer) else {
+                return nil
+            }
+            self.init(stillCapMode)
+        case .canon:
+            return nil
+            //TODO: [Canon] Implement
+        }
     }
     
-    var code: PTP.DeviceProperty.Code {
-        return .stillCaptureMode
+    func value(for manufacturer: Manufacturer) -> PTPDevicePropertyDataType {
+        switch manufacturer {
+        case .sony:
+            return stillCaptureMode?.rawValue ?? 0x00
+        case .canon:
+            return Word(0)
+            //TODO: [Canon] Implement
+        }
     }
     
     var stillCaptureMode: SonyStillCaptureMode? {
@@ -214,12 +248,5 @@ extension SingleBracketCapture.Bracket.Value: SonyPTPPropValueConvertable {
             self.init(mode: .dro, interval: .low)
         default: return nil
         }
-    }
-    
-    init?(sonyValue: PTPDevicePropertyDataType) {
-        guard let stillCapMode = SonyStillCaptureMode(sonyValue: sonyValue) else {
-            return nil
-        }
-        self.init(stillCapMode)
     }
 }

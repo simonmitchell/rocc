@@ -31,7 +31,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.1,
-                Aperture.Value(sonyValue: testCase.0)
+                Aperture.Value(value: testCase.0, manufacturer: .sony)
             )
         }
     }
@@ -44,13 +44,13 @@ class SonyPTPPropConversionTests: XCTestCase {
             (2000, Aperture.Value(value: 20.0, decimalSeperator: nil)),
         ]
         
-        XCTAssertEqual(testCases.first?.1.type, .uint16)
-        XCTAssertEqual(testCases.first?.1.code, .fNumber)
+        XCTAssertEqual(Aperture.Value.dataType(for: .sony), .uint16)
+        XCTAssertEqual(Aperture.Value.devicePropertyCode(for: .sony), .fNumber)
         
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.0,
-                testCase.1.sonyPTPValue as? Word
+                testCase.1.value(for: .sony) as? Word
             )
         }
     }
@@ -81,7 +81,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.1,
-                ContinuousBracketCapture.Bracket.Value(sonyValue: testCase.0)
+                ContinuousBracketCapture.Bracket.Value(value: testCase.0, manufacturer: .sony)
             )
         }
     }
@@ -107,13 +107,13 @@ class SonyPTPPropConversionTests: XCTestCase {
             (DWord(0x00048531), .init(mode: .exposure, interval: .custom(images: 5, interval: 3))),
         ]
         
-        XCTAssertEqual(testCases.first?.1.type, .uint32)
-        XCTAssertEqual(testCases.first?.1.code, .stillCaptureMode)
+        XCTAssertEqual(ContinuousBracketCapture.Bracket.Value.dataType(for: .sony), .uint32)
+        XCTAssertEqual(ContinuousBracketCapture.Bracket.Value.devicePropertyCode(for: .sony), .stillCaptureMode)
         
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.0,
-                testCase.1.sonyPTPValue as? DWord
+                testCase.1.value(for: .sony) as? DWord
             )
         }
     }
@@ -130,7 +130,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.1,
-                Exposure.Compensation.Value(sonyValue: testCase.0)
+                Exposure.Compensation.Value(value: testCase.0, manufacturer: .sony)
             )
         }
     }
@@ -143,13 +143,13 @@ class SonyPTPPropConversionTests: XCTestCase {
             (Int16(2000), Exposure.Compensation.Value(value: 2.0)),
         ]
         
-        XCTAssertEqual(testCases.first?.1.type, .int16)
-        XCTAssertEqual(testCases.first?.1.code, .exposureBiasCompensation)
+        XCTAssertEqual(Exposure.Compensation.Value.dataType(for: .sony), .int16)
+        XCTAssertEqual(Exposure.Compensation.Value.devicePropertyCode(for: .sony), .exposureBiasCompensation)
         
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.0,
-                testCase.1.sonyPTPValue as? Int16
+                testCase.1.value(for: .sony) as? Int16
             )
         }
     }
@@ -175,7 +175,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.1,
-                Exposure.SettingsLock.Status(sonyValue: testCase.0)
+                Exposure.SettingsLock.Status(value: testCase.0, manufacturer: .sony)
             )
         }
     }
@@ -197,13 +197,13 @@ class SonyPTPPropConversionTests: XCTestCase {
             "Missing Exposure.SettingsLock.Status in test cases"
         )
         
-        XCTAssertEqual(testCases.first?.1.type, .uint8)
-        XCTAssertEqual(testCases.first?.1.code, .exposureSettingsLock)
+        XCTAssertEqual(Exposure.SettingsLock.Status.dataType(for: .sony), .uint8)
+        XCTAssertEqual(Exposure.SettingsLock.Status.devicePropertyCode(for: .sony), .exposureSettingsLock)
         
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.0,
-                testCase.1.sonyPTPValue as? Byte
+                testCase.1.value(for: .sony) as? Byte
             )
         }
     }
@@ -251,7 +251,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.1,
-                Exposure.Mode.Value(sonyValue: testCase.0)
+                Exposure.Mode.Value(value: testCase.0, manufacturer: .sony)
             )
         }
     }
@@ -293,15 +293,15 @@ class SonyPTPPropConversionTests: XCTestCase {
             (DWord(0x0005801c), .scene(.highSensitivity)),
         ]
         
-        XCTAssertEqual(testCases.first?.1.type, .uint32)
-        XCTAssertEqual(testCases.first?.1.code, .exposureProgramMode)
+        XCTAssertEqual(Exposure.Mode.Value.dataType(for: .sony), .uint32)
+        XCTAssertEqual(Exposure.Mode.Value.devicePropertyCode(for: .sony), .exposureProgramMode)
         
         // TODO: Make sure all enum cases are tested for
         
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.0,
-                testCase.1.sonyPTPValue as? DWord
+                testCase.1.value(for: .sony) as? DWord
             )
         }
     }
@@ -324,7 +324,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.1,
-                Exposure.Mode.DialControl.Value(sonyValue: testCase.0)
+                Exposure.Mode.DialControl.Value(value: testCase.0, manufacturer: .sony)
             )
         }
     }
@@ -336,8 +336,8 @@ class SonyPTPPropConversionTests: XCTestCase {
             (Byte(0x01), .app),
         ]
         
-        XCTAssertEqual(testCases.first?.1.type, .uint8)
-        XCTAssertEqual(testCases.first?.1.code, .exposureProgramModeControl)
+        XCTAssertEqual(Exposure.Mode.DialControl.Value.dataType(for: .sony), .uint8)
+        XCTAssertEqual(Exposure.Mode.DialControl.Value.devicePropertyCode(for: .sony), .exposureProgramModeControl)
         
         // Make sure all enum cases are tested for
         XCTAssertEqual(
@@ -349,7 +349,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.0,
-                testCase.1.sonyPTPValue as? Byte
+                testCase.1.value(for: .sony) as? Byte
             )
         }
     }
@@ -376,7 +376,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.1,
-                Focus.Mode.Value(sonyValue: testCase.0)
+                Focus.Mode.Value(value: testCase.0, manufacturer: .sony)
             )
         }
     }
@@ -392,8 +392,8 @@ class SonyPTPPropConversionTests: XCTestCase {
             (Word(0x8009), .powerFocus)
         ]
         
-        XCTAssertEqual(testCases.first?.1.type, .uint16)
-        XCTAssertEqual(testCases.first?.1.code, .focusMode)
+        XCTAssertEqual(Focus.Mode.Value.dataType(for: .sony), .uint16)
+        XCTAssertEqual(Focus.Mode.Value.devicePropertyCode(for: .sony), .focusMode)
         
         // Make sure all enum cases are tested for
         XCTAssertEqual(
@@ -405,7 +405,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.0,
-                testCase.1.sonyPTPValue as? Word
+                testCase.1.value(for: .sony) as? Word
             )
         }
     }
@@ -421,7 +421,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.1,
-                FocusStatus(sonyValue: testCase.0)
+                FocusStatus(value: testCase.0, manufacturer: .sony)
             )
         }
     }
@@ -433,13 +433,13 @@ class SonyPTPPropConversionTests: XCTestCase {
             (Byte(1), .notFocussing)
         ]
         
-        XCTAssertEqual(testCases.first?.1.type, .uint8)
-        XCTAssertEqual(testCases.first?.1.code, .focusFound)
+        XCTAssertEqual(FocusStatus.dataType(for: .sony), .uint8)
+        XCTAssertEqual(FocusStatus.devicePropertyCode(for: .sony), .focusFound)
         
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.0,
-                testCase.1.sonyPTPValue as? Byte
+                testCase.1.value(for: .sony) as? Byte
             )
         }
     }
@@ -491,7 +491,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.1,
-                ISO.Value(sonyValue: testCase.0)
+                ISO.Value(value: testCase.0, manufacturer: .sony)
             )
         }
     }
@@ -532,13 +532,13 @@ class SonyPTPPropConversionTests: XCTestCase {
             (DWord(0x02001900), .multiFrameNRHi(6400)),
         ]
         
-        XCTAssertEqual(testCases.first?.1.type, .uint32)
-        XCTAssertEqual(testCases.first?.1.code, .ISO)
+        XCTAssertEqual(ISO.Value.dataType(for: .sony), .uint32)
+        XCTAssertEqual(ISO.Value.devicePropertyCode(for: .sony), .ISO)
         
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.0,
-                testCase.1.sonyPTPValue as? DWord
+                testCase.1.value(for: .sony) as? DWord
             )
         }
     }
@@ -561,7 +561,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.1,
-                LiveView.Quality(sonyValue: testCase.0)
+                LiveView.Quality(value: testCase.0, manufacturer: .sony)
             )
         }
     }
@@ -573,8 +573,8 @@ class SonyPTPPropConversionTests: XCTestCase {
             (Byte(0x01), .displaySpeed),
         ]
         
-        XCTAssertEqual(testCases.first?.1.type, .uint8)
-        XCTAssertEqual(testCases.first?.1.code, .liveViewQuality)
+        XCTAssertEqual(LiveView.Quality.dataType(for: .sony), .uint8)
+        XCTAssertEqual(LiveView.Quality.devicePropertyCode(for: .sony), .liveViewQuality)
         
         // Make sure all enum cases are tested for
         XCTAssertEqual(
@@ -586,7 +586,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.0,
-                testCase.1.sonyPTPValue as? Byte
+                testCase.1.value(for: .sony) as? Byte
             )
         }
     }
@@ -604,12 +604,12 @@ class SonyPTPPropConversionTests: XCTestCase {
             ("Hello World", nil)
         ]
         
-        XCTAssertTrue(ShutterSpeed(sonyValue: DWord(0x00000000))?.isBulb ?? false)
+        XCTAssertTrue(ShutterSpeed(value: DWord(0x00000000), manufacturer: .sony)?.isBulb ?? false)
         
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.1,
-                ShutterSpeed(sonyValue: testCase.0)
+                ShutterSpeed(value: testCase.0, manufacturer: .sony)
             )
         }
     }
@@ -627,13 +627,13 @@ class SonyPTPPropConversionTests: XCTestCase {
             (DWord(0x00000000), .bulb),
         ]
         
-        XCTAssertEqual(testCases.first?.1.type, .uint32)
-        XCTAssertEqual(testCases.first?.1.code, .shutterSpeed)
+        XCTAssertEqual(ShutterSpeed.dataType(for: .sony), .uint32)
+        XCTAssertEqual(ShutterSpeed.devicePropertyCode(for: .sony), .shutterSpeed)
         
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.0,
-                testCase.1.sonyPTPValue as? DWord
+                testCase.1.value(for: .sony) as? DWord
             )
         }
     }
@@ -663,7 +663,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.1,
-                SingleBracketCapture.Bracket.Value(sonyValue: testCase.0)
+                SingleBracketCapture.Bracket.Value(value: testCase.0, manufacturer: .sony)
             )
         }
     }
@@ -689,13 +689,13 @@ class SonyPTPPropConversionTests: XCTestCase {
             (DWord(0x00058530), .init(mode: .exposure, interval: .custom(images: 5, interval: 3))),
         ]
         
-        XCTAssertEqual(testCases.first?.1.type, .uint32)
-        XCTAssertEqual(testCases.first?.1.code, .stillCaptureMode)
+        XCTAssertEqual(SingleBracketCapture.Bracket.Value.dataType(for: .sony), .uint32)
+        XCTAssertEqual(SingleBracketCapture.Bracket.Value.devicePropertyCode(for: .sony), .stillCaptureMode)
         
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.0,
-                testCase.1.sonyPTPValue as? DWord
+                testCase.1.value(for: .sony) as? DWord
             )
         }
     }
@@ -714,7 +714,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.1,
-                StillCapture.Quality.Value(sonyValue: testCase.0)
+                StillCapture.Quality.Value(value: testCase.0, manufacturer: .sony)
             )
         }
     }
@@ -729,13 +729,13 @@ class SonyPTPPropConversionTests: XCTestCase {
         
         XCTAssertEqual(StillCapture.Quality.Value.allCases, testCases.compactMap({ $0.1 }))
         
-        XCTAssertEqual(testCases.first?.1.type, .uint8)
-        XCTAssertEqual(testCases.first?.1.code, .stillQuality)
+        XCTAssertEqual(StillCapture.Quality.Value.dataType(for: .sony), .uint8)
+        XCTAssertEqual(StillCapture.Quality.Value.devicePropertyCode(for: .sony), .stillQuality)
         
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.0,
-                testCase.1.sonyPTPValue as? Byte
+                testCase.1.value(for: .sony) as? Byte
             )
         }
     }
@@ -754,7 +754,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.1,
-                StillCapture.Format.Value(sonyValue: testCase.0)
+                StillCapture.Format.Value(value: testCase.0, manufacturer: .sony)
             )
         }
     }
@@ -769,13 +769,13 @@ class SonyPTPPropConversionTests: XCTestCase {
             (Byte(0x05), .heif)
         ]
                 
-        XCTAssertEqual(testCases.first?.1.type, .uint8)
-        XCTAssertEqual(testCases.first?.1.code, .stillFormat)
+        XCTAssertEqual(StillCapture.Format.Value.dataType(for: .sony), .uint8)
+        XCTAssertEqual(StillCapture.Format.Value.devicePropertyCode(for: .sony), .stillFormat)
         
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.0,
-                testCase.1.sonyPTPValue as? Byte
+                testCase.1.value(for: .sony) as? Byte
             )
         }
     }
@@ -812,7 +812,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.1,
-                VideoCapture.FileFormat.Value(sonyValue: testCase.0)
+                VideoCapture.FileFormat.Value(value: testCase.0, manufacturer: .sony)
             )
         }
     }
@@ -839,8 +839,8 @@ class SonyPTPPropConversionTests: XCTestCase {
             (Byte(0x0f), .xavc_si_hd)
         ]
         
-        XCTAssertEqual(testCases.first?.1.type, .uint8)
-        XCTAssertEqual(testCases.first?.1.code, .movieFormat)
+        XCTAssertEqual(VideoCapture.FileFormat.Value.dataType(for: .sony), .uint8)
+        XCTAssertEqual(VideoCapture.FileFormat.Value.devicePropertyCode(for: .sony), .movieFormat)
         
         // Make sure all enum cases are tested for
         XCTAssertEqual(
@@ -852,7 +852,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.0,
-                testCase.1.sonyPTPValue as? Byte
+                testCase.1.value(for: .sony) as? Byte
             )
         }
     }
@@ -947,7 +947,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.1,
-                VideoCapture.Quality.Value(sonyValue: testCase.0)
+                VideoCapture.Quality.Value(value: testCase.0, manufacturer: .sony)
             )
         }
     }
@@ -1039,8 +1039,8 @@ class SonyPTPPropConversionTests: XCTestCase {
             (Word(0x0043), ._16m_4_2_0_8bit),
         ]
         
-        XCTAssertEqual(testCases.first?.1.type, .uint16)
-        XCTAssertEqual(testCases.first?.1.code, .movieQuality)
+        XCTAssertEqual(VideoCapture.Quality.Value.dataType(for: .sony), .uint16)
+        XCTAssertEqual(VideoCapture.Quality.Value.devicePropertyCode(for: .sony), .movieQuality)
         
         // Make sure all enum cases are tested for
         XCTAssertEqual(
@@ -1052,7 +1052,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.0,
-                testCase.1.sonyPTPValue as? Word
+                testCase.1.value(for: .sony) as? Word
             )
         }
     }
@@ -1089,7 +1089,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.1,
-                WhiteBalance.Mode(sonyValue: testCase.0)
+                WhiteBalance.Mode(value: testCase.0, manufacturer: .sony)
             )
         }
     }
@@ -1115,8 +1115,8 @@ class SonyPTPPropConversionTests: XCTestCase {
             (Word(0x8022), .custom3),
         ]
         
-        XCTAssertEqual(testCases.first?.1.type, .uint16)
-        XCTAssertEqual(testCases.first?.1.code, .whiteBalance)
+        XCTAssertEqual(WhiteBalance.Mode.dataType(for: .sony), .uint16)
+        XCTAssertEqual(WhiteBalance.Mode.devicePropertyCode(for: .sony), .whiteBalance)
         
         // Make sure all enum cases are tested for
         XCTAssertEqual(
@@ -1128,7 +1128,7 @@ class SonyPTPPropConversionTests: XCTestCase {
         testCases.forEach { (testCase) in
             XCTAssertEqual(
                 testCase.0,
-                testCase.1.sonyPTPValue as? Word
+                testCase.1.value(for: .sony) as? Word
             )
         }
     }

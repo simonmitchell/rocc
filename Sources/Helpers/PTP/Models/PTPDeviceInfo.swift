@@ -87,7 +87,7 @@ extension PTP {
             guard let _supportedDeviceProperties: [Word] = data.read(offset: &offset) else {
                 return nil
             }
-            supportedDeviceProperties = _supportedDeviceProperties.compactMap({ DeviceProperty.Code(rawValue: $0) })
+            supportedDeviceProperties = _supportedDeviceProperties.compactMap({ DeviceProperty.Code(rawValue: DWord($0)) })
             
             guard let _supportedCaptureFormats: [Word] = data.read(offset: &offset) else {
                 return nil

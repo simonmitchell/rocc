@@ -8,7 +8,7 @@
 
 import Foundation
 
-enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
+enum SonyStillCaptureMode: DWord, PTPPropValueConvertable {
     
     case single = 0x00000001
     case continuousHighPlus = 0x00018010
@@ -150,21 +150,35 @@ enum SonyStillCaptureMode: DWord, SonyPTPPropValueConvertable {
         }
     }
     
-    var sonyPTPValue: PTPDevicePropertyDataType {
-        return DWord(rawValue)
+    static func devicePropertyCode(for manufacturer: Manufacturer) -> PTP.DeviceProperty.Code {
+        switch manufacturer {
+        case .sony:
+            return .stillCaptureMode
+        case .canon:
+            //TODO: [Canon] Implement
+            return .stillCaptureMode
+        }
     }
     
-    var type: PTP.DeviceProperty.DataType {
-        return .uint32
+    init?(value: PTPDevicePropertyDataType, manufacturer: Manufacturer) {
+        switch manufacturer {
+        case .sony:
+            guard let intValue = value.toInt else { return nil }
+            guard let enumValue = SonyStillCaptureMode(rawValue: DWord(intValue)) else { return nil }
+            self = enumValue
+        case .canon:
+            return nil
+            //TODO: [Canon] Implement
+        }
     }
     
-    var code: PTP.DeviceProperty.Code {
-        return .stillCaptureMode
-    }
-    
-    init?(sonyValue: PTPDevicePropertyDataType) {
-        guard let intValue = sonyValue.toInt else { return nil }
-        guard let enumValue = SonyStillCaptureMode(rawValue: DWord(intValue)) else { return nil }
-        self = enumValue
+    func value(for manufacturer: Manufacturer) -> PTPDevicePropertyDataType {
+        switch manufacturer {
+        case .sony:
+            return DWord(rawValue)
+        case .canon:
+            return Word(0)
+            //TODO: [Canon] Implement
+        }
     }
 }

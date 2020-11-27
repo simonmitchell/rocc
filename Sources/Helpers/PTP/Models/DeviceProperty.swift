@@ -706,10 +706,10 @@ extension PTP {
             
             var value: PTPDevicePropertyDataType
             
-            init(_ convertable: SonyPTPPropValueConvertable) {
-                self.code = convertable.code
-                self.type = convertable.type
-                self.value = convertable.sonyPTPValue
+            init(_ convertable: PTPPropValueConvertable, manufacturer: Manufacturer) {
+                self.code = Swift.type(of: convertable).devicePropertyCode(for: manufacturer)
+                self.type = Swift.type(of: convertable).dataType(for: manufacturer)
+                self.value = convertable.value(for: manufacturer)
             }
             
             init(code: Code, type: DataType, value: PTPDevicePropertyDataType) {
@@ -935,7 +935,7 @@ extension PTP {
             case string = 0xffff
         }
                 
-        enum Code: Word {
+        enum Code: DWord {
 
             case undefined = 0x5000
             case batteryLevel = 0x5001
@@ -1004,6 +1004,33 @@ extension PTP {
             case liveViewURL = 0xd278
             case recordingDuration = 0xd261
             case liveViewQuality = 0xd26a
+            
+            /// Returns the PTP Prop data type for the given manufacturer
+            /// - Parameter manufacturer: The manufacturer of the camera
+            func dataType(for manufacturer: Manufacturer) -> PTP.DeviceProperty.DataType {
+                switch manufacturer {
+                case .sony:
+                    switch self {
+                    case .exposureProgramMode, .ISO, .shutterSpeed,
+                         .stillCaptureMode:
+                        return .uint32
+                    case .flashMode, .fNumber, .focusMode,
+                         .movieQuality, .whiteBalance:
+                        return .uint16
+                    case .exposureSettingsLock, .exposureProgramModeControl,
+                         .focusFound, .liveViewQuality, .movieFormat,
+                         .stillFormat, .stillQuality:
+                        return .uint8
+                    case .exposureBiasCompensation:
+                        return .int16
+                    default:
+                        return .uint16
+                    }
+                case .canon:
+                    //TODO: [Canon] Implement!
+                    return .uint16
+                }
+            }
         }
     }
 }

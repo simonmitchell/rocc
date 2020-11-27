@@ -48,7 +48,7 @@ extension ByteBuffer {
             return nil
         }
         let rawCode = codeWord
-        let code = PTP.DeviceProperty.Code(rawValue: codeWord) ?? .undefined
+        let code = PTP.DeviceProperty.Code(rawValue: DWord(codeWord)) ?? .undefined
         
         guard let typeWord: Word = read(offset: &offset), let type = PTP.DeviceProperty.DataType(rawValue: typeWord) else {
             return nil

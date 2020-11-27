@@ -131,11 +131,11 @@ extension CameraEvent {
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
                 }
-                guard let mode = Exposure.Mode.Value(sonyValue: enumProperty.currentValue) else {
+                guard let mode = Exposure.Mode.Value(value: enumProperty.currentValue, manufacturer: .sony) else {
                     return
                 }
-                let available = enumProperty.available.compactMap({ Exposure.Mode.Value(sonyValue: $0) })
-                let supported = enumProperty.supported.compactMap({ Exposure.Mode.Value(sonyValue: $0) })
+                let available = enumProperty.available.compactMap({ Exposure.Mode.Value(value: $0, manufacturer: .sony) })
+                let supported = enumProperty.supported.compactMap({ Exposure.Mode.Value(value: $0, manufacturer: .sony) })
                 
                 exposureMode = (mode, available, supported)
                 
@@ -144,11 +144,11 @@ extension CameraEvent {
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
                 }
-                guard let control = Exposure.Mode.DialControl.Value(sonyValue: enumProperty.currentValue) else {
+                guard let control = Exposure.Mode.DialControl.Value(value: enumProperty.currentValue, manufacturer: .sony) else {
                     return
                 }
-                let available = enumProperty.available.compactMap({ Exposure.Mode.DialControl.Value(sonyValue: $0) })
-                let supported = enumProperty.supported.compactMap({ Exposure.Mode.DialControl.Value(sonyValue: $0) })
+                let available = enumProperty.available.compactMap({ Exposure.Mode.DialControl.Value(value: $0, manufacturer: .sony) })
+                let supported = enumProperty.supported.compactMap({ Exposure.Mode.DialControl.Value(value: $0, manufacturer: .sony) })
                 
                 exposureModeDialControl = (control, available, supported)
                 
@@ -157,7 +157,7 @@ extension CameraEvent {
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
                 }
-                exposureSettingsLockStatus = Exposure.SettingsLock.Status(sonyValue: enumProperty.currentValue)
+                exposureSettingsLockStatus = Exposure.SettingsLock.Status(value: enumProperty.currentValue, manufacturer: .sony)
                 
             case .focusFound:
                 
@@ -166,18 +166,18 @@ extension CameraEvent {
                     return
                 }
                 
-                focusStatus = FocusStatus(sonyValue: enumProperty.currentValue)
+                focusStatus = FocusStatus(value: enumProperty.currentValue, manufacturer: .sony)
                 
             case .flashMode:
                 
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
                 }
-                guard let mode = Flash.Mode.Value(sonyValue: enumProperty.currentValue) else {
+                guard let mode = Flash.Mode.Value(value: enumProperty.currentValue, manufacturer: .sony) else {
                     return
                 }
-                let available = enumProperty.available.compactMap({ Flash.Mode.Value(sonyValue: $0) })
-                let supported = enumProperty.supported.compactMap({ Flash.Mode.Value(sonyValue: $0) })
+                let available = enumProperty.available.compactMap({ Flash.Mode.Value(value: $0, manufacturer: .sony) })
+                let supported = enumProperty.supported.compactMap({ Flash.Mode.Value(value: $0, manufacturer: .sony) })
                 
                 flashMode = (mode, available, supported)
                 
@@ -186,11 +186,11 @@ extension CameraEvent {
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
                 }
-                guard let quality = LiveView.Quality(sonyValue: enumProperty.currentValue) else {
+                guard let quality = LiveView.Quality(value: enumProperty.currentValue, manufacturer: .sony) else {
                     return
                 }
-                let available = enumProperty.available.compactMap({ LiveView.Quality(sonyValue: $0) })
-                let supported = enumProperty.supported.compactMap({ LiveView.Quality(sonyValue: $0) })
+                let available = enumProperty.available.compactMap({ LiveView.Quality(value: $0, manufacturer: .sony) })
+                let supported = enumProperty.supported.compactMap({ LiveView.Quality(value: $0, manufacturer: .sony) })
                 
                 liveViewQuality = (quality, available, supported)
             
@@ -199,11 +199,11 @@ extension CameraEvent {
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
                 }
-                guard let current = SonyStillCaptureMode(sonyValue: enumProperty.currentValue) else {
+                guard let current = SonyStillCaptureMode(value: enumProperty.currentValue, manufacturer: .sony) else {
                     return
                 }
-                let available = enumProperty.available.compactMap({ SonyStillCaptureMode(sonyValue: $0) })
-                let supported = enumProperty.supported.compactMap({ SonyStillCaptureMode(sonyValue: $0) })
+                let available = enumProperty.available.compactMap({ SonyStillCaptureMode(value: $0, manufacturer: .sony) })
+                let supported = enumProperty.supported.compactMap({ SonyStillCaptureMode(value: $0, manufacturer: .sony) })
                 
                 stillCapModes = (available, supported)
                 
@@ -351,13 +351,13 @@ extension CameraEvent {
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
                 }
-                guard let compensation = Exposure.Compensation.Value(sonyValue: enumProperty.currentValue) else {
+                guard let compensation = Exposure.Compensation.Value(value: enumProperty.currentValue, manufacturer: .sony) else {
                     return
                 }
-                let available = enumProperty.available.compactMap({ Exposure.Compensation.Value(sonyValue: $0) }).sorted { (value1, value2) -> Bool in
+                let available = enumProperty.available.compactMap({ Exposure.Compensation.Value(value: $0, manufacturer: .sony) }).sorted { (value1, value2) -> Bool in
                     return value1.value < value2.value
                 }
-                let supported = enumProperty.supported.compactMap({ Exposure.Compensation.Value(sonyValue: $0) }).sorted { (value1, value2) -> Bool in
+                let supported = enumProperty.supported.compactMap({ Exposure.Compensation.Value(value: $0, manufacturer: .sony) }).sorted { (value1, value2) -> Bool in
                     return value1.value < value2.value
                 }
                 exposureCompensation = (compensation, available, supported)
@@ -367,11 +367,11 @@ extension CameraEvent {
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
                 }
-                guard let currentFocusMode = Focus.Mode.Value(sonyValue: enumProperty.currentValue) else {
+                guard let currentFocusMode = Focus.Mode.Value(value: enumProperty.currentValue, manufacturer: .sony) else {
                     return
                 }
-                let available = enumProperty.available.compactMap({ Focus.Mode.Value(sonyValue: $0) })
-                let supported = enumProperty.available.compactMap({ Focus.Mode.Value(sonyValue: $0) })
+                let available = enumProperty.available.compactMap({ Focus.Mode.Value(value: $0, manufacturer: .sony) })
+                let supported = enumProperty.available.compactMap({ Focus.Mode.Value(value: $0, manufacturer: .sony) })
                 focusMode = (currentFocusMode, available, supported)
                 
             case .ISO:
@@ -379,11 +379,11 @@ extension CameraEvent {
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
                 }
-                guard let isoValue = ISO.Value(sonyValue: deviceProperty.currentValue) else {
+                guard let isoValue = ISO.Value(value: deviceProperty.currentValue, manufacturer: .sony) else {
                     return
                 }
-                let available = enumProperty.available.compactMap({ ISO.Value(sonyValue: $0) })
-                let supported = enumProperty.supported.compactMap({ ISO.Value(sonyValue: $0) })
+                let available = enumProperty.available.compactMap({ ISO.Value(value: $0, manufacturer: .sony) })
+                let supported = enumProperty.supported.compactMap({ ISO.Value(value: $0, manufacturer: .sony) })
                 iso = (isoValue, available, supported)
                 
             case .shutterSpeed:
@@ -391,11 +391,11 @@ extension CameraEvent {
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
                 }
-                guard let value = ShutterSpeed(sonyValue: deviceProperty.currentValue) else {
+                guard let value = ShutterSpeed(value: deviceProperty.currentValue, manufacturer: .sony) else {
                     return
                 }
-                let available = enumProperty.available.compactMap({ ShutterSpeed(sonyValue: $0) })
-                let supported = enumProperty.supported.compactMap({ ShutterSpeed(sonyValue: $0) })
+                let available = enumProperty.available.compactMap({ ShutterSpeed(value: $0, manufacturer: .sony) })
+                let supported = enumProperty.supported.compactMap({ ShutterSpeed(value: $0, manufacturer: .sony) })
                 shutterSpeed = (value, available, supported)
                 
                 if supported.contains(where: { $0.isBulb }), !supportedFunctions.contains(.startBulbCapture) {
@@ -413,11 +413,11 @@ extension CameraEvent {
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
                 }
-                guard let value = StillCapture.Format.Value(sonyValue: deviceProperty.currentValue) else {
+                guard let value = StillCapture.Format.Value(value: deviceProperty.currentValue, manufacturer: .sony) else {
                     return
                 }
-                let available = enumProperty.available.compactMap({ StillCapture.Format.Value(sonyValue: $0) })
-                let supported = enumProperty.supported.compactMap({ StillCapture.Format.Value(sonyValue: $0) })
+                let available = enumProperty.available.compactMap({ StillCapture.Format.Value(value: $0, manufacturer: .sony) })
+                let supported = enumProperty.supported.compactMap({ StillCapture.Format.Value(value: $0, manufacturer: .sony) })
                 stillFormat = (value, available, supported)
                 
             case .stillQuality:
@@ -425,11 +425,11 @@ extension CameraEvent {
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
                 }
-                guard let value = StillCapture.Quality.Value(sonyValue: deviceProperty.currentValue) else {
+                guard let value = StillCapture.Quality.Value(value: deviceProperty.currentValue, manufacturer: .sony) else {
                     return
                 }
-                let available = enumProperty.available.compactMap({ StillCapture.Quality.Value(sonyValue: $0) })
-                let supported = enumProperty.supported.compactMap({ StillCapture.Quality.Value(sonyValue: $0) })
+                let available = enumProperty.available.compactMap({ StillCapture.Quality.Value(value: $0, manufacturer: .sony) })
+                let supported = enumProperty.supported.compactMap({ StillCapture.Quality.Value(value: $0, manufacturer: .sony) })
                 stillQuality = (value, available, supported)
                 
             case .fNumber:
@@ -437,11 +437,11 @@ extension CameraEvent {
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
                 }
-                guard let value = Aperture.Value(sonyValue: deviceProperty.currentValue) else {
+                guard let value = Aperture.Value(value: deviceProperty.currentValue, manufacturer: .sony) else {
                     return
                 }
-                let available = enumProperty.available.compactMap({ Aperture.Value(sonyValue: $0) })
-                let supported = enumProperty.supported.compactMap({ Aperture.Value(sonyValue: $0) })
+                let available = enumProperty.available.compactMap({ Aperture.Value(value: $0, manufacturer: .sony) })
+                let supported = enumProperty.supported.compactMap({ Aperture.Value(value: $0, manufacturer: .sony) })
                 aperture = (value, available, supported)
                 break
                 
@@ -631,11 +631,11 @@ extension CameraEvent {
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
                 }
-                guard let currentMode = WhiteBalance.Mode(sonyValue: deviceProperty.currentValue) else {
+                guard let currentMode = WhiteBalance.Mode(value: deviceProperty.currentValue, manufacturer: .sony) else {
                     return
                 }
-                let availableModes = enumProperty.available.compactMap({ WhiteBalance.Mode(sonyValue: $0) })
-                let supportedModes = enumProperty.supported.compactMap({ WhiteBalance.Mode(sonyValue: $0) })
+                let availableModes = enumProperty.available.compactMap({ WhiteBalance.Mode(value: $0, manufacturer: .sony) })
+                let supportedModes = enumProperty.supported.compactMap({ WhiteBalance.Mode(value: $0, manufacturer: .sony) })
                 var availableValues: [WhiteBalance.Value] = []
                 var supportedValues: [WhiteBalance.Value]
                 var currentTemp: UInt16?
@@ -648,7 +648,7 @@ extension CameraEvent {
                     if availableModes.firstIndex(where: { $0 == .colorTemp }) != nil {
                         
                         // Remove all modes which are `colorTemp` as we'll add these back in manually using `colorTempProperty` properties
-                        let availableModesWithoutColorTemp = availableModes.filter({ $0.code != .colorTemp })
+                        let availableModesWithoutColorTemp = availableModes.filter({ $0 != .colorTemp })
                         availableValues = availableModesWithoutColorTemp.map({ WhiteBalance.Value(mode: $0, temperature: nil, rawInternal: "") })
                         
                         if let min = colorTempProperty.min.toInt, let max = colorTempProperty.max.toInt, let step = colorTempProperty.step.toInt {
@@ -669,7 +669,7 @@ extension CameraEvent {
                     if supportedModes.firstIndex(where: { $0 == .colorTemp }) != nil {
                         
                         // Remove all modes which are `colorTemp` as we'll add these back in manually using `colorTempProperty` properties
-                        let supportedModesWithoutColorTemp = supportedModes.filter({ $0.code != .colorTemp })
+                        let supportedModesWithoutColorTemp = supportedModes.filter({ $0 != .colorTemp })
                         supportedValues = supportedModesWithoutColorTemp.map({ WhiteBalance.Value(mode: $0, temperature: nil, rawInternal: "") })
                         
                         if let min = colorTempProperty.min.toInt, let max = colorTempProperty.max.toInt, let step = colorTempProperty.step.toInt {
@@ -727,11 +727,11 @@ extension CameraEvent {
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
                 }
-                guard let currentFormat = VideoCapture.FileFormat.Value(sonyValue: deviceProperty.currentValue) else {
+                guard let currentFormat = VideoCapture.FileFormat.Value(value: deviceProperty.currentValue, manufacturer: .sony) else {
                     return
                 }
-                let availableFormats = enumProperty.available.compactMap({ VideoCapture.FileFormat.Value(sonyValue: $0) })
-                let supportedFormats = enumProperty.supported.compactMap({ VideoCapture.FileFormat.Value(sonyValue: $0) })
+                let availableFormats = enumProperty.available.compactMap({ VideoCapture.FileFormat.Value(value: $0, manufacturer: .sony) })
+                let supportedFormats = enumProperty.supported.compactMap({ VideoCapture.FileFormat.Value(value: $0, manufacturer: .sony) })
                 
                 videoFileFormat = (currentFormat, availableFormats, supportedFormats)
                 
@@ -740,11 +740,11 @@ extension CameraEvent {
                 guard let enumProperty = deviceProperty as? PTP.DeviceProperty.Enum else {
                     return
                 }
-                guard let currentQuality = VideoCapture.Quality.Value(sonyValue: deviceProperty.currentValue) else {
+                guard let currentQuality = VideoCapture.Quality.Value(value: deviceProperty.currentValue, manufacturer: .sony) else {
                     return
                 }
-                let availableQualities = enumProperty.available.compactMap({ VideoCapture.Quality.Value(sonyValue: $0) })
-                let supportedQualities = enumProperty.supported.compactMap({ VideoCapture.Quality.Value(sonyValue: $0) })
+                let availableQualities = enumProperty.available.compactMap({ VideoCapture.Quality.Value(value: $0, manufacturer: .sony) })
+                let supportedQualities = enumProperty.supported.compactMap({ VideoCapture.Quality.Value(value: $0, manufacturer: .sony) })
                 
                 videoQuality = (currentQuality, availableQualities, supportedQualities)
                 

@@ -472,12 +472,12 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
             // This isn't a thing via PTP according to Sony's app (Instead we just have multiple continuous shooting speeds) so we just don't do anything!
             callback(nil, nil)
         case .setISO, .setShutterSpeed, .setAperture, .setExposureCompensation, .setFocusMode, .setExposureMode, .setExposureModeDialControl, .setFlashMode, .setContinuousShootingSpeed, .setStillQuality, .setStillFormat, .setVideoFileFormat, .setVideoQuality, .setContinuousBracketedShootingBracket, .setSingleBracketedShootingBracket, .setLiveViewQuality:
-            guard let value = payload as? SonyPTPPropValueConvertable else {
+            guard let value = payload as? PTPPropValueConvertable else {
                 callback(FunctionError.invalidPayload, nil)
                 return
             }
             ptpIPClient?.sendSetControlDeviceAValue(
-                PTP.DeviceProperty.Value(value),
+                PTP.DeviceProperty.Value(value, manufacturer: manufacturer),
                 callback: { (response) in
                     callback(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil, nil)
                 }
@@ -666,7 +666,7 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
                 value = .single
             }
             ptpIPClient?.sendSetControlDeviceAValue(
-                PTP.DeviceProperty.Value(value)
+                PTP.DeviceProperty.Value(value, manufacturer: manufacturer)
             )
         case .getSelfTimerDuration:
             
@@ -687,7 +687,7 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
                 return
             }
             ptpIPClient?.sendSetControlDeviceAValue(
-                PTP.DeviceProperty.Value(value.mode)
+                PTP.DeviceProperty.Value(value.mode, manufacturer: manufacturer)
             )
             guard let colorTemp = value.temperature else { return }
             ptpIPClient?.sendSetControlDeviceAValue(
@@ -1420,7 +1420,7 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
             PTP.DeviceProperty.Value(
                 code: .exposureProgramMode,
                 type: .uint32,
-                value: mode.sonyPTPValue
+                value: mode.value(for: manufacturer)
             ),
             callback: { (response) in
                 completion(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil)

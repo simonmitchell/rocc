@@ -117,7 +117,7 @@ public protocol Camera: class {
     var baseURL: URL? { get set }
     
     /// The manufacturer of the camera.
-    var manufacturer: Manufacturer? { get }
+    var manufacturer: Manufacturer { get }
     
     /// The name of the camera. A friendly version of the model.
     var name: String? { get }

@@ -19,7 +19,7 @@ class BaseSSDPCamera {
     
     public var identifier: String
     
-    var manufacturer: Manufacturer?
+    var manufacturer: Manufacturer = .sony
     
     var name: String?
     
@@ -42,7 +42,7 @@ class BaseSSDPCamera {
         
         name = dictionary["friendlyName"] as? String
         if let manufacturerString = dictionary["manufacturer"] as? String {
-            manufacturer = Manufacturer(rawValue: manufacturerString)
+            manufacturer = Manufacturer(rawValue: manufacturerString) ?? manufacturer
         }
     }
 }

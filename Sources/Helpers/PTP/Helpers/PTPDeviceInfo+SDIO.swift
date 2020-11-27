@@ -29,7 +29,7 @@ extension PTP.DeviceInfo {
                 }
                 supportedEvents.append(eventCode)
             case 0x5000:
-                guard let propertyCode = PTP.DeviceProperty.Code(rawValue: propCode), !supportedProperties.contains(propertyCode) else {
+                guard let propertyCode = PTP.DeviceProperty.Code(rawValue: DWord(propCode)), !supportedProperties.contains(propertyCode) else {
                     return
                 }
                 supportedProperties.append(propertyCode)
