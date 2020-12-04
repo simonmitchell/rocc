@@ -25,7 +25,7 @@ struct CanonPTPEvents {
     /// An array of changes that were sent through from the device
     let events: [CanonPTPEvent]
     
-    enum EventType: UInt32 {
+    enum EventType: DWord {
         case requestGetEvent = 0xc101
         case requestCancelTransferMA = 0xc180
         case objectAddedEx = 0xc181
@@ -99,7 +99,7 @@ struct CanonPTPEvents {
             case .objectContentChanged:
                 return nil
             case .availableListChanged:
-                return nil
+                return CanonPTPAvailableValuesChange.self
             case .cameraStatusChanged:
                 return nil
             case .willSoonShutdown:

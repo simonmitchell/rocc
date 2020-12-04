@@ -39,7 +39,7 @@ struct ByteBuffer {
     
     //MARK: - Writing -
     
-    private mutating func setLittleEndian(offset: UInt, value: Int, nBytes: UInt) {
+    internal mutating func setLittleEndian(offset: UInt, value: Int, nBytes: UInt) {
         for i in 0..<nBytes {
             // >> 8 * i shifts a whole byte to the right adding 0s to replace missing bits
             // (say i = 1) 01010101 11101110 01010101 01010101 -> 00000000 01010101 11101110 01010101
@@ -49,7 +49,7 @@ struct ByteBuffer {
         }
     }
     
-    private func getLittleEndian(offset: UInt, nBytes: UInt) -> UInt? {
+    internal func getLittleEndian(offset: UInt, nBytes: UInt) -> UInt? {
         
         var value: UInt = 0
         for i in 0..<nBytes {
@@ -63,36 +63,47 @@ struct ByteBuffer {
         bytes.append(contentsOf: data.toBytes)
     }
     
-    mutating func append<T: FixedWidthInteger>(_ value: T) {
-        // Special case for byte
-        if let byte = value as? Byte {
-            bytes.append(byte)
-        } else {
-            setLittleEndian(offset: UInt(bytes.count), value: Int(value), nBytes: UInt(MemoryLayout<T>.size))
-        }
-    }
-    
     mutating func append(bytes value: [Byte]) {
         bytes.append(contentsOf: value)
     }
     
-    mutating func append(wChar character: Character) {
-        // As described in "PIMA 15740:2000", characters are encoded in PTP as
-        // ISO10646 2-byte characters.
-        guard let utf16 = character.unicodeScalars.first?.utf16.first else { return }
-        append(utf16)
+    mutating func append(char character: Character, encoding: ByteBufferCharEncoding = .uint16) {
+        
+        switch encoding {
+        case .uint16:
+            // As described in "PIMA 15740:2000", characters are encoded in PTP as
+            // ISO10646 2-byte characters.
+            guard let utf16 = character.unicodeScalars.first?.utf16.first else { return }
+            append(utf16)
+        case .uint8:
+            if #available(iOS 13, *) {
+                guard let utf8 = character.unicodeScalars.first?.utf8.first else { return }
+                append(utf8)
+            } else {
+                guard let utf8 = character.utf8.first else { return }
+                append(utf8)
+                // Fallback on earlier versions
+            }
+        }
+        
     }
     
-    mutating func append(wString string: String, includingLength: Bool = false) {
-        
+    mutating func append(string: String, includingLength: Bool = false, encoding: ByteBufferCharEncoding = .uint16) {
+                
         if includingLength {
             let lengthWithNull = string.count + 1;
             append(Byte(lengthWithNull));
         }
+        
         string.forEach { (character) in
-            append(wChar: character)
+            append(char: character, encoding: encoding)
         }
-        append(Word(0));
+        switch encoding {
+        case .uint16:
+            append(Word(0))
+        case .uint8:
+            append(Byte(0))
+        }
     }
     
     mutating func clear() {
@@ -199,74 +210,76 @@ struct ByteBuffer {
     }
 }
 
+enum ByteBufferCharEncoding {
+    
+    case uint8
+    case uint16
+    
+    var charSize: Int {
+        switch self {
+        case .uint8:
+            return MemoryLayout<UInt8>.size
+        case .uint16:
+            return MemoryLayout<UInt16>.size
+        }
+    }
+}
+
 extension ByteBuffer {
     
-    func read<T: UnsignedInteger>(offset: inout UInt) -> T? {
-        guard let littleEndian = getLittleEndian(offset: offset, nBytes: UInt(MemoryLayout<T>.size)) else { return nil }
-        offset += UInt(MemoryLayout<T>.size)
-        return T(littleEndian)
+    /// Reads the given type from the byte buffer
+    /// - Parameter offset: The offset to read from
+    /// - Returns: An instance of the required type
+    func read<T: ByteRepresentable>(offset: inout UInt) -> T? {
+        return T.read(from: self, at: &offset)
     }
     
-    func read<T: SignedInteger>(offset: inout UInt) -> T? {
-        guard let littleEndian = getLittleEndian(offset: offset, nBytes: UInt(MemoryLayout<T>.size)) else { return nil }
-        var returnValue: T?
-        switch T() {
-        case _ as Int8:
-            if littleEndian > UInt8.max || littleEndian < UInt8.min {
-                returnValue = Int8(littleEndian) as? T
-            } else {
-                returnValue = Int8(bitPattern: UInt8(littleEndian)) as? T
-            }
-        case _ as Int16:
-            if littleEndian > UInt16.max || littleEndian < UInt16.min {
-                returnValue = Int16(littleEndian) as? T
-            } else {
-                returnValue = Int16(bitPattern: UInt16(littleEndian)) as? T
-            }
-        case _ as Int32:
-            if littleEndian > UInt32.max || littleEndian < UInt32.min {
-                returnValue = Int32(littleEndian) as? T
-            } else {
-                returnValue = Int32(bitPattern: UInt32(littleEndian)) as? T
-            }
-        case _ as Int64:
-            if littleEndian > UInt64.max || littleEndian < UInt64.min {
-                returnValue = Int64(littleEndian) as? T
-            } else {
-                returnValue = Int64(bitPattern: UInt64(littleEndian)) as? T
-            }
-        default:
-            return nil
-        }
-        guard let _returnValue = returnValue else { return nil }
-        offset += UInt(MemoryLayout<T>.size)
-        return _returnValue
+    /// Appends the given type to self
+    /// - Parameter value: The value to append
+    mutating func append<T: ByteRepresentable>(_ value: T) {
+        value.append(to: &self)
     }
     
-    func read(offset: inout UInt, withCount: Bool = true) -> String? {
+    private func readChar(at offset: UInt, encoding: ByteBufferCharEncoding) -> String? {
         
+        switch encoding {
+        case .uint16:
+            guard let word = self[word: offset] else { return nil }
+            let codeUnits = [word]
+            return String(utf16CodeUnits: codeUnits, count: 1)
+        case .uint8:
+            guard let byte = self[offset] else { return nil }
+            let codeUnits = [byte]
+            return String(bytes: codeUnits, encoding: .utf8)
+        }
+    }
+    
+    func read(offset: inout UInt, withCount: Bool = true, encoding: ByteBufferCharEncoding = .uint16) -> String? {
+        
+        let charSize = encoding.charSize
+                
         if withCount {
             
             guard let length: Byte = read(offset: &offset) else { return nil }
             var string: String = ""
             for i in 0..<UInt(length) {
                 // If we can't parse the character then we must be at the end of the string
-                guard let character = self[wChar: offset + UInt(MemoryLayout<Word>.size) * i] else {
+                guard let character = readChar(at: offset + UInt(charSize) * i, encoding: encoding) else {
                     if string.count > 0 {
                         // Don't append `UInt(MemoryLayout<Word>.size)` because we don't have a terminating \u{0000}
-                        offset += UInt(string.count * MemoryLayout<Word>.size)
+                        offset += UInt(string.count * charSize)
                     }
                     return string.count > 0 ? string : nil
                 }
                 guard character != "\u{0000}" else {
-                    offset += UInt(string.count * MemoryLayout<Word>.size) + UInt(MemoryLayout<Word>.size)
+                    offset += UInt(string.count * charSize) + UInt(charSize)
                     return string.count > 0 ? string : nil
                 }
                 string.append(character)
             }
             
             if string.count > 0 {
-                offset += UInt(string.count * MemoryLayout<Word>.size) + UInt(MemoryLayout<Word>.size)
+                offset += UInt(string.count * charSize) + UInt(charSize)
             }
             
             // If length was reported as `0` then we still return the empty string!
@@ -278,23 +291,23 @@ extension ByteBuffer {
             var i = offset
             while i < bytes.count {
                 // If we can't parse the character then we must be at the end of the string
-                guard let character = self[wChar: i] else {
+                guard let character = readChar(at: i, encoding: encoding) else {
                     if string.count > 0 {
                         // Don't append `UInt(MemoryLayout<Word>.size)` because we don't have a terminating \u{0000}
-                        offset += UInt(string.count * MemoryLayout<Word>.size) + UInt(MemoryLayout<Word>.size)
+                        offset += UInt(string.count * charSize) + UInt(charSize)
                     }
                     return string.count > 0 ? string : nil
                 }
                 guard character != "\u{0000}" else {
-                    offset += UInt(string.count * MemoryLayout<Word>.size) + UInt(MemoryLayout<Word>.size)
+                    offset += UInt(string.count * charSize) + UInt(charSize)
                     return string.count > 0 ? string : nil
                 }
                 string.append(character)
-                i += UInt(MemoryLayout<Word>.size)
+                i += UInt(charSize)
             }
             
             if string.count > 0 {
-                offset += UInt(string.count * MemoryLayout<Word>.size) + UInt(MemoryLayout<Word>.size)
+                offset += UInt(string.count * charSize) + UInt(charSize)
             }
             
             return string.count > 0 ? string : nil
@@ -417,17 +430,6 @@ extension ByteBuffer {
         }
         set {
             print("Setting of wString (with length byte) by subscript is not yet supported!")
-        }
-    }
-    
-    subscript (wChar index: UInt) -> String? {
-        get {
-            guard let word = self[word: index] else { return nil }
-            let codeUnits = [word]
-            return String(utf16CodeUnits: codeUnits, count: 1)
-        }
-        set {
-            print("Setting of wChar by subscript is not yet supported!")
         }
     }
     

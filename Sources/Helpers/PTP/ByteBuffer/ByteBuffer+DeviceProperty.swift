@@ -99,14 +99,18 @@ extension ByteBuffer {
             return read(offset: &offset) as Int16?
         case .uint16:
             return read(offset: &offset) as Word?
+        case .int32:
+            return read(offset: &offset) as Int32?
         case .uint32:
             return read(offset: &offset) as DWord?
         case .int64:
             return read(offset: &offset) as Int64?
         case .uint64:
             return read(offset: &offset) as QWord?
-        case .string:
+        case .uint16String:
             return read(offset: &offset) ?? ""
+        case .uint8string:
+            return read(offset: &offset, withCount: false, encoding: .uint8) ?? ""
         }
     }
     
@@ -124,6 +128,9 @@ extension ByteBuffer {
         case .uint16:
             guard let uint16 = value as? UInt16 else { return }
             append(uint16)
+        case .int32:
+            guard let int32 = value as? Int32 else { return }
+            append(int32)
         case .uint32:
             guard let uint32 = value as? UInt32 else { return }
             append(uint32)
@@ -133,9 +140,13 @@ extension ByteBuffer {
         case .int64:
             guard let int64 = value as? Int64 else { return }
             append(int64)
-        case .string:
+        case .uint16String:
             guard let string = value as? String else { return }
-            append(wString: string, includingLength: false)
+            append(string: string, includingLength: false, encoding: .uint16)
+        case .uint8string:
+            guard let string = value as? String else { return }
+            append(string: string, includingLength: false, encoding: .uint8)
+            break
         }
     }
     

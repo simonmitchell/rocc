@@ -8,7 +8,7 @@
 
 import Foundation
 
-/// A Canon PTP Event type for when a property value changes
+/// A Canon PTP Event type for when a property's value changes
 struct CanonPTPPropValueChange: CanonPTPEvent {
     
     static let LogCategory = "CanonPTPPropValueChange"
@@ -16,23 +16,24 @@ struct CanonPTPPropValueChange: CanonPTPEvent {
     /// The code of the property that changed
     let code: PTP.DeviceProperty.Code
     
+    /// The value of the property
     let value: PTPDevicePropertyDataType
     
     init?(_ data: ByteBuffer) {
         
         var offset: UInt = 0
-        guard let type: DWord = data.read(offset: &offset) else {
+        guard let code: DWord = data.read(offset: &offset) else {
             return nil
         }
-        guard let typeEnum = PTP.DeviceProperty.Code(rawValue: type) else {
-            Logger.log(message: "Unknown prop type: \(type)", category: Self.LogCategory)
+        guard let codeEnum = PTP.DeviceProperty.Code(rawValue: code) else {
+            Logger.log(message: "Unknown prop code: \(code)", category: Self.LogCategory)
             return nil
         }
         
-        code = typeEnum
+        self.code = codeEnum
         
-        guard let value = data.readValue(of: typeEnum.dataType(for: .canon), at: &offset) else {
-            Logger.log(message: "Failed to read value of prop type: \(typeEnum)", category: Self.LogCategory)
+        guard let value = data.readValue(of: codeEnum.dataType(for: .canon), at: &offset) else {
+            Logger.log(message: "Failed to read value of prop type: \(code)", category: Self.LogCategory)
             return nil
         }
         

@@ -153,7 +153,7 @@ struct Packet: Packetable {
             packet.data[UInt(headerLength + i)] = guid[safe: UInt(i)] ?? 0
         }
         
-        packet.data.append(wString: String(name.prefix(maxNameLength)))
+        packet.data.append(string: String(name.prefix(maxNameLength)))
         packet.data.append(Word(0))
         packet.data.append(Word(1))
         packet.data.set(header: .initCommandRequest)
