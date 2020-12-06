@@ -94,6 +94,13 @@ public struct File: Equatable {
         self.isBrowsable = isBrowsable
         self.uri = uri
     }
+
+    public static func == (lhs: File, rhs: File) -> Bool {
+        return lhs.uri == rhs.uri
+            && lhs.content == rhs.content
+            && lhs.created?.timeIntervalSince1970 == rhs.created?.timeIntervalSince1970
+            && lhs.kind == rhs.kind
+    }
 }
 
 /// Represents all the information required to request files from a camera.
