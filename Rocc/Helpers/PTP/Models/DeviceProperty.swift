@@ -103,8 +103,6 @@ extension PTP.DeviceProperty.Code {
             return [.setStillSize]
         case .shutterSpeed:
             return [.setShutterSpeed]
-        case .unknown_0xd20e:
-            return nil
         case .colorTemp:
             return nil
         case .cCFilter:
@@ -153,7 +151,7 @@ extension PTP.DeviceProperty.Code {
             // This is a devie B value, so shouldn't appear here and may be used for some other A property
         case .exposureSettingsLock:
             return nil
-        case .recordingDuration, .storageState, .liveViewURL:
+        case .recordingDuration, .storageState, .liveViewURL, .videoRecordStatusSony:
             return nil
         }
     }
@@ -251,8 +249,6 @@ extension PTP.DeviceProperty.Code {
             return .getStillSize
         case .shutterSpeed:
             return .getShutterSpeed
-        case .unknown_0xd20e:
-            return nil
         case .colorTemp:
             return nil
         case .cCFilter:
@@ -304,7 +300,7 @@ extension PTP.DeviceProperty.Code {
             return nil
         case .liveViewQuality:
             return .getLiveViewQuality
-        case .recordingDuration:
+        case .recordingDuration, .videoRecordStatusSony:
             return nil
         }
     }
@@ -974,7 +970,6 @@ extension PTP {
             case dRangeOptimize = 0xd201
             case imageSizeSony = 0xd203
             case shutterSpeed = 0xd20d
-            case unknown_0xd20e = 0xd20e
             case colorTemp = 0xd20f
             case cCFilter = 0xd210
             case aspectRatio = 0xd211
@@ -984,26 +979,27 @@ extension PTP {
             case batteryLevelSony = 0xd218
             case pictureEffect = 0xd21b
             case ABFilter = 0xd21c
+            case videoRecordStatusSony = 0xd21d
             case ISO = 0xd21e
-            case autoFocus = 0xd2c1
-            case capture = 0xd2c2
-            case movie = 0xd2c8
-            case stillImage = 0xd2c7
+            case exposureSettingsLockStatus = 0xd22a
             case movieFormat = 0xd241
             case movieQuality = 0xd242
             case storageState = 0xd248
             case remainingShots = 0xd249
             case remainingCaptureTime = 0xd24a
-            case exposureSettingsLock = 0xd2d5
-            case performZoom = 0xd2dd
-            case exposureProgramModeControl = 0xd25a
-            case zoomPosition = 0xd25d
             case stillQuality = 0xd252
             case stillFormat = 0xd253
-            case exposureSettingsLockStatus = 0xd22a
-            case liveViewURL = 0xd278
+            case exposureProgramModeControl = 0xd25a
+            case zoomPosition = 0xd25d
             case recordingDuration = 0xd261
             case liveViewQuality = 0xd26a
+            case liveViewURL = 0xd278
+            case autoFocus = 0xd2c1
+            case capture = 0xd2c2
+            case stillImage = 0xd2c7
+            case movie = 0xd2c8
+            case exposureSettingsLock = 0xd2d5
+            case performZoom = 0xd2dd
         }
     }
 }
