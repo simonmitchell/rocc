@@ -568,6 +568,12 @@ extension CameraEvent {
             case .recordingDuration:
                 
                 recordingDurationGetSetAvailable = deviceProperty.getSetAvailable
+
+                // If recordStatus property is != 0x01 (recording) then duration property is invalid
+                if let recordStatus = sonyDeviceProperties.first(where: { $0.code == .videoRecordStatusSony }),
+                   recordStatus.currentValue.toInt != 0x01 {
+                    return
+                }
                 
                 guard let duration = deviceProperty.currentValue.toInt else { return }
                 recordingDuration = TimeInterval(duration)
