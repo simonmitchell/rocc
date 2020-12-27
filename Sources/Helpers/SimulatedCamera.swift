@@ -137,7 +137,9 @@ public final class DummyCamera: Camera {
     public var lensModelName: String?
     
     public var apiVersion: String?
-    
+
+    public var eventVersion: String?
+
     public var model: String?
     
     public var identifier: String = "dummy"

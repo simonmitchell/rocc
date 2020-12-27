@@ -119,7 +119,10 @@ public protocol Camera: class {
     
     /// The latest version of the remote app runnable on the camera.
     var latestRemoteAppVersion: String? { get }
-    
+
+    /// The latest version of the getEvent API
+    var eventVersion: String? { get }
+
     /// The lens connected to the camera.
     var lensModelName: String? { get }
     
