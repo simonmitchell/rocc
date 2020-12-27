@@ -23,4 +23,4 @@ about: Create a report to help us improve Rocc
 ### Other questions
 #### Does the issue still occur after updating your Camera's Firmware?
 
-#### Have you tried any other versions of NVDA?
+#### Have you tried any other versions of ROCC?
