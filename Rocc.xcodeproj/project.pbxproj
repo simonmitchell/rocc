@@ -291,7 +291,6 @@
 		B182B8FF2381E2510054539E /* SonyPTPIPCamera+FunctionSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SonyPTPIPCamera+FunctionSupport.swift"; sourceTree = "<group>"; };
 		B182B9232383520B0054539E /* DispatchQueue+AsyncWhile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DispatchQueue+AsyncWhile.swift"; sourceTree = "<group>"; };
 		B182B92D23836C0B0054539E /* AsyncWhileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsyncWhileTests.swift; sourceTree = "<group>"; };
-		B184CAEB242BF105000B13E9 /* ThunderRequest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ThunderRequest.framework; path = Carthage/Build/iOS/ThunderRequest.framework; sourceTree = "<group>"; };
 		B185A4ED2394FCB400B87BC7 /* PainInTheArsePacket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PainInTheArsePacket.swift; sourceTree = "<group>"; };
 		B18AEB6223D8E0AB007B916A /* SonyPTPIPCamera+TakePicture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SonyPTPIPCamera+TakePicture.swift"; sourceTree = "<group>"; };
 		B18AEB6C23D8E451007B916A /* PTPIPClient+Objects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PTPIPClient+Objects.swift"; sourceTree = "<group>"; };
@@ -566,7 +565,6 @@
 		B1AF504A208D345A0029336B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				B184CAEB242BF105000B13E9 /* ThunderRequest.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -1333,7 +1331,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.0;
+				MARKETING_VERSION = 2.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yellowbrickbear.rocc;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;
@@ -1366,7 +1364,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.0;
+				MARKETING_VERSION = 2.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.yellowbrickbear.rocc;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SKIP_INSTALL = YES;

@@ -185,6 +185,10 @@ public final class DummyCamera: Camera {
     private var continuousShootingMode: ContinuousCapture.Mode.Value = .single
     
     private var continuousShootingSpeed: ContinuousCapture.Speed.Value = .high
+
+    private var videoTimer: Timer?
+
+    private var videoDuration: TimeInterval = 0
     
     public func connect(completion: @escaping Camera.ConnectedCompletion) {
         
@@ -267,6 +271,14 @@ public final class DummyCamera: Camera {
             callback(true, nil, [WhiteBalance.Value(mode: .auto, temperature: nil, rawInternal: "AUTO"), WhiteBalance.Value(mode: .shade, temperature: nil, rawInternal: "AUTO"), WhiteBalance.Value(mode: .flash, temperature: nil, rawInternal: "AUTO"), WhiteBalance.Value(mode: .cloudy, temperature: nil, rawInternal: "AUTO"), WhiteBalance.Value(mode: .underwaterAuto, temperature: nil, rawInternal: "AUTO"), WhiteBalance.Value(mode: .fluorescentCoolWhite, temperature: nil, rawInternal: "AUTO"), WhiteBalance.Value(mode: .fluorescentDaylight, temperature: nil, rawInternal: "AUTO")] as? [T.SendType])
         case .setExposureMode:
             callback(true, nil, [Exposure.Mode.Value.aperturePriority, Exposure.Mode.Value.manual, Exposure.Mode.Value.videoManual, Exposure.Mode.Value.shutterPriority, Exposure.Mode.Value.videoProgrammedAuto, Exposure.Mode.Value.videoAperturePriority] as? [T.SendType])
+        case .startVideoRecording, .endVideoRecording:
+            callback(currentShootMode == .video, nil, nil)
+        case .takePicture:
+            callback(currentShootMode == .photo, nil, nil)
+        case .startLoopRecording, .endLoopRecording:
+            callback(currentShootMode == .loop, nil, nil)
+        case .startAudioRecording, .endAudioRecording:
+            callback(currentShootMode == .audio, nil, nil)
         default:
             callback(true, nil, nil)
         }
@@ -455,7 +467,7 @@ public final class DummyCamera: Camera {
             intervalTime: nil,
             colorSetting: nil,
             videoFileFormat: nil,
-            videoRecordingTime: nil,
+            videoRecordingTime: videoDuration,
             highFrameRateCaptureStatus: nil,
             infraredRemoteControl: nil,
             tvColorSystem: nil,
@@ -626,6 +638,23 @@ public final class DummyCamera: Camera {
             }
             continuousShootingMode = value
             eventCompletion?()
+
+        case .startVideoRecording:
+
+            videoDuration = 0
+            videoTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { [weak self] (_) in
+                self?.videoDuration += 1
+                self?.eventCompletion?()
+            })
+            callback(nil, nil)
+
+        case .endVideoRecording:
+
+            videoTimer?.invalidate()
+            videoTimer = nil
+            videoDuration = -1
+            eventCompletion?()
+            callback(nil, nil)
             
         default:
             callback(nil, nil)

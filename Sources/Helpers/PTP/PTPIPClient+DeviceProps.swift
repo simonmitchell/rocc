@@ -31,10 +31,18 @@ extension PTPIPClient {
         }
         sendCommandRequestPacket(packet, callback: nil)
     }
-    
-    func getAllDevicePropDesc(callback: @escaping AllDevicePropertyDescriptionsCompletion) {
+
+    /// Gets all device prop desc data from the camera
+    /// - Parameters:
+    ///   - callback: A closure called when the request has completed
+    ///   - partial: Whether to only fetch the props which have changed since last calling, this
+    ///   should be used with eventing mechanism!
+    func getAllDevicePropDesc(
+        callback: @escaping AllDevicePropertyDescriptionsCompletion,
+        partial: Bool = false
+    ) {
         
-        let packet = Packet.commandRequestPacket(code: .getAllDevicePropData, arguments: [0], transactionId: getNextTransactionId())
+        let packet = Packet.commandRequestPacket(code: .getAllDevicePropData, arguments: [partial ? 1 : 0], transactionId: getNextTransactionId())
         awaitDataFor(transactionId: packet.transactionId, callback: { (dataResult) in
             
             switch dataResult {
