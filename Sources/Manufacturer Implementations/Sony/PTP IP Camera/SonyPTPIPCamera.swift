@@ -127,6 +127,11 @@ internal final class SonyPTPIPDevice: SonyCamera {
     var isConnected: Bool = false
     
     var deviceInfo: PTP.DeviceInfo?
+
+    /// The last set of `PTPDeviceProperty`s that we received from the camera
+    /// retained so we can avoid asking the camera for the full array every time
+    /// we need to fetch an event
+    var lastAllDeviceProps: [PTPDeviceProperty]?
     
     var lastEventPacket: EventPacket?
     
@@ -470,6 +475,7 @@ extension SonyPTPIPDevice: Camera {
         lastEvent = nil
         lastEventPacket = nil
         lastStillCaptureModes = nil
+        lastAllDeviceProps = nil
         zoomingDirection = nil
         highFrameRateCallback = nil
         

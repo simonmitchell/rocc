@@ -17,11 +17,26 @@ extension SonyPTPIPDevice {
         case .getEvent:
             
             guard !imageURLs.isEmpty, var lastEvent = lastEvent else {
-                
+
                 ptpIPClient?.getAllDevicePropDesc(callback: { [weak self] (result) in
                     guard let self = self else { return }
                     switch result {
-                    case .success(let properties):
+                    case .success(var properties):
+
+                        if var lastProperties = self.lastAllDeviceProps {
+                            properties.forEach { (property) in
+                                // If the property is already present in received properties, just directly replace it!
+                                if let existingIndex = lastProperties.firstIndex(where: { (existingProperty) -> Bool in
+                                    return property.code == existingProperty.code
+                                }) {
+                                    lastProperties[existingIndex] = property
+                                } else { // Otherwise append it to the array
+                                    lastProperties.append(property)
+                                }
+                            }
+                            properties = lastProperties
+                        }
+
                         let eventAndStillModes = CameraEvent.fromSonyDeviceProperties(properties)
                         var event = eventAndStillModes.event
 //                        print("""
@@ -37,8 +52,8 @@ extension SonyPTPIPDevice {
                     case .failure(let error):
                         callback(error, nil)
                     }
-                })
-                
+                }, partial: lastAllDeviceProps != nil)
+                                
                 return
             }
             
