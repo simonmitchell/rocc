@@ -1564,10 +1564,10 @@ extension SonyAPICameraDevice: Camera {
             pingTimeoutTimer?.invalidate()
             // 2 seconds is a plentiful timeout as we are directly connected to the camera's WiFi so shouldn't have
             // slow transfer speeds!
-            pingTimeoutTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { [weak self] (_) in
+            pingTimeoutTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { (_) in
                 // Cancelling request is sufficient as it will cause
                 // request completion block to receive an error and nil response
-                self?.requestController?.cancelRequestsWith(tag: 0865)
+                requestController.cancelRequestsWith(tag: 0865)
             })
 
             requestController.request("", method: .GET, tag: 0865) { [weak self] (response, error) in
