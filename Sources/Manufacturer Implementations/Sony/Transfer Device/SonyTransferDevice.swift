@@ -10,7 +10,7 @@ import Foundation
 
 internal final class SonyTransferDevice {
     
-    fileprivate var pinger: Pinger?
+    fileprivate var pingTimeoutTimer: Timer?
     
     var ipAddress: sockaddr_in?
     
@@ -314,16 +314,25 @@ extension SonyTransferDevice: Camera {
             
         case .ping:
             
-            guard let host = baseURL?.host else {
+            guard let requestController = requestController else {
                 callback(FunctionError.notAvailable, nil)
                 return
             }
-            
-            // Have to strongly retain pinger, otherwise it's released due to delegate being `weak`
-            pinger = Pinger(hostName: host)
-            pinger?.ping(timeout: 2.0, completion: { (interval, error) in
-                callback(error, nil)
+
+            pingTimeoutTimer?.invalidate()
+            // 2 seconds is a plentiful timeout as we are directly connected to the camera's WiFi so shouldn't have
+            // slow transfer speeds!
+            pingTimeoutTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { [weak self] (_) in
+                // Cancelling request is sufficient as it will cause
+                // request completion block to receive an error and nil response
+                self?.requestController?.cancelRequestsWith(tag: 0865)
             })
+            
+            requestController.request("", method: .GET, tag: 0865) { [weak self] (response, error) in
+                self?.pingTimeoutTimer?.invalidate()
+                // If we get a response back, it means we can hit the camera!
+                callback(response == nil ? error : nil, nil)
+            }
                 
         default:
             callback(CameraError.noSuchMethod(function.function.sonyCameraMethodName ?? "Unknown"), nil)
