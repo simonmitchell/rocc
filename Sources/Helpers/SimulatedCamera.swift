@@ -139,6 +139,8 @@ public final class DummyCamera: Camera {
     public var apiVersion: String?
     
     public var model: CameraModel?
+
+    public var eventVersion: String?
     
     public var identifier: String = "dummy"
     

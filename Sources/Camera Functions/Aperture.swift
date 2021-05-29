@@ -14,8 +14,12 @@ public struct Aperture: CameraFunction {
     public struct Value {
                         
         public let value: Double
-        
         internal let decimalSeperator: String?
+
+        public init(value: Double, decimalSeperator: String? = nil) {
+            self.value = value
+            self.decimalSeperator = decimalSeperator
+        }
     }
     
     public var function: _CameraFunction

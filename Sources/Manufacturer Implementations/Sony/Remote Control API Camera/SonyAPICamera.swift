@@ -34,8 +34,8 @@ fileprivate extension CountRequest {
 
 internal final class SonyAPICameraDevice: BaseSSDPCamera {
     
-    fileprivate var pinger: Pinger?
-    
+    fileprivate var pingTimeoutTimer: Timer?
+
     private let apiClient: SonyCameraAPIClient
     
     fileprivate var lastShutterSpeed: ShutterSpeed?
@@ -132,6 +132,8 @@ internal final class SonyAPICameraDevice: BaseSSDPCamera {
     public var latestRemoteAppVersion: String? {
         return (model as? Sony.Camera.Model)?.latestRemoteAppVersion ?? "4.30"
     }
+
+    public var eventVersion: String?
     
     public var lensModelName: String?
     
@@ -242,6 +244,8 @@ extension SonyAPICameraDevice: SSDPCamera {
                 if case let .failure(error) = result, (error as NSError).code != 404 {
                     callback(Result.failure(error))
                     return
+                } else if case let .success(versions) = result {
+                    self.eventVersion = versions.map { Double($0) }.compactMap { $0 }.max().map { String($0) }
                 }
                     
                 guard let avClient = self.apiClient.avContent else {
@@ -1549,16 +1553,25 @@ extension SonyAPICameraDevice: SSDPCamera {
         
         guard function.function != .ping else {
             
-            guard let host = baseURL?.host else {
+            guard let requestController = apiClient.camera?.requestController else {
                 callback(FunctionError.notAvailable, nil)
                 return
             }
-            
-            // Have to strongly retain pinger, otherwise it's released due to delegate being `weak`
-            pinger = Pinger(hostName: host)
-            pinger?.ping(timeout: 2.0, completion: { (interval, error) in
-                callback(error, nil)
+
+            pingTimeoutTimer?.invalidate()
+            // 2 seconds is a plentiful timeout as we are directly connected to the camera's WiFi so shouldn't have
+            // slow transfer speeds!
+            pingTimeoutTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { (_) in
+                // Cancelling request is sufficient as it will cause
+                // request completion block to receive an error and nil response
+                requestController.cancelRequestsWith(tag: 0865)
             })
+
+            requestController.request("", method: .GET, tag: 0865) { [weak self] (response, error) in
+                self?.pingTimeoutTimer?.invalidate()
+                // If we get a response back, it means we can hit the camera!
+                callback(response == nil ? error : nil, nil)
+            }
             
             return
         }

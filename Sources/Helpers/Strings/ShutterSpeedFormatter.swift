@@ -104,7 +104,7 @@ public class ShutterSpeedFormatter {
         var fixedShutterSpeed = shutterSpeed
         
         // For some reason some cameras returns shutter speeds as 300/10 = 30 seconds.
-        if fixedShutterSpeed.value >= 1 {
+        if fixedShutterSpeed.value >= 1/3 {
             while fixedShutterSpeed.denominator >= 10, fixedShutterSpeed.denominator.remainder(dividingBy: 10) == 0 {
                 fixedShutterSpeed = ShutterSpeed(numerator: fixedShutterSpeed.numerator/10, denominator: fixedShutterSpeed.denominator/10)
             }

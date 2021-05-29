@@ -10,7 +10,7 @@ import Foundation
 
 internal final class SonyTransferDevice: BaseSSDPCamera {
     
-    fileprivate var pinger: Pinger?
+    fileprivate var pingTimeoutTimer: Timer?
     
     var ipAddress: sockaddr_in?
     
@@ -21,13 +21,19 @@ internal final class SonyTransferDevice: BaseSSDPCamera {
     var model: CameraModel?
         
     var firmwareVersion: String?
+
+    var supportsDateBasedSearching: Bool = false
     
     var remoteAppVersion: String?
     
     var latestRemoteAppVersion: String? {
         return "4.31"
     }
-        
+
+    var eventVersion: String?
+    
+    var identifier: String
+    
     var isConnected: Bool
                 
     var contentDirectoryDevice: UPnPDevice?
@@ -65,6 +71,17 @@ internal final class SonyTransferDevice: BaseSSDPCamera {
 extension UPnPFolder: Countable {
     var count: Int {
         return childrenCount
+    }
+}
+
+fileprivate extension FileRequest.SortOrder {
+    var sign: String {
+        switch self {
+        case .descending:
+            return "-"
+        case .ascending:
+            return "+"
+        }
     }
 }
 
@@ -268,16 +285,25 @@ extension SonyTransferDevice: Camera {
             
         case .ping:
             
-            guard let host = baseURL?.host else {
+            guard let requestController = requestController else {
                 callback(FunctionError.notAvailable, nil)
                 return
             }
-            
-            // Have to strongly retain pinger, otherwise it's released due to delegate being `weak`
-            pinger = Pinger(hostName: host)
-            pinger?.ping(timeout: 2.0, completion: { (interval, error) in
-                callback(error, nil)
+
+            pingTimeoutTimer?.invalidate()
+            // 2 seconds is a plentiful timeout as we are directly connected to the camera's WiFi so shouldn't have
+            // slow transfer speeds!
+            pingTimeoutTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { [weak self] (_) in
+                // Cancelling request is sufficient as it will cause
+                // request completion block to receive an error and nil response
+                self?.requestController?.cancelRequestsWith(tag: 0865)
             })
+            
+            requestController.request("", method: .GET, tag: 0865) { [weak self] (response, error) in
+                self?.pingTimeoutTimer?.invalidate()
+                // If we get a response back, it means we can hit the camera!
+                callback(response == nil ? error : nil, nil)
+            }
                 
         default:
             callback(CameraError.noSuchMethod(function.function.sonyCameraMethodName ?? "Unknown"), nil)
@@ -295,10 +321,21 @@ extension SonyTransferDevice: Camera {
         
         let requestRange = request.startIndex...(request.startIndex + request.count - 1)
         let foldersAndRanges = folders.childRangesCovering(range: requestRange)
-        recursivelyLoadFilesFrom(folders: foldersAndRanges, contentServiceURLPath: contentServiceURLPath, callback)
+        recursivelyLoadFilesFrom(
+            folders: foldersAndRanges,
+            contentServiceURLPath: contentServiceURLPath,
+            using: request,
+            callback
+        )
     }
     
-    private func recursivelyLoadFilesFrom(folders: [(element: UPnPFolder, subRange: Range<Int>)], contentServiceURLPath: String, cumulativeFiles: [File] = [], _ callback: @escaping (_ error: Error?, _ files: [File]?) -> Void) {
+    private func recursivelyLoadFilesFrom(
+        folders: [(element: UPnPFolder, subRange: Range<Int>)],
+        contentServiceURLPath: String,
+        cumulativeFiles: [File] = [],
+        using fileRequest: FileRequest,
+        _ callback: @escaping (_ error: Error?, _ files: [File]?) -> Void
+    ) {
         
         guard let nextFolderAndRange = folders.first else {
             callback(nil, cumulativeFiles)
@@ -306,7 +343,12 @@ extension SonyTransferDevice: Camera {
         }
         var foldersAndRanges = folders
         
-        let fileRequestBody = SOAPRequestBody(browseObjectId: nextFolderAndRange.element.id, startIndex: nextFolderAndRange.subRange.startIndex, count: nextFolderAndRange.subRange.count)
+        let fileRequestBody = SOAPRequestBody(
+            browseObjectId: nextFolderAndRange.element.id,
+            startIndex: nextFolderAndRange.subRange.startIndex,
+            count: nextFolderAndRange.subRange.count,
+            sortCriteria: supportsDateBasedSearching ? "\(fileRequest.sort?.sign ?? "-")dc:date" : ""
+        )
         
         requestController?.request(contentServiceURLPath, method: .POST, body: fileRequestBody, headers: ["SOAPACTION": "\"urn:schemas-upnp-org:service:ContentDirectory:1#Browse\""]) { [weak self] (response, error) in
             
@@ -341,7 +383,13 @@ extension SonyTransferDevice: Camera {
                     return
                 }
                 // Load contents from next folder
-                _strongSelf.recursivelyLoadFilesFrom(folders: foldersAndRanges, contentServiceURLPath: contentServiceURLPath, cumulativeFiles: nextFiles, callback)
+                _strongSelf.recursivelyLoadFilesFrom(
+                    folders: foldersAndRanges,
+                    contentServiceURLPath: contentServiceURLPath,
+                    cumulativeFiles: nextFiles,
+                    using: fileRequest,
+                    callback
+                )
             })
         }
     }
@@ -418,7 +466,10 @@ extension SonyTransferDevice: Camera {
         _ completion: @escaping (_ error: Error?, _ folders: [UPnPFolder]?) -> Void
     ) {
         
-        let rootObjectBody = SOAPRequestBody(browseObjectId: objectId, startIndex: offset)
+        let rootObjectBody = SOAPRequestBody(
+            browseObjectId: objectId,
+            startIndex: offset
+        )
         
         // Make Browse request to server
         requestController?.request(contentServiceURLPath, method: .POST, body: rootObjectBody, headers: ["SOAPACTION": "\"urn:schemas-upnp-org:service:ContentDirectory:1#Browse\""]) { [weak self] (response, requestError) in
@@ -576,7 +627,26 @@ extension SonyTransferDevice: Camera {
     }
     
     func connect(completion: @escaping ConnectedCompletion) {
-        completion(nil, true)
+
+        guard let contentsService = services?.first(where: { $0.type == .contentDirectory }) else {
+            return
+        }
+        let contentServiceURLPath = contentsService.controlURL
+
+        // Check if we can sort by date
+        let body = SOAPRequestBody(bodyXML: """
+                                            <u:GetSortCapabilities xmlns:u="urn:schemas-upnp-org:service:ContentDirectory:1">
+                                            </u:GetSortCapabilities>
+                                            """, headerXML: nil)
+
+        // Make Browse request to server
+        requestController?.request(contentServiceURLPath, method: .POST, body: body, headers: ["SOAPACTION": "\"urn:schemas-upnp-org:service:ContentDirectory:1#GetSortCapabilities\""]) { [weak self] (response, requestError) in
+            // Basic regex-based check to see if we support searching by date!
+            if let responseString = response?.string {
+                self?.supportsDateBasedSearching = responseString.range(of: "<SortCaps>.*dc:date.*<\\/SortCaps>", options: .regularExpression) != nil
+            }
+            completion(nil, true)
+        }
     }
     
     func disconnect(completion: @escaping DisconnectedCompletion) {
@@ -585,7 +655,7 @@ extension SonyTransferDevice: Camera {
 }
 
 extension SOAPRequestBody {
-    init(browseObjectId: String, startIndex: Int = 0, count: Int = 0) {
+    init(browseObjectId: String, startIndex: Int = 0, count: Int = 0, sortCriteria: String = "") {
         self.init(bodyXML: """
                         <u:Browse xmlns:u="urn:schemas-upnp-org:service:ContentDirectory:1">
                             <ObjectID>\(browseObjectId)</ObjectID>
@@ -593,7 +663,7 @@ extension SOAPRequestBody {
                             <BrowseFlag>BrowseDirectChildren</BrowseFlag>
                             <Filter>*</Filter>
                             <RequestedCount>\(count)</RequestedCount>
-                            <SortCriteria></SortCriteria>
+                            <SortCriteria>\(sortCriteria)</SortCriteria>
                         </u:Browse>
                         """,
                   headerXML: nil
