@@ -197,7 +197,7 @@ final class InputOutputPacketStream: NSObject, PTPPacketStream {
         
         guard let _packets = packets, !_packets.isEmpty else { return }
 
-        // Only keep track of awaitingFurtherDataPacket for control stream, as this is only
+        // Only keep track of awaitingFurtherDataControlPacket for control stream, as this is only
         // to keep track of cmd response packets sent like so: "0e 00 00 00 07 00 00 00 | 01 20 c6 03 00 00"
         if stream == controlReadStream {
             awaitingFurtherDataControlPacket = _packets.first(where: { $0.awaitingFurtherData })

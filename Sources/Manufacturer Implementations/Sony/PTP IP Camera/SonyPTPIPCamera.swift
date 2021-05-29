@@ -61,6 +61,11 @@ internal final class SonyPTPIPCamera: PTPIPCamera {
         name = _modelEnum?.friendlyName ?? _name
         model = _modelEnum
     }
+
+    /// The last set of `PTPDeviceProperty`s that we received from the camera
+    /// retained so we can avoid asking the camera for the full array every time
+    /// we need to fetch an event
+    var lastAllDeviceProps: [PTPDeviceProperty]?
     
     override func update(with deviceInfo: SSDPCameraInfo) {
         
@@ -75,6 +80,53 @@ internal final class SonyPTPIPCamera: PTPIPCamera {
     override func performFunction<T>(_ function: T, payload: T.SendType?, callback: @escaping ((Error?, T.ReturnType?) -> Void)) where T : CameraFunction {
         
         switch function.function {
+        case .getEvent:
+            guard !imageURLs.isEmpty, var lastEvent = lastEvent else {
+
+                ptpIPClient?.getAllDevicePropDesc(callback: { [weak self] (result) in
+                    guard let self = self else { return }
+                    switch result {
+                    case .success(var properties):
+
+                        if var lastProperties = self.lastAllDeviceProps {
+                            properties.forEach { (property) in
+                                // If the property is already present in received properties, just directly replace it!
+                                if let existingIndex = lastProperties.firstIndex(where: { (existingProperty) -> Bool in
+                                    return property.code == existingProperty.code
+                                }) {
+                                    lastProperties[existingIndex] = property
+                                } else { // Otherwise append it to the array
+                                    lastProperties.append(property)
+                                }
+                            }
+                            properties = lastProperties
+                        }
+
+                        let eventAndStillModes = CameraEvent.fromSonyDeviceProperties(properties)
+                        var event = eventAndStillModes.event
+//                        print("""
+//                                GOT EVENT:
+//                                \(properties)
+//                                """)
+                        self.lastStillCaptureModes = eventAndStillModes.stillCaptureModes
+                        event.postViewPictureURLs = self.imageURLs.compactMapValues({ (urls) -> [(postView: URL, thumbnail: URL?)]? in
+                            return urls.map({ ($0, nil) })
+                        })
+                        self.imageURLs = [:]
+                        callback(nil, event as? T.ReturnType)
+                    case .failure(let error):
+                        callback(error, nil)
+                    }
+                }, partial: lastAllDeviceProps != nil)
+
+                return
+            }
+
+            lastEvent.postViewPictureURLs = self.imageURLs.compactMapValues({ (urls) -> [(postView: URL, thumbnail: URL?)]? in
+                return urls.map({ ($0, nil) })
+            })
+            imageURLs = [:]
+            callback(nil, lastEvent as? T.ReturnType)
         case .startLiveView, .startLiveViewWithQuality, .endLiveView:
             getDevicePropDescriptionFor(propCode: .liveViewURL) { [weak self] (result) in
                 
@@ -117,5 +169,10 @@ internal final class SonyPTPIPCamera: PTPIPCamera {
         ), callback: { (response) in
             super.performInitialEventFetch(completion: completion)
         })
+    }
+
+    override func connect(completion: @escaping PTPIPCamera.ConnectedCompletion) {
+        lastAllDeviceProps = nil
+        super.connect(completion: completion)
     }
 }
