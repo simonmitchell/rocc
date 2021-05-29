@@ -16,6 +16,8 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
     var ipAddress: sockaddr_in? = nil
     
     var apiVersion: String? = nil
+
+    var eventVersion: String? = nil
     
     var model: CameraModel?
     
@@ -400,7 +402,8 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
         case .getEvent:
             
             guard !imageURLs.isEmpty, var lastEvent = lastEvent else {
-                // TODO: Implement!
+                // TODO: Implement - Get first event from camera
+                return
             }
             
             lastEvent.postViewPictureURLs = self.imageURLs.compactMapValues({ (urls) -> [(postView: URL, thumbnail: URL?)]? in

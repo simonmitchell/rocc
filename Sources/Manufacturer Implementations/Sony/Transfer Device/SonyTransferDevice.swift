@@ -31,9 +31,7 @@ internal final class SonyTransferDevice: BaseSSDPCamera {
     }
 
     var eventVersion: String?
-    
-    var identifier: String
-    
+        
     var isConnected: Bool
                 
     var contentDirectoryDevice: UPnPDevice?
