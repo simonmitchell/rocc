@@ -300,7 +300,7 @@ class UDPClient {
         
         CFSocketSetSocketFlags(_socket, kCFSocketCloseOnInvalidate)
         
-        let mutliaddr = in_addr(SonyConstants.SSDP.address)!
+        let mutliaddr = in_addr(SSDP.address)!
         let interface = in_addr(ipAddress)!
         var mreq: ip_mreq = ip_mreq(imr_multiaddr: mutliaddr, imr_interface: interface)
         
@@ -387,8 +387,8 @@ class UDPClient {
     private func parseDDURL(from string: String) -> URL? {
         
         do {
-            let urlMatches = try string.matches(for: "LOCATION:\\s+([^\\s\\\\]+)", at: 1)
-            guard let firstMatch = urlMatches.first?.capture(at: 1) else {
+            let urlMatches = try string.matches(for: "(LOCATION|Location):\\s+([^\\s\\\\]+)", at: 2)
+            guard let firstMatch = urlMatches.first?.capture(at: 2) else {
                 return nil
             }
             return URL(string: firstMatch)

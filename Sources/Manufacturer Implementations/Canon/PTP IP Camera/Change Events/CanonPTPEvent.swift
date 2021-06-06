@@ -200,21 +200,27 @@ struct CanonPTPEvents {
             guard let type: DWord = data.read(offset: &offset) else {
                 throw CanonPTPEventParsingError.invalidData
             }
+
+            if type == 0xc18a {
+                print("[MARK] Got avail list change")
+            }
             
             // If we don't have an enum case, we can simply break as we want to continue anyways for other changes
             guard let typeEnum = EventType(rawValue: type) else {
                 offset += UInt(dataSize)
-                break
+                continue
             }
             
             let eventData = data.sliced(Int(offset), Int(offset + UInt(dataSize)))
             offset += UInt(dataSize)
 
             guard let eventClass = typeEnum.eventClass else {
-                break
+                continue
             }
             guard let event = eventClass.init(eventData) else {
-                break
+                // TODO: Unknown prop codes:
+                // Oxd1b9
+                continue
             }
             
             _events.append(event)

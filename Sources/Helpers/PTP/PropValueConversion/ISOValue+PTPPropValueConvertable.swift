@@ -58,8 +58,45 @@ extension ISO.Value: PTPPropValueConvertable {
                 }
             }
         case .canon:
-            return nil
-            //TODO: [Canon] Implement
+            guard let binaryInt = value.toInt else {
+                return nil
+            }
+            switch binaryInt {
+            case 0x0000:
+                self = .auto
+            case 0x0040:
+                self = .native(50)
+            case 0x0048:
+                self = .native(100)
+            case 0x004b:
+                self = .native(125)
+            case 0x004d:
+                self = .native(160)
+            case 0x0050:
+                self = .native(200)
+            case 0x0053:
+                self = .native(250)
+            case 0x0055:
+                self = .native(320)
+            case 0x0058:
+                self = .native(400)
+            case 0x005b:
+                self = .native(500)
+            case 0x005d:
+                self = .native(640)
+            case 0x0060:
+                self = .native(800)
+            case 0x0063:
+                self = .native(1000)
+            case 0x0065:
+                self = .native(1250)
+            case 0x0068:
+                self = .native(1600)
+            case 0x0070:
+                self = .native(3200)
+            default:
+                return nil
+            }
         }
     }
     

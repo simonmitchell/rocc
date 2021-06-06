@@ -8,16 +8,25 @@
 
 import Foundation
 
-/// A class which enables the discovery of sony camera devices on the network
+struct SSDP {
+
+    static let port = 1900
+
+    static let address = "239.255.255.250"
+}
+
+/// A class which enables the discovery of SSDP camera devices on the network
 internal final class SSDPDeviceDiscoverer: UDPDeviceDiscoverer {
     
     required init(delegate: DeviceDiscovererDelegate) {
         super.init(
             initialMessages: [
-                "M-SEARCH * HTTP/1.1\r\nHOST:\(SonyConstants.SSDP.address):\(SonyConstants.SSDP.port)\r\nMAN:\"ssdp:discover\"\r\nMX:\(SonyConstants.SSDP.mx)\r\nST:\(SonyConstants.SSDP.st)\r\n\r\n"
+                "M-SEARCH * HTTP/1.1\r\nHOST:\(SSDP.address):\(SSDP.port)\r\nMAN:\"ssdp:discover\"\r\nMX:\(SonyConstants.SSDP.mx)\r\nST:\(SonyConstants.SSDP.st)\r\n\r\n",
+                "M-SEARCH * HTTP/1.1\r\nHOST:\(SSDP.address):\(SSDP.port)\r\nST:\(CanonConstants.SSDP.st1)\r\nMAN:\"ssdp:discover\"\r\nMX:\(CanonConstants.SSDP.mx)\r\n\r\n",
+                "M-SEARCH * HTTP/1.1\r\nHOST:\(SSDP.address):\(SSDP.port)\r\nST:\(CanonConstants.SSDP.st2)\r\nMAN:\"ssdp:discover\"\r\nMX:\(CanonConstants.SSDP.mx)\r\n\r\n"
             ],
-            address: SonyConstants.SSDP.address,
-            port: SonyConstants.SSDP.port
+            address: SSDP.address,
+            port: SSDP.port
         )
         self.delegate = delegate
     }

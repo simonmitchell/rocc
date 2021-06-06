@@ -109,6 +109,8 @@
 		B1A25F2121ADE6CE00D9EE81 /* ShutterSpeedFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A25F2021ADE6CE00D9EE81 /* ShutterSpeedFormatter.swift */; };
 		B1A25F2921ADEAAC00D9EE81 /* ShutterSpeedFormatterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A25F2821ADEAAC00D9EE81 /* ShutterSpeedFormatterTests.swift */; };
 		B1A25F3221AE950E00D9EE81 /* Errors.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A25F3121AE950E00D9EE81 /* Errors.swift */; };
+		B1A875AD266CC02300BB6F79 /* CameraEvent+Canon.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A875AC266CC02300BB6F79 /* CameraEvent+Canon.swift */; };
+		B1A875AF266CE8EE00BB6F79 /* CanonConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1A875AE266CE8ED00BB6F79 /* CanonConstants.swift */; };
 		B1AEE4DD2374C3E200224152 /* ByteBuffer+DeviceProperty.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AEE4DC2374C3E200224152 /* ByteBuffer+DeviceProperty.swift */; };
 		B1AEE4E823755FEE00224152 /* PTPDevicePropertyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AEE4E723755FEE00224152 /* PTPDevicePropertyTests.swift */; };
 		B1AEE4F9237586EC00224152 /* CameraEvent+SonyPTPIP.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1AEE4F8237586EC00224152 /* CameraEvent+SonyPTPIP.swift */; };
@@ -343,6 +345,8 @@
 		B1A25F2021ADE6CE00D9EE81 /* ShutterSpeedFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShutterSpeedFormatter.swift; sourceTree = "<group>"; };
 		B1A25F2821ADEAAC00D9EE81 /* ShutterSpeedFormatterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShutterSpeedFormatterTests.swift; sourceTree = "<group>"; };
 		B1A25F3121AE950E00D9EE81 /* Errors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Errors.swift; sourceTree = "<group>"; };
+		B1A875AC266CC02300BB6F79 /* CameraEvent+Canon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CameraEvent+Canon.swift"; sourceTree = "<group>"; };
+		B1A875AE266CE8ED00BB6F79 /* CanonConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanonConstants.swift; sourceTree = "<group>"; };
 		B1AEE4DC2374C3E200224152 /* ByteBuffer+DeviceProperty.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ByteBuffer+DeviceProperty.swift"; sourceTree = "<group>"; };
 		B1AEE4E723755FEE00224152 /* PTPDevicePropertyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PTPDevicePropertyTests.swift; sourceTree = "<group>"; };
 		B1AEE4F8237586EC00224152 /* CameraEvent+SonyPTPIP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CameraEvent+SonyPTPIP.swift"; sourceTree = "<group>"; };
@@ -579,6 +583,7 @@
 			children = (
 				B1824709256A8278008268F4 /* PTP IP Camera */,
 				B182470C256A8AEC008268F4 /* CanonCamera+Model.swift */,
+				B1A875AE266CE8ED00BB6F79 /* CanonConstants.swift */,
 			);
 			path = Canon;
 			sourceTree = "<group>";
@@ -588,6 +593,7 @@
 			children = (
 				B122012A25704B4000BBE65A /* Change Events */,
 				B182470A256A8287008268F4 /* CanonPTPIPCamera.swift */,
+				B1A875AC266CC02300BB6F79 /* CameraEvent+Canon.swift */,
 			);
 			path = "PTP IP Camera";
 			sourceTree = "<group>";
@@ -897,7 +903,6 @@
 		B1FB47E720906CDB00C33C86 /* API */ = {
 			isa = PBXGroup;
 			children = (
-				B1316A7A2089C426006BD136 /* SonyConstants.swift */,
 				B1FB47FB209088FD00C33C86 /* SonyCameraAPIClient.swift */,
 				B1FB48082090964100C33C86 /* BaseServiceClient.swift */,
 				B1FB47FE209089CA00C33C86 /* CameraClient.swift */,
@@ -915,6 +920,7 @@
 				B1CDCB8B2223512600DD0F0E /* Transfer Device */,
 				B1FB47E720906CDB00C33C86 /* API */,
 				B1316A702089C0AF006BD136 /* Device Discovery */,
+				B1316A7A2089C426006BD136 /* SonyConstants.swift */,
 				B11786F82187753F0006B72E /* SonyCamera+Model.swift */,
 			);
 			path = Sony;
@@ -1114,6 +1120,7 @@
 				B1F7CEC6236D817E007E3921 /* SonyTransferDeviceParser.swift in Sources */,
 				B180A7E2236F37B6001AAF5D /* PTPIPClient+DataFlow.swift in Sources */,
 				B1AEE5032375CAF400224152 /* PTPPropValueConvertable.swift in Sources */,
+				B1A875AF266CE8EE00BB6F79 /* CanonConstants.swift in Sources */,
 				B100E1C020A0E8F1004F7AB8 /* WindNoiseReduction.swift in Sources */,
 				B117F52B24027F560055ADF5 /* Array+BringToFront.swift in Sources */,
 				B1F180CE2545792000453668 /* HTTP+Error.swift in Sources */,
@@ -1227,6 +1234,7 @@
 				B1F180E72545792000453668 /* RequestResponse+Codable.swift in Sources */,
 				B180A7CC236F17EE001AAF5D /* PTP.swift in Sources */,
 				B19BD29F2413C4A100111539 /* SimulatedCamera.swift in Sources */,
+				B1A875AD266CC02300BB6F79 /* CameraEvent+Canon.swift in Sources */,
 				B1F180D02545792000453668 /* Authenticator.swift in Sources */,
 				B1F180CF2545792000453668 /* Request.swift in Sources */,
 				B1AEE4F9237586EC00224152 /* CameraEvent+SonyPTPIP.swift in Sources */,

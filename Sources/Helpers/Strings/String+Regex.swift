@@ -36,10 +36,11 @@ internal extension String {
         }
     }
     
-    func matches(for regex: String, at: Int = 0) throws -> [CheckingResult] {
+    func matches(for regex: String, options: NSRegularExpression.MatchingOptions = [], at: Int = 0) throws -> [CheckingResult] {
         do {
             let regex = try NSRegularExpression(pattern: regex)
             let results = regex.matches(in: self,
+                                        options: options,
                                         range: NSRange(startIndex..., in: self))
             return results.compactMap {
                 return CheckingResult($0, in: self)

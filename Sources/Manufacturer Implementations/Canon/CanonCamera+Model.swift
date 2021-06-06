@@ -20,10 +20,13 @@ struct Canon {
             }
             
             case EOS_R = "Canon EOS R"
+            case EOS_4000D = "Canon EOS 4000D"
+            // TODO: Populate all models!
             
             var friendlyName: String {
                 switch self {
                 case .EOS_R: return "EOS R"
+                case .EOS_4000D: return "EOS 400D"
                 }
             }
         }

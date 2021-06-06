@@ -321,7 +321,11 @@ extension PTPIPCamera {
         Logger.log(message: "Getting object of size: \(info.compressedSize) with id: \(objectID)", category: "SonyPTPIPCamera", level: .debug)
         os_log("Getting object", log: log, type: .debug)
         
-        let packet = Packet.commandRequestPacket(code: .getPartialObject, arguments: [objectID, 0, info.compressedSize], transactionId: ptpIPClient?.getNextTransactionId() ?? 2)
+        let packet = Packet.commandRequestPacket(
+            code: .getPartialObject,
+            arguments: [objectID, 0, info.compressedSize],
+            transactionId: ptpIPClient?.getNextTransactionId() ?? 2
+        )
         ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { [weak self] (result) in
             guard let self = self else { return }
             switch result {
@@ -330,7 +334,6 @@ extension PTPIPCamera {
             case .failure(let error):
                 Logger.log(message: "Failed to get object: \(error.localizedDescription)", category: "SonyPTPIPCamera", level: .error)
                 os_log("Failed to get object", log: self.log, type: .error)
-                break
             }
         })
         ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
