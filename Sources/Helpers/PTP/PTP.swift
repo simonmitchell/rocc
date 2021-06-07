@@ -107,13 +107,14 @@ struct PTP {
         case canonGetObjectInfo = 0x9103
         case canonGetPartialObject = 0x9107
         case canonGetThumbEx = 0x910a
+        case canonSetDevicePropValueEx = 0x9110 // TODO: Important!
         case canonSetRemoteMode = 0x9114
         case canonSetEventMode = 0x9115
         case canonGetEvent = 0x9116
         case canonGetViewFinderData = 0x9153
+        case canonGetDevicePropValue = 0x9127 // TODO: Important!
         case canonRemoteReleaseOn = 0x9128
         case canonRemoteReleaseOff = 0x9129
-        case canonSetDevicePropValueEx = 0x9110
         case sdioConnect = 0x9201
         case sdioGetExtDeviceInfo = 0x9202
         case sonyGetDevicePropDesc = 0x9203

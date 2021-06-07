@@ -411,7 +411,7 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
             })
             imageURLs = [:]
             callback(nil, lastEvent as? T.ReturnType)
-            
+
         case .setShootMode:
             guard let value = payload as? ShootingMode else {
                 callback(FunctionError.invalidPayload, nil)
@@ -440,7 +440,7 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
             }
         case .getShootMode:
             getDevicePropDescriptionsFor(propCodes: [.stillCaptureMode, .exposureProgramMode]) { (result) in
-             
+
                 switch result {
                 case .success(let properties):
                     let event = CameraEvent.fromSonyDeviceProperties(properties).event
@@ -457,12 +457,10 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
                 callback(FunctionError.invalidPayload, nil)
                 return
             }
-            ptpIPClient?.sendSetControlDeviceAValue(
-                PTP.DeviceProperty.Value(value, manufacturer: manufacturer),
-                callback: { (response) in
-                    callback(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil, nil)
-                }
-            )
+            sendSetDevicePropValue(
+                PTP.DeviceProperty.Value(value, manufacturer: manufacturer)) { response in
+                callback(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil, nil)
+            }
         case .getISO:
             getDevicePropDescriptionFor(propCode: .ISO, callback: { (result) in
                 switch result {
@@ -568,89 +566,16 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
                 callback(FunctionError.invalidPayload, nil)
                 return
             }
-            var stillSizeByte: Byte? = nil
-            switch stillSize.size {
-            case "L":
-                stillSizeByte = 0x01
-            case "M":
-                stillSizeByte = 0x02
-            case "S":
-                stillSizeByte = 0x03
-            default:
-                break
-            }
-            
-            if let _stillSizeByte = stillSizeByte {
-                ptpIPClient?.sendSetControlDeviceAValue(
-                    PTP.DeviceProperty.Value(
-                        code: .imageSizeSony,
-                        type: .uint8,
-                        value: _stillSizeByte
-                    )
-                )
-            }
-            
-            guard let aspect = stillSize.aspectRatio else { return }
-            
-            var aspectRatioByte: Byte? = nil
-            switch aspect {
-            case "3:2":
-                aspectRatioByte = 0x01
-            case "16:9":
-                aspectRatioByte = 0x02
-            case "1:1":
-                aspectRatioByte = 0x04
-            default:
-                break
-            }
-            
-            guard let _aspectRatioByte = aspectRatioByte else { return }
-            
-            ptpIPClient?.sendSetControlDeviceAValue(
-                PTP.DeviceProperty.Value(
-                    code: .imageSizeSony,
-                    type: .uint8,
-                    value: _aspectRatioByte
-                )
-            )
-            
+            // TODO: Implement default!
+
         case .getStillSize:
-            
-            // Still size requires still size and ratio codes to be fetched!
-            // Still size requires still size and ratio codes to be fetched!
-            getDevicePropDescriptionsFor(propCodes: [.imageSizeSony, .aspectRatio]) { (result) in
-                switch result {
-                case .success(let properties):
-                    let event = CameraEvent.fromSonyDeviceProperties(properties).event
-                    callback(nil, event.stillSizeInfo?.stillSize as? T.ReturnType)
-                case .failure(let error):
-                    callback(error, nil)
-                }
-            }
-            
+            // TODO: Implement default!
+            break
         case .setSelfTimerDuration:
-            guard let timeInterval = payload as? TimeInterval else {
-                callback(FunctionError.invalidPayload, nil)
-                return
-            }
-            let value: SonyStillCaptureMode
-            switch timeInterval {
-            case 0.0:
-                value = .single
-            case 2.0:
-                value = .timer2
-            case 5.0:
-                value = .timer5
-            case 10.0:
-                value = .timer10
-            default:
-                value = .single
-            }
-            ptpIPClient?.sendSetControlDeviceAValue(
-                PTP.DeviceProperty.Value(value, manufacturer: manufacturer)
-            )
+            // TODO: Implement default
+            break
         case .getSelfTimerDuration:
-            
+
             getDevicePropDescriptionFor(propCode: .stillCaptureMode, callback: { (result) in
                 switch result {
                 case .success(let property):
@@ -660,27 +585,26 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
                     callback(error, nil)
                 }
             })
-            
+
         case .setWhiteBalance:
-            
+
             guard let value = payload as? WhiteBalance.Value else {
                 callback(FunctionError.invalidPayload, nil)
                 return
             }
-            ptpIPClient?.sendSetControlDeviceAValue(
+            sendSetDevicePropValue(
                 PTP.DeviceProperty.Value(value.mode, manufacturer: manufacturer)
             )
             guard let colorTemp = value.temperature else { return }
-            ptpIPClient?.sendSetControlDeviceAValue(
-                PTP.DeviceProperty.Value(
-                    code: .colorTemp,
-                    type: .uint16,
-                    value: Word(colorTemp)
-                )
-            )
-            
+            // TODO: Check on Canon to see if logic matches!
+            sendSetDevicePropValue(PTP.DeviceProperty.Value(
+                code: .colorTemp,
+                type: .uint16,
+                value: Word(colorTemp)
+            ))
+
         case .getWhiteBalance:
-            
+
             // White balance requires white balance and colorTemp codes to be fetched!
             getDevicePropDescriptionsFor(propCodes: [.whiteBalance, .colorTemp]) { (result) in
                 switch result {
@@ -724,63 +648,65 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
                 }
             }
         case .startVideoRecording:
-            self.ptpIPClient?.sendSetControlDeviceBValue(
+            // TODO: Check logic on Canon to see if same
+            sendSetDevicePropValue(
                 PTP.DeviceProperty.Value(
                     code: .movie,
                     type: .uint16,
                     value: Word(2)
                 ),
-                callback: { (videoResponse) in
-                    guard !videoResponse.code.isError else {
-                        callback(PTPError.commandRequestFailed(videoResponse.code), nil)
-                        return
-                    }
-                    callback(nil, nil)
+                valueB: true
+            ) { videoResponse in
+                guard !videoResponse.code.isError else {
+                    callback(PTPError.commandRequestFailed(videoResponse.code), nil)
+                    return
                 }
-            )
+                callback(nil, nil)
+            }
         case .recordHighFrameRateCapture:
-            self.ptpIPClient?.sendSetControlDeviceBValue(
+            sendSetDevicePropValue(
                 PTP.DeviceProperty.Value(
                     code: .movie,
                     type: .uint16,
                     value: Word(2)
                 ),
-                callback: { [weak self] (videoResponse) in
-                    guard !videoResponse.code.isError else {
-                        callback(PTPError.commandRequestFailed(videoResponse.code), HighFrameRateCapture.Status.idle as? T.ReturnType)
-                        return
-                    }
-                    callback(nil, HighFrameRateCapture.Status.buffering as? T.ReturnType)
-                    guard let self = self else { return }
-                    self.highFrameRateCallback = { [weak self] result in
-                        switch result {
-                        case .success(let status):
-                            callback(nil, status as? T.ReturnType)
-                            if status == .idle {
-                                self?.highFrameRateCallback = nil
-                            }
-                        case .failure(let error):
-                            callback(error, nil)
+                valueB: true
+            ) { [weak self] videoResponse in
+                guard !videoResponse.code.isError else {
+                    callback(PTPError.commandRequestFailed(videoResponse.code), HighFrameRateCapture.Status.idle as? T.ReturnType)
+                    return
+                }
+                callback(nil, HighFrameRateCapture.Status.buffering as? T.ReturnType)
+                guard let self = self else { return }
+                self.highFrameRateCallback = { [weak self] result in
+                    switch result {
+                    case .success(let status):
+                        callback(nil, status as? T.ReturnType)
+                        if status == .idle {
                             self?.highFrameRateCallback = nil
                         }
+                    case .failure(let error):
+                        callback(error, nil)
+                        self?.highFrameRateCallback = nil
                     }
                 }
-            )
+            }
         case .endVideoRecording:
-            self.ptpIPClient?.sendSetControlDeviceBValue(
+            // TODO: Check logic on Canon to see if same
+            sendSetDevicePropValue(
                 PTP.DeviceProperty.Value(
                     code: .movie,
                     type: .uint16,
                     value: Word(1)
                 ),
-                callback: { (videoResponse) in
-                    guard !videoResponse.code.isError else {
-                        callback(PTPError.commandRequestFailed(videoResponse.code), nil)
-                        return
-                    }
-                    callback(nil, nil)
+                valueB: true
+            ) { videoResponse in
+                guard !videoResponse.code.isError else {
+                    callback(PTPError.commandRequestFailed(videoResponse.code), nil)
+                    return
                 }
-            )
+                callback(nil, nil)
+            }
         case .startAudioRecording, .endAudioRecording:
             //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(nil, nil)
@@ -792,12 +718,12 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
             callback(nil, nil)
         case .startBulbCapture:
             startCapturing { [weak self] (error) in
-                
+
                 guard error == nil else {
                     callback(error, nil)
                     return
                 }
-                
+
                 self?.awaitFocusIfNeeded { (_) in
                     callback(nil, nil)
                 }
@@ -813,27 +739,27 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
             }
         case .startLiveView, .startLiveViewWithQuality, .endLiveView:
             getDevicePropDescriptionFor(propCode: .liveViewURL) { [weak self] (result) in
-                
+
                 guard let self = self else { return }
                 switch result {
                 case .success(let property):
-                    
+
                     var url: URL?
                     if let string = property.currentValue as? String, let returnedURL = URL(string: string) {
                         url = returnedURL
                     }
-                    
+
                     guard function.function == .startLiveViewWithQuality, let quality = payload as? LiveView.Quality else {
                         callback(nil, url as? T.ReturnType)
                         return
                     }
-                    
+
                     self.performFunction(
                         LiveView.QualitySet.set,
                         payload: quality) { (_, _) in
                         callback(nil, url as? T.ReturnType)
                     }
-                    
+
                 case .failure(let error):
                     callback(error, nil)
                 }
@@ -870,15 +796,17 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
             // Doesn't seem to be available via PTP/IP
             callback(FunctionError.notSupportedByAvailableVersion, nil)
         case .halfPressShutter, .cancelHalfPressShutter:
-            ptpIPClient?.sendSetControlDeviceBValue(
+            // TODO: Check logic on Canon to see if same
+            sendSetDevicePropValue(
                 PTP.DeviceProperty.Value(
                     code: .autoFocus,
                     type: .uint16,
                     value: function.function == .halfPressShutter ? Word(2) : Word(1)
-                ), callback: { response in
-                    callback(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil, nil)
-                }
-            )
+                ),
+                valueB: true
+            ) { response in
+                callback(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil, nil)
+            }
         case .setTouchAFPosition, .getTouchAFPosition, .cancelTouchAFPosition, .startTrackingFocus, .stopTrackingFocus, .setTrackingFocus, .getTrackingFocus:
             // Doesn't seem to be available via PTP/IP
             callback(FunctionError.notSupportedByAvailableVersion, nil)
@@ -1045,33 +973,47 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
             }
         case .setExposureSettingsLock:
 
+            // TODO: Check if same on Canon!
             // This may seem strange, that to move to standby we set this value twice, but this is what works!
             // It doesn't seem like we actually need the value at all, it just toggles it on this camera...
-            ptpIPClient?.sendSetControlDeviceBValue(
+            sendSetDevicePropValue(
                 PTP.DeviceProperty.Value(
                     code: .exposureSettingsLock,
                     type: .uint16,
                     value: Word(0x01)
                 ),
-                callback: { [weak self] (response) in
-                    guard let self = self else { return }
-                    guard !response.code.isError else {
-                        callback(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil, nil)
-                        return
-                    }
-                    self.ptpIPClient?.sendSetControlDeviceBValue(
-                        PTP.DeviceProperty.Value(
-                            code: .exposureSettingsLock,
-                            type: .uint16,
-                            value: Word(0x02)
-                        ),
-                        callback: { (innerResponse) in
-                            callback(innerResponse.code.isError ? PTPError.commandRequestFailed(innerResponse.code) : nil, nil)
-                        }
-                    )
+                valueB: true
+            ) { [weak self] response in
+                guard let self = self else { return }
+                guard !response.code.isError else {
+                    callback(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil, nil)
+                    return
                 }
-            )
+                self.sendSetDevicePropValue(
+                    PTP.DeviceProperty.Value(
+                        code: .exposureSettingsLock,
+                        type: .uint16,
+                        value: Word(0x02)
+                    ),
+                    valueB: true
+                ) { innerResponse in
+                    callback(innerResponse.code.isError ? PTPError.commandRequestFailed(innerResponse.code) : nil, nil)
+                }
+            }
+            
+        default:
+            break
         }
+    }
+
+    /// Call to send set device prop value request to the camera.
+    /// - Parameters:
+    ///   - value: The value to set the prop to
+    ///   - valueB: Used for Sony cameras, some props require using a different command code (setValueB rather than setValueA)
+    ///   - callback: Closure to call when done
+    func sendSetDevicePropValue(_ value: PTP.DeviceProperty.Value, valueB: Bool = false, callback: CommandRequestPacketResponse? = nil) {
+
+        // TODO: Implement default PTP/IP function for this (So far Sony and Canon are bespoke)
     }
     
     //MARK: - Camera protocol conformance -
@@ -1396,31 +1338,31 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
     }
     
     func setExposureProgrammeMode(_ mode: Exposure.Mode.Value, _ completion: @escaping ((Error?) -> Void)) {
-        
-        ptpIPClient?.sendSetControlDeviceAValue(
+
+        // TODO: Check if same logic on canon!
+        sendSetDevicePropValue(
             PTP.DeviceProperty.Value(
-                code: .exposureProgramMode,
-                type: .uint32,
+                code: Exposure.Mode.Value.devicePropertyCode(for: manufacturer),
+                type: Exposure.Mode.Value.dataType(for: manufacturer),
                 value: mode.value(for: manufacturer)
-            ),
-            callback: { (response) in
-                completion(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil)
-            }
-        )
+            )
+        ) { response in
+            completion(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil)
+        }
     }
     
     func setStillCaptureMode(_ mode: SonyStillCaptureMode, _ completion: @escaping ((Error?) -> Void)) {
-        
-        ptpIPClient?.sendSetControlDeviceAValue(
+
+        // TODO: Check if same logic on canon!
+        sendSetDevicePropValue(
             PTP.DeviceProperty.Value(
-                code: .stillCaptureMode,
-                type: .uint32,
-                value: mode.rawValue
-            ),
-            callback: { (response) in
-                completion(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil)
-            }
-        )
+                code: SonyStillCaptureMode.devicePropertyCode(for: manufacturer),
+                type: SonyStillCaptureMode.dataType(for: manufacturer),
+                value: mode.value(for: manufacturer)
+            )
+        ) { response in
+            completion(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil)
+        }
     }
     
     private func setShutterSpeedAwayFromBulbIfRequired(_ callback: @escaping ((Error?) -> Void)) {
@@ -1468,5 +1410,317 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
         }
         guard let highFrameRateStatus = event.highFrameRateCaptureStatus, highFrameRateStatus != lastEvent?.highFrameRateCaptureStatus else { return }
         highFrameRateCallback?(Result.success(highFrameRateStatus))
+    }
+
+    typealias CaptureCompletion = (Result<URL?, Error>) -> Void
+
+    func takePicture(completion: @escaping CaptureCompletion) {
+
+        Logger.log(message: "Taking picture...", category: "SonyPTPIPCamera", level: .debug)
+        os_log("Taking picture...", log: log, type: .debug)
+
+        self.isAwaitingObject = true
+
+        startCapturing { [weak self] (error) in
+
+            guard let self = self else { return }
+            if let error = error {
+                self.isAwaitingObject = false
+                completion(Result.failure(error))
+                return
+            }
+
+            self.awaitFocusIfNeeded(completion: { [weak self] (objectId) in
+                self?.cancelShutterPress(objectID: objectId, completion: completion)
+            })
+        }
+    }
+
+    func awaitFocusIfNeeded(completion: @escaping (_ objectId: DWord?) -> Void) {
+
+        guard let focusMode = self.lastEvent?.focusMode?.current else {
+
+            self.performFunction(Focus.Mode.get, payload: nil) { [weak self] (_, focusMode) in
+
+                guard let self = self else {
+                    return
+                }
+
+                guard focusMode?.isAutoFocus == true else {
+                    completion(nil)
+                    return
+                }
+
+                self.awaitFocus(completion: completion)
+            }
+
+            return
+        }
+
+        guard focusMode.isAutoFocus else {
+            completion(nil)
+            return
+        }
+
+        self.awaitFocus(completion: completion)
+    }
+
+    func startCapturing(completion: @escaping (Error?) -> Void) {
+
+        Logger.log(message: "Starting capture...", category: "PTPIPCamera", level: .debug)
+        os_log("Starting capture...", log: self.log, type: .debug)
+
+        // TODO: Implement standard approach
+    }
+
+    func finishCapturing(awaitObjectId: Bool = true, completion: @escaping CaptureCompletion) {
+
+        cancelShutterPress(objectID: nil, awaitObjectId: awaitObjectId, completion: completion)
+    }
+
+    func awaitFocus(completion: @escaping (_ objectId: DWord?) -> Void) {
+
+        Logger.log(message: "Focus mode is AF variant awaiting focus...", category: "SonyPTPIPCamera", level: .debug)
+        os_log("Focus mode is AF variant awaiting focus...", log: self.log, type: .debug)
+
+        var newObject: DWord? = awaitingObjectId
+
+        DispatchQueue.global().asyncWhile({ [weak self] (continueClosure) in
+
+            guard let self = self else { return }
+
+            // If code is property changed, and first variable == "Focus Found"
+            if let lastEvent = self.lastEventPacket, lastEvent.code == .propertyChanged, lastEvent.variables?.first == 0xD213 {
+
+                Logger.log(message: "Got property changed event and was \"Focus Found\", continuing with capture process", category: "SonyPTPIPCamera", level: .debug)
+                os_log("Got property changed event and was \"Focus Found\", continuing with capture process", log: self.log, type: .debug)
+                continueClosure(true)
+
+            } else if let lastEvent = self.lastEventPacket, lastEvent.code == .objectAdded, let objectId = lastEvent.variables?.first {
+
+                self.isAwaitingObject = false
+                self.awaitingObjectId = nil
+                Logger.log(message: "Got property changed event and was \"Object Added\", continuing with capture process", category: "SonyPTPIPCamera", level: .debug)
+                os_log("Got property changed event and was \"Object Added\", continuing with capture process", log: self.log, type: .debug)
+                newObject = objectId
+                continueClosure(true)
+
+            } else if let awaitingObjectId = self.awaitingObjectId {
+
+                Logger.log(message: "Got object ID from elsewhere whilst awaiting focus", category: "SonyPTPIPCamera", level: .debug)
+                os_log("Got object ID from elsewhere whilst awaiting focus", log: self.log, type: .debug)
+
+                self.isAwaitingObject = false
+                newObject = awaitingObjectId
+                self.awaitingObjectId = nil
+                continueClosure(true)
+
+            } else {
+
+                continueClosure(false)
+            }
+
+        }, timeout: 1) { [weak self] in
+
+            guard let self = self else { return }
+
+            Logger.log(message: "Focus awaited \(newObject != nil ? "\(newObject!)" : "null")", category: "SonyPTPIPCamera", level: .debug)
+            os_log("Focus awaited %@", log: self.log, type: .debug, newObject != nil ? "\(newObject!)" : "null")
+
+            let awaitingObjectId = self.awaitingObjectId
+            self.awaitingObjectId = nil
+            completion(newObject ?? awaitingObjectId)
+        }
+    }
+
+    func cancelShutterPress(objectID: DWord?, awaitObjectId: Bool = true, completion: @escaping CaptureCompletion) {
+
+        Logger.log(message: "Cancelling shutter press \(objectID != nil ? "\(objectID!)" : "null")", category: "SonyPTPIPCamera", level: .debug)
+        os_log("Cancelling shutter press %@", log: self.log, type: .debug, objectID != nil ? "\(objectID!)" : "null")
+
+        // TODO: Implement default PTP IP Approach
+    }
+
+    func awaitObjectId(completion: @escaping CaptureCompletion) {
+
+        var newObject: DWord?
+
+        // TODO: Check/implement on Canon
+
+        Logger.log(message: "Awaiting Object ID", category: "SonyPTPIPCamera", level: .debug)
+        os_log("Awaiting Object ID", log: self.log, type: .debug)
+
+        // If we already have an awaitingObjectId! For some reason this isn't caught if we jump into asyncWhile...
+        guard awaitingObjectId == nil else {
+
+            awaitingObjectId = nil
+            isAwaitingObject = false
+            // If we've got an object ID successfully then we captured an image, and we can callback, it's not necessary to transfer image to carry on.
+            // We will transfer the image when the event is received...
+            completion(Result.success(nil))
+
+            return
+        }
+
+        DispatchQueue.global().asyncWhile({ [weak self] (continueClosure) in
+
+            guard let self = self else { return }
+
+            if let lastEvent = self.lastEventPacket, lastEvent.code == .objectAdded {
+
+                Logger.log(message: "Got property changed event and was \"Object Added\", continuing with capture process", category: "SonyPTPIPCamera", level: .debug)
+                os_log("Got property changed event and was \"Object Added\", continuing with capture process", log: self.log, type: .debug)
+                self.isAwaitingObject = false
+                newObject = lastEvent.variables?.first ?? self.awaitingObjectId
+                self.awaitingObjectId = nil
+                continueClosure(true)
+                return
+
+            } else if let awaitingObjectId = self.awaitingObjectId {
+
+                Logger.log(message: "\"Object Added\" event was intercepted elsewhere, continuing with capture process", category: "SonyPTPIPCamera", level: .debug)
+                os_log("\"Object Added\" event was intercepted elsewhere, continuing with capture process", log: self.log, type: .debug)
+
+                self.isAwaitingObject = false
+                newObject = awaitingObjectId
+                self.awaitingObjectId = nil
+                continueClosure(true)
+                return
+            }
+
+            Logger.log(message: "Getting device prop description for 'objectInMemory'", category: "SonyPTPIPCamera", level: .debug)
+            os_log("Getting device prop description for 'objectInMemory'", log: self.log, type: .debug)
+
+            self.getDevicePropDescriptionFor(propCode: .objectInMemory, callback: { (result) in
+
+                Logger.log(message: "Got device prop description for 'objectInMemory'", category: "SonyPTPIPCamera", level: .debug)
+                os_log("Got device prop description for 'objectInMemory'", log: self.log, type: .debug)
+
+                switch result {
+                case .failure(_):
+                    continueClosure(false)
+                case .success(let property):
+                    // if prop 0xd215 > 0x8000, the object in RAM is available at location 0xffffc001
+                    // This variable also turns to 1 , but downloading then will crash the firmware
+                    // we seem to need to wait for 0x8000 (See https://github.com/gphoto/libgphoto2/blob/de98b151bce6b0aa70157d6c0ebb7f59b4da3792/camlibs/ptp2/library.c#L4330)
+                    guard let value = property.currentValue.toInt, value >= 0x8000 else {
+                        continueClosure(false)
+                        return
+                    }
+
+                    Logger.log(message: "objectInMemory >= 0x8000, object in memory at 0xffffc001", category: "SonyPTPIPCamera", level: .debug)
+                    os_log("objectInMemory >= 0x8000, object in memory at 0xffffc001", log: self.log, type: .debug)
+
+                    self.isAwaitingObject = false
+                    self.awaitingObjectId = nil
+                    newObject = 0xffffc001
+                    continueClosure(true)
+                }
+            })
+
+        }, timeout: 35) { [weak self] in
+
+            self?.awaitingObjectId = nil
+            self?.isAwaitingObject = false
+
+            guard newObject != nil else {
+                completion(Result.failure(PTPError.objectNotFound))
+                return
+            }
+
+            // If we've got an object ID successfully then we captured an image, and we can callback, it's not necessary to transfer image to carry on.
+            // We will transfer the image when the event is received...
+            completion(Result.success(nil))
+        }
+    }
+
+    func handleObjectId(objectID: DWord, shootingMode: ShootingMode, completion: @escaping CaptureCompletion) {
+
+        Logger.log(message: "Got object with id: \(objectID)", category: "SonyPTPIPCamera", level: .debug)
+        os_log("Got object ID", log: log, type: .debug)
+
+        ptpIPClient?.getObjectInfoFor(objectId: objectID, callback: { [weak self] (result) in
+
+            guard let self = self else { return }
+
+            switch result {
+            case .success(let info):
+                // Call completion as technically now ready to take an image!
+                completion(Result.success(nil))
+                self.getObjectWith(info: info, objectID: objectID, shootingMode: shootingMode, completion: completion)
+            case .failure(_):
+                // Doesn't really matter if this part fails, as image already taken
+                completion(Result.success(nil))
+            }
+        })
+    }
+
+    private func getObjectWith(info: PTP.ObjectInfo, objectID: DWord, shootingMode: ShootingMode, completion: @escaping CaptureCompletion) {
+
+        Logger.log(message: "Getting object of size: \(info.compressedSize) with id: \(objectID)", category: "SonyPTPIPCamera", level: .debug)
+        os_log("Getting object", log: log, type: .debug)
+
+        let packet = Packet.commandRequestPacket(
+            code: .getPartialObject,
+            arguments: [objectID, 0, info.compressedSize],
+            transactionId: ptpIPClient?.getNextTransactionId() ?? 2
+        )
+        ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { [weak self] (result) in
+            guard let self = self else { return }
+            switch result {
+            case .success(let data):
+                self.handleObjectData(data.data, shootingMode: shootingMode, fileName: info.fileName ?? "\(ProcessInfo().globallyUniqueString).jpg")
+            case .failure(let error):
+                Logger.log(message: "Failed to get object: \(error.localizedDescription)", category: "SonyPTPIPCamera", level: .error)
+                os_log("Failed to get object", log: self.log, type: .error)
+            }
+        })
+        ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
+    }
+
+    private func handleObjectData(_ data: ByteBuffer, shootingMode: ShootingMode, fileName: String) {
+
+        Logger.log(message: "Got object data!: \(data.length). Attempting to save as image", category: "SonyPTPIPCamera", level: .debug)
+        os_log("Got object data! Attempting to save as image", log: self.log, type: .debug)
+
+        // Check for a new object, in-case we missed the event for it!
+        getDevicePropDescriptionFor(propCode: .objectInMemory, callback: { [weak self] (result) in
+
+            guard let self = self else { return }
+
+            switch result {
+            case .failure(_):
+                break
+            case .success(let property):
+                // if prop 0xd215 > 0x8000, the object in RAM is available at location 0xffffc001
+                // This variable also turns to 1 , but downloading then will crash the firmware
+                // we seem to need to wait for 0x8000 (See https://github.com/gphoto/libgphoto2/blob/de98b151bce6b0aa70157d6c0ebb7f59b4da3792/camlibs/ptp2/library.c#L4330)
+                guard let value = property.currentValue.toInt, value >= 0x8000 else {
+                    return
+                }
+                self.handleObjectId(objectID: 0xffffc001, shootingMode: shootingMode) { (_) in
+
+                }
+            }
+        })
+
+        let imageData = Data(data)
+        guard Image(data: imageData) != nil else {
+            Logger.log(message: "Image data not valid", category: "SonyPTPIPCamera", level: .error)
+            os_log("Image data not valud", log: self.log, type: .error)
+            return
+        }
+
+        let temporaryDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+        let imageURL = temporaryDirectoryURL.appendingPathComponent(fileName)
+        do {
+            try imageData.write(to: imageURL)
+            imageURLs[shootingMode, default: []].append(imageURL)
+            // Trigger dummy event
+            onEventAvailable?()
+        } catch let error {
+            Logger.log(message: "Failed to save image to disk: \(error.localizedDescription)", category: "SonyPTPIPCamera", level: .error)
+            os_log("Failed to save image to disk", log: self.log, type: .error)
+        }
     }
 }

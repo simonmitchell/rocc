@@ -15,6 +15,9 @@ extension CameraEvent {
         var currentISO: ISO.Value?
         var availableISO: [ISO.Value]?
 
+        var currentShutterSpeed: ShutterSpeed?
+        var availableShutterSpeed: [ShutterSpeed]?
+
         var availableFunctions: [_CameraFunction] = []
         var supportedFunctions: [_CameraFunction] = []
 
@@ -34,6 +37,13 @@ extension CameraEvent {
                     availableFunctions.append(contentsOf: [.setISO, .getISO])
                     supportedFunctions.append(contentsOf: [.setISO, .getISO])
                     currentISO = current
+                case .shutterSpeed, .shutterSpeedCanon, .shutterSpeedCanonEOS:
+                    guard let current = ShutterSpeed(value: propertyChange.value, manufacturer: .canon) else {
+                        return
+                    }
+                    availableFunctions.append(contentsOf: [.setShutterSpeed, .getShutterSpeed])
+                    supportedFunctions.append(contentsOf: [.setShutterSpeed, .getShutterSpeed])
+                    currentShutterSpeed = current
                 default:
                     break
                 }
@@ -44,6 +54,11 @@ extension CameraEvent {
                         ISO.Value(value: $0, manufacturer: .canon)
                     })
                     availableISO = available
+                case .shutterSpeed, .shutterSpeedCanon, .shutterSpeedCanonEOS:
+                    let available = availableValuesChange.availableValues.compactMap({
+                        ShutterSpeed(value: $0, manufacturer: .canon)
+                    })
+                    availableShutterSpeed = available
                 default:
                     break
                 }
@@ -55,6 +70,11 @@ extension CameraEvent {
         var iso: (current: ISO.Value, available: [ISO.Value], supported: [ISO.Value])?
         if let currentISO = currentISO {
             iso = (currentISO, availableISO ?? [], availableISO ?? [])
+        }
+
+        var shutterSpeed: (current: ShutterSpeed, available: [ShutterSpeed], supported: [ShutterSpeed])?
+        if let currentShutterSpeed = currentShutterSpeed {
+            shutterSpeed = (currentShutterSpeed, availableShutterSpeed ?? [], availableShutterSpeed ?? [])
         }
 
         let event = CameraEvent(
@@ -85,7 +105,7 @@ extension CameraEvent {
             focusMode: nil,
             iso: iso,
             isProgramShifted: nil,
-            shutterSpeed: nil,
+            shutterSpeed: shutterSpeed,
             whiteBalance: nil,
             touchAF: nil,
             focusStatus: nil,

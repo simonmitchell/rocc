@@ -30,21 +30,21 @@ extension PTPIPCamera {
         }
         
         zoomingDirection = direction
-        
-        ptpIPClient?.sendSetControlDeviceBValue(
+
+        sendSetDevicePropValue(
             PTP.DeviceProperty.Value(
                 code: .performZoom,
                 type: .uint8,
                 value: direction.value
             ),
-            callback: { (response) in
-                if response.code.isError {
-                    callback(PTPError.commandRequestFailed(response.code))
-                } else {
-                    callback(nil)
-                }
+            valueB: true
+        ) { response in
+            if response.code.isError {
+                callback(PTPError.commandRequestFailed(response.code))
+            } else {
+                callback(nil)
             }
-        )
+        }
     }
     
     func stopZooming(callback: @escaping (Error?) -> Void) {

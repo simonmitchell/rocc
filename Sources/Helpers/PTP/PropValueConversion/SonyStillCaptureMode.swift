@@ -8,6 +8,7 @@
 
 import Foundation
 
+// TODO: Refactor!
 enum SonyStillCaptureMode: DWord, PTPPropValueConvertable {
     
     case single = 0x00000001

@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import os.log
 
 internal final class SonyPTPIPCamera: PTPIPCamera {
     
@@ -154,8 +155,114 @@ internal final class SonyPTPIPCamera: PTPIPCamera {
                     callback(nil, self.apiDeviceInfo.liveViewURL as? T.ReturnType)
                 }
             }
+        case .setStillSize:
+            guard let stillSize = payload as? StillCapture.Size.Value else {
+                callback(FunctionError.invalidPayload, nil)
+                return
+            }
+            var stillSizeByte: Byte? = nil
+            switch stillSize.size {
+            case "L":
+                stillSizeByte = 0x01
+            case "M":
+                stillSizeByte = 0x02
+            case "S":
+                stillSizeByte = 0x03
+            default:
+                break
+            }
+
+            if let _stillSizeByte = stillSizeByte {
+                sendSetDevicePropValue(
+                    PTP.DeviceProperty.Value(
+                        code: .imageSizeSony,
+                        type: .uint8,
+                        value: _stillSizeByte
+                    )
+                )
+            }
+
+            guard let aspect = stillSize.aspectRatio else { return }
+
+            var aspectRatioByte: Byte? = nil
+            switch aspect {
+            case "3:2":
+                aspectRatioByte = 0x01
+            case "16:9":
+                aspectRatioByte = 0x02
+            case "1:1":
+                aspectRatioByte = 0x04
+            default:
+                break
+            }
+
+            guard let _aspectRatioByte = aspectRatioByte else { return }
+
+            sendSetDevicePropValue(
+                PTP.DeviceProperty.Value(
+                    code: .imageSizeSony,
+                    type: .uint8,
+                    value: _aspectRatioByte
+                )
+            )
+
+        case .getStillSize:
+
+            // Still size requires still size and ratio codes to be fetched!
+            // Still size requires still size and ratio codes to be fetched!
+            getDevicePropDescriptionsFor(propCodes: [.imageSizeSony, .aspectRatio]) { (result) in
+                switch result {
+                case .success(let properties):
+                    let event = CameraEvent.fromSonyDeviceProperties(properties).event
+                    callback(nil, event.stillSizeInfo?.stillSize as? T.ReturnType)
+                case .failure(let error):
+                    callback(error, nil)
+                }
+            }
+        case .setSelfTimerDuration:
+            guard let timeInterval = payload as? TimeInterval else {
+                callback(FunctionError.invalidPayload, nil)
+                return
+            }
+            let value: SonyStillCaptureMode
+            switch timeInterval {
+            case 0.0:
+                value = .single
+            case 2.0:
+                value = .timer2
+            case 5.0:
+                value = .timer5
+            case 10.0:
+                value = .timer10
+            default:
+                value = .single
+            }
+            sendSetDevicePropValue(PTP.DeviceProperty.Value(value, manufacturer: manufacturer))
         default:
             super.performFunction(function, payload: payload, callback: callback)
+        }
+    }
+
+    override func sendSetDevicePropValue(
+        _ value: PTP.DeviceProperty.Value,
+        valueB: Bool = false,
+        callback: CommandRequestPacketResponse? = nil
+    ) {
+
+        let transactionID = ptpIPClient?.getNextTransactionId() ?? 2
+        let opRequestPacket = Packet.commandRequestPacket(
+            code: valueB ? .setControlDeviceB : .setControlDeviceA,
+            arguments: [DWord(value.code.rawValue)],
+            transactionId: transactionID,
+            dataPhaseInfo: 2
+        )
+        var data = ByteBuffer()
+        data.appendValue(value.value, ofType: value.type)
+        let dataPackets = Packet.dataSendPackets(data: data, transactionId: transactionID)
+
+        ptpIPClient?.sendCommandRequestPacket(opRequestPacket, callback: callback)
+        dataPackets.forEach { dataPacket in
+            ptpIPClient?.sendControlPacket(dataPacket)
         }
     }
     
@@ -174,5 +281,74 @@ internal final class SonyPTPIPCamera: PTPIPCamera {
     override func connect(completion: @escaping PTPIPCamera.ConnectedCompletion) {
         lastAllDeviceProps = nil
         super.connect(completion: completion)
+    }
+
+    override func startCapturing(completion: @escaping (Error?) -> Void) {
+
+        Logger.log(message: "Starting capture...", category: "SonyPTPIPCamera", level: .debug)
+        os_log("Starting capture...", log: self.log, type: .debug)
+
+        sendSetDevicePropValue(
+            PTP.DeviceProperty.Value(
+                code: .autoFocus,
+                type: .uint16,
+                value: Word(2)
+            ),
+            valueB: true
+        ) { [weak self] _ in
+            guard let self = self else { return }
+
+            self.sendSetDevicePropValue(
+                PTP.DeviceProperty.Value(
+                    code: .capture,
+                    type: .uint16,
+                    value: Word(2)
+                ),
+                valueB: true
+            ) { shutterResponse in
+                guard !shutterResponse.code.isError else {
+                    completion(PTPError.commandRequestFailed(shutterResponse.code))
+                    return
+                }
+                completion(nil)
+            }
+        }
+    }
+
+    override func cancelShutterPress(objectID: DWord?, awaitObjectId: Bool = true, completion: @escaping PTPIPCamera.CaptureCompletion) {
+
+        sendSetDevicePropValue(
+            PTP.DeviceProperty.Value(
+                code: .capture,
+                type: .uint16,
+                value: Word(1)
+            ),
+            valueB: true
+        ) { [weak self] response in
+            guard let self = self else { return }
+
+            Logger.log(message: "Shutter press set to 1", category: "SonyPTPIPCamera", level: .debug)
+            os_log("Shutter press set to 1", log: self.log, type: .debug, objectID != nil ? "\(objectID!)" : "null")
+
+            self.sendSetDevicePropValue(
+                PTP.DeviceProperty.Value(
+                    code: .autoFocus,
+                    type: .uint16,
+                    value: Word(1)
+                ),
+                valueB: true
+            ) { [weak self] _ in
+                guard let self = self else { return }
+
+                Logger.log(message: "Autofocus set to 1 \(objectID ?? 0)", category: "SonyPTPIPCamera", level: .debug)
+                os_log("Autofocus set to 1", log: self.log, type: .debug, objectID != nil ? "\(objectID!)"
+                    : "null")
+                guard objectID != nil || !awaitObjectId else {
+                    self.awaitObjectId(completion: completion)
+                    return
+                }
+                completion(Result.success(nil))
+            }
+        }
     }
 }

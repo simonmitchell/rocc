@@ -129,4 +129,19 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
             super.performFunction(function, payload: payload, callback: callback)
         }
     }
+
+    override func sendSetDevicePropValue(
+        _ value: PTP.DeviceProperty.Value,
+        valueB: Bool = false,
+        callback: CommandRequestPacketResponse? = nil
+    ) {
+        // TODO: Write test that covers this!
+        var data = ByteBuffer()
+        // Insert a Word at start, which we'll populate later with the length of `data`
+        data.appendValue(Word(0x0000), ofType: .uint16)
+        data.appendValue(value.code.rawValue, ofType: .uint16)
+        data.appendValue(value.value, ofType: value.type)
+        // Replace the empty Word at start of data with the length of data
+        data[dWord: 0] = DWord(data.length)
+    }
 }

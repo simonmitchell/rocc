@@ -152,34 +152,6 @@ final class PTPIPClient {
         sendControlPacket(packet)
     }
     
-    func sendSetControlDeviceAValue(_ value: PTP.DeviceProperty.Value, callback: CommandRequestPacketResponse? = nil) {
-        
-        let transactionID = getNextTransactionId()
-        let opRequestPacket = Packet.commandRequestPacket(code: .setControlDeviceA, arguments: [DWord(value.code.rawValue)], transactionId: transactionID, dataPhaseInfo: 2)
-        var data = ByteBuffer()
-        data.appendValue(value.value, ofType: value.type)
-        let dataPackets = Packet.dataSendPackets(data: data, transactionId: transactionID)
-        
-        sendCommandRequestPacket(opRequestPacket, callback: callback)
-        dataPackets.forEach { (dataPacket) in
-            sendControlPacket(dataPacket)
-        }
-    }
-    
-    func sendSetControlDeviceBValue(_ value: PTP.DeviceProperty.Value, callback: CommandRequestPacketResponse? = nil) {
-        
-        let transactionID = getNextTransactionId()
-        let opRequestPacket = Packet.commandRequestPacket(code: .setControlDeviceB, arguments: [DWord(value.code.rawValue)], transactionId: transactionID, dataPhaseInfo: 2)
-        var data = ByteBuffer()
-        data.appendValue(value.value, ofType: value.type)
-        let dataPackets = Packet.dataSendPackets(data: data, transactionId: transactionID)
-        
-        sendCommandRequestPacket(opRequestPacket, callback: callback, callCallbackForAnyResponse: true)
-        dataPackets.forEach { (dataPacket) in
-            sendControlPacket(dataPacket)
-        }
-    }
-    
     var onPong: (() -> Void)?
     
     func ping(callback: @escaping (Error?) -> Void) {
