@@ -18,6 +18,11 @@ struct CanonPTPPropValueChange: CanonPTPEvent {
     
     /// The value of the property
     let value: PTPDevicePropertyDataType
+
+    init(code: PTP.DeviceProperty.Code, value: PTPDevicePropertyDataType) {
+        self.code = code
+        self.value = value
+    }
     
     init?(_ data: ByteBuffer) {
         

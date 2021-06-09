@@ -27,7 +27,7 @@ extension PTPIPCamera {
                 return
             }
                             
-            if let latestEvent = lastEvent, let _ = latestEvent.availableFunctions {
+            if let latestEvent = lastEvent, latestEvent.availableFunctions != nil {
                 latestEvent.isFunctionAvailable(function, callback: callback)
                 return
             }

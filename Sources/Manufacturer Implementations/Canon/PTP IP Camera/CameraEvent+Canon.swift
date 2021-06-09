@@ -12,6 +12,10 @@ extension CameraEvent {
 
     static func fromCanonPTPEvents(_ canonPTPEvents: CanonPTPEvents) -> CameraEvent {
 
+        // TODO: [Canon] handle partial events, much like API cameras for Sony canon
+        // camera events are partial (do need to 100% confirm this) so we will lose info otherwise and functions
+        // which remain available may be marked as unavailable!
+
         var currentISO: ISO.Value?
         var availableISO: [ISO.Value]?
 
@@ -20,13 +24,15 @@ extension CameraEvent {
 
         var availableFunctions: [_CameraFunction] = []
         var supportedFunctions: [_CameraFunction] = []
+        var storageInformation: [StorageInformation]? = nil
+        var batteryInfo: [BatteryInformation]?
 
         // According to libgphoto if a value is present as `CanonPTPPropValueChange` then
         // it is able to be set/got apart from a few hard-coded property codes obviously
 
         canonPTPEvents.events.forEach { event in
 
-            // TODO: Add support for all other event codes and types!
+            // TODO: [Canon] Add support for all other event codes and types!
             switch event {
             case let propertyChange as CanonPTPPropValueChange:
                 switch propertyChange.code {
@@ -44,6 +50,32 @@ extension CameraEvent {
                     availableFunctions.append(contentsOf: [.setShutterSpeed, .getShutterSpeed])
                     supportedFunctions.append(contentsOf: [.setShutterSpeed, .getShutterSpeed])
                     currentShutterSpeed = current
+                case .availableShotsCanonEOS:
+                    guard let shots = propertyChange.value.toInt else { return }
+
+                    let info = storageInformation?.first
+                    let storageInfo = StorageInformation(
+                        description: info?.description,
+                        spaceForImages: shots,
+                        recordTarget: true,
+                        recordableTime: info?.recordableTime,
+                        id: nil,
+                        noMedia: info?.noMedia ?? false
+                    )
+                    storageInformation = [
+                        storageInfo
+                    ]
+                case .batteryPowerCanonEOS:
+                    guard let level = propertyChange.value.toInt else { return }
+                    batteryInfo = [
+                        BatteryInformation(
+                            identifier: "",
+                            status: .active,
+                            chargeStatus: level < 10 ? .nearEnd : nil,
+                            description: nil,
+                            level: Double(level)/100.0
+                        )
+                    ]
                 default:
                     break
                 }

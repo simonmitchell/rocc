@@ -31,7 +31,7 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
     
     var lensModelName: String? = nil
     
-    var onEventAvailable: (() -> Void)?
+    var onEventAvailable: ((CameraEvent?) -> Void)?
     
     var onDisconnected: (() -> Void)?
     
@@ -228,7 +228,7 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
         })
     }
     
-    func getDevicePropDescriptionsFor(propCodes: [PTP.DeviceProperty.Code], callback: @escaping PTPIPClient.AllDevicePropertyDescriptionsCompletion) {
+    func getDevicePropDescriptionsFor(propCodes: Set<PTP.DeviceProperty.Code>, callback: @escaping PTPIPClient.AllDevicePropertyDescriptionsCompletion) {
         
         guard let ptpIPClient = ptpIPClient else { return }
         
@@ -248,36 +248,6 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
                 }
             })
             
-        } else if deviceInfo?.supportedOperations.contains(.sonyGetDevicePropDesc) ?? false {
-            
-            var remainingCodes = propCodes
-            var returnProperties: [PTPDeviceProperty] = []
-            
-            propCodes.forEach { (propCode) in
-                
-                let packet = Packet.commandRequestPacket(code: .sonyGetDevicePropDesc, arguments: [DWord(propCode.rawValue)], transactionId: ptpIPClient.getNextTransactionId())
-                ptpIPClient.awaitDataFor(transactionId: packet.transactionId) { (dataResult) in
-                    
-                    remainingCodes.removeAll(where: { $0 == propCode })
-                    
-                    switch dataResult {
-                    case .success(let data):
-                        guard let property = data.data.getDeviceProperty(at: 0) else {
-                            callback(Result.failure(PTPIPClientError.invalidResponse))
-                            return
-                        }
-                        returnProperties.append(property)
-                    case .failure(_):
-                        break
-                    }
-                    
-                    guard remainingCodes.isEmpty else { return }
-                    callback(returnProperties.count == propCodes.count ? Result.success(returnProperties) : Result.failure(PTPError.propCodeNotFound))
-                }
-                ptpIPClient.sendCommandRequestPacket(packet, callback: nil)
-            }
-            
-            
         } else if deviceInfo?.supportedOperations.contains(.getDevicePropDesc) ?? false {
             
             var remainingCodes = propCodes
@@ -286,8 +256,8 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
             propCodes.forEach { (propCode) in
                 
                 ptpIPClient.getDevicePropDescFor(propCode: propCode) { (result) in
-                    
-                    remainingCodes.removeAll(where: { $0 == propCode })
+
+                    remainingCodes.remove(propCode)
 
                     switch result {
                     case .success(let property):
@@ -308,48 +278,65 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
     }
     
     func getDevicePropDescriptionFor(propCode: PTP.DeviceProperty.Code,  callback: @escaping PTPIPClient.DevicePropertyDescriptionCompletion) {
-        
-        guard let ptpIPClient = ptpIPClient else { return }
-        
-        if deviceInfo?.supportedOperations.contains(.getAllDevicePropData) ?? false {
-            
-            ptpIPClient.getAllDevicePropDesc(callback: { (result) in
-                switch result {
-                case .success(let properties):
-                    guard let property = properties.first(where: { $0.code == propCode }) else {
-                        callback(Result.failure(PTPError.propCodeNotFound))
-                        return
-                    }
-                    callback(Result.success(property))
-                case .failure(let error):
-                    callback(Result.failure(error))
+
+        getDevicePropDescriptionsFor(propCodes: [propCode]) { result in
+            switch result {
+            case .success(let properties):
+                guard let match = properties.first(where: { $0.code == propCode }) else {
+                    callback(Result.failure(PTPError.propCodeNotFound))
+                    return
                 }
-            })
-            
-        } else if deviceInfo?.supportedOperations.contains(.sonyGetDevicePropDesc) ?? false {
-            
-            let packet = Packet.commandRequestPacket(code: .sonyGetDevicePropDesc, arguments: [DWord(propCode.rawValue)], transactionId: ptpIPClient.getNextTransactionId())
-            ptpIPClient.awaitDataFor(transactionId: packet.transactionId) { (dataResult) in
-                switch dataResult {
-                case .success(let data):
-                    guard let property = data.data.getDeviceProperty(at: 0) else {
-                        callback(Result.failure(PTPIPClientError.invalidResponse))
-                        return
-                    }
-                    callback(Result.success(property))
-                case .failure(let error):
-                    callback(Result.failure(error))
-                }
+                callback(Result.success(match))
+            case .failure(let error):
+                callback(Result.failure(error))
             }
-            ptpIPClient.sendCommandRequestPacket(packet, callback: nil)
-            
-        } else if deviceInfo?.supportedOperations.contains(.getDevicePropDesc) ?? false {
-            
-            ptpIPClient.getDevicePropDescFor(propCode: propCode, callback: callback)
-            
-        } else {
-            
-            callback(Result.failure(PTPError.operationNotSupported))
+        }
+    }
+
+    /// Gets the given PTP device property codes for the required camera function. This can be overriden by subclasses
+    /// to provide custom logic such as Canon models which have multiple codes for the same params such as ISO
+    /// - Parameter function: The function that wants to be performed
+    /// - Returns: The relevant device property code
+    func propCodesFor(function: _CameraFunction) -> Set<PTP.DeviceProperty.Code>? {
+        switch function {
+        case .setISO, .getISO:
+            return [.ISO]
+        case .getShutterSpeed, .setShutterSpeed:
+            return [.shutterSpeed]
+        case .getAperture, .setAperture:
+            return [.fNumber]
+        case .getExposureCompensation, .setExposureCompensation:
+            return [.exposureBiasCompensation]
+        case .getFocusMode, .setFocusMode:
+            return [.focusMode]
+        case .getExposureMode, .setExposureMode:
+            return [.exposureProgramMode]
+        case .getExposureModeDialControl, .setExposureModeDialControl:
+            return [.exposureProgramModeControl]
+        case .getFlashMode, .setFlashMode:
+            return [.flashMode]
+        case .getSingleBracketedShootingBracket, .getContinuousBracketedShootingBracket, .getSelfTimerDuration, .getContinuousShootingMode, .setContinuousShootingMode:
+            return [.stillCaptureMode]
+        case .getWhiteBalance, .setWhiteBalance:
+            return [.whiteBalance, .colorTemp]
+        case .getLiveViewQuality, .setLiveViewQuality:
+            return [.liveViewQuality]
+        case .setStillQuality, .getStillQuality:
+            return [.stillQuality]
+        case .getVideoFileFormat, .setVideoFileFormat:
+            return [.movieFormat]
+        case .getVideoQuality, .setVideoQuality:
+            return [.movieQuality]
+        case .getStorageInformation:
+            return [.remainingShots, .remainingCaptureTime]
+        case .getStillFormat:
+            return [.stillFormat]
+        case .getExposureSettingsLock:
+            return [.exposureSettingsLockStatus]
+        case .setExposureSettingsLock:
+            return [.exposureSettingsLock]
+        default:
+            return nil
         }
     }
     
@@ -362,8 +349,8 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
         lastEventPacket = event
         
         switch event.code {
-        case .propertyChanged:
-            onEventAvailable?()
+        case .propertyChanged, .requestGetEvent:
+            onEventAvailable?(nil)
         case .objectAdded:
             guard let objectID = event.variables?.first else {
                 return
@@ -462,15 +449,20 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
                 callback(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil, nil)
             }
         case .getISO:
-            getDevicePropDescriptionFor(propCode: .ISO, callback: { (result) in
+            // TODO: Next: Copy this logic to all `get` functions, and probably also to supportsFunction and isFunctionAvailable, calls!
+            guard let propCodes = propCodesFor(function: function.function) else {
+                callback(PTPError.propCodeNotFound, nil)
+                return
+            }
+            getDevicePropDescriptionsFor(propCodes: propCodes) { result in
                 switch result {
-                case .success(let property):
-                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                case .success(let properties):
+                    let event = CameraEvent.fromSonyDeviceProperties(properties).event
                     callback(nil, event.iso?.current as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
                 }
-            })
+            }
         case .getShutterSpeed:
             getDevicePropDescriptionFor(propCode: .shutterSpeed, callback: { (result) in
                 switch result {
@@ -1717,7 +1709,7 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
             try imageData.write(to: imageURL)
             imageURLs[shootingMode, default: []].append(imageURL)
             // Trigger dummy event
-            onEventAvailable?()
+            onEventAvailable?(nil)
         } catch let error {
             Logger.log(message: "Failed to save image to disk: \(error.localizedDescription)", category: "SonyPTPIPCamera", level: .error)
             os_log("Failed to save image to disk", log: self.log, type: .error)

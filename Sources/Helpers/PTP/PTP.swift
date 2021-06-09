@@ -65,6 +65,7 @@ struct PTP {
         case objectAdded = 0xc201
         case objectRemoved = 0xC202
         case propertyChanged = 0xC203
+        case requestGetEvent = 0xc101
         case unknown1 = 0xc204
         case unknown2 = 0xc205
         case unknown3 = 0xc206
@@ -102,12 +103,14 @@ struct PTP {
         case getPartialObject = 0x101b
         case initiateOpenCapture = 0x101c
         case okay = 0x2001
+        case canonGetMACAdrress = 0x9033
         case canonGetStorageIDs = 0x9101
         case canonGetStorageInfo = 0x9102
         case canonGetObjectInfo = 0x9103
         case canonGetPartialObject = 0x9107
+        case canonGetObjectInfoEx = 0x9109
         case canonGetThumbEx = 0x910a
-        case canonSetDevicePropValueEx = 0x9110 // TODO: Important!
+        case canonSetDevicePropValueEx = 0x9110
         case canonSetRemoteMode = 0x9114
         case canonSetEventMode = 0x9115
         case canonGetEvent = 0x9116

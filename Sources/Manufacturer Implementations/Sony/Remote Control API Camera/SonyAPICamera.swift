@@ -113,7 +113,7 @@ internal final class SonyAPICameraDevice: BaseSSDPCamera {
         
     var type: String?
     
-    public var onEventAvailable: (() -> Void)?
+    public var onEventAvailable: ((CameraEvent?) -> Void)?
     
     public var onDisconnected: (() -> Void)?
     

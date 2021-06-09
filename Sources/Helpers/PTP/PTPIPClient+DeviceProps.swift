@@ -41,7 +41,8 @@ extension PTPIPClient {
         callback: @escaping AllDevicePropertyDescriptionsCompletion,
         partial: Bool = false
     ) {
-        
+
+        // TODO: [Canon] Possibly pull this parsing logic into PTPIPCamera and subclasses as Sony possibly formats device properties differently to other manufacturers!
         let packet = Packet.commandRequestPacket(code: .getAllDevicePropData, arguments: [partial ? 1 : 0], transactionId: getNextTransactionId())
         awaitDataFor(transactionId: packet.transactionId, callback: { (dataResult) in
             

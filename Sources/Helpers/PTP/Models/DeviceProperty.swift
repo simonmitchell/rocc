@@ -1374,7 +1374,7 @@ extension PTP {
                         return .uint32
                     case .autoExposureModeCanonEOS:
                         //TODO: [Canon] Never provided, but always available to set?
-                        return .uint16
+                        return .uint32
                     case .apertureCanonEOS, .apertureCanon, .shutterSpeedCanonEOS,
                          .shutterSpeedCanon, .ISOSpeedCanon, .ISOSpeedCanonEOS,
                          .focusModeCanonEOS, .colorSpaceCanonEOS, .batteryPowerCanonEOS,
@@ -1384,7 +1384,8 @@ extension PTP {
                          .EVFOutputDeviceCanonEOS, .autoPowerOffCanonEOS,
                          .EVFRecordStatusCanonEOS, .highISOSettingNoiseReductionCanonEOS,
                          .multiAspectCanonEOS, .DPOFVersionCanonEOS, .DPOFVersionCanon:
-                        return .uint16
+                        // This is contrary to what libgphoto2 suggests, but matches wireshark captures that we have!
+                        return .uint32
                     case .pictureStyleCanonEOS, .whiteBalanceCanon, .whiteBalanceCanonEOS,
                          .meteringModeCanonEOS, .meteringModeCanon, .expCompensationCanon,
                          .expCompensationCanonEOS:
@@ -1409,7 +1410,6 @@ extension PTP {
                         return .uint32
                     }
                     //TODO: [Canon] Implement!
-                    return .uint16
                 }
             }
         }

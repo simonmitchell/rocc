@@ -15,7 +15,7 @@ extension ISO.Value: PTPPropValueConvertable {
         case .sony:
             return .ISO
         case .canon:
-            return .ISO
+            return .ISOSpeedCanonEOS
             //TODO: [Canon] Implement
         }
     }
@@ -94,6 +94,7 @@ extension ISO.Value: PTPPropValueConvertable {
                 self = .native(1600)
             case 0x0070:
                 self = .native(3200)
+            // TODO: [Canon] Find out and add additional cases!
             default:
                 return nil
             }
@@ -132,7 +133,49 @@ extension ISO.Value: PTPPropValueConvertable {
                 return data[dWord: 0] ?? DWord(value)
             }
         case .canon:
-            //TODO: [Canon] Implement
+            switch self {
+            case .native(let iso):
+                switch iso {
+                case 50:
+                    return DWord(0x0040)
+                case 100:
+                    return DWord(0x0048)
+                case 125:
+                    return DWord(0x004b)
+                case 160:
+                    return DWord(0x004d)
+                case 200:
+                    return DWord(0x0050)
+                case 250:
+                    return DWord(0x0053)
+                case 320:
+                    return DWord(0x0055)
+                case 400:
+                    return DWord(0x0058)
+                case 500:
+                    return DWord(0x005b)
+                case 640:
+                    return DWord(0x005d)
+                case 800:
+                    return DWord(0x0060)
+                case 1000:
+                    return DWord(0x0063)
+                case 1250:
+                    return DWord(0x0065)
+                case 1600:
+                    return DWord(0x0068)
+                case 3200:
+                    return DWord(0x0070)
+                default:
+                    // Default to auto
+                    return DWord(0x00000000)
+                }
+            case .auto:
+                return DWord(0x00000000)
+            default:
+                // Default to auto
+                return DWord(0x00000000)
+            }
             return DWord(0)
         }
     }

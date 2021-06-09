@@ -89,8 +89,9 @@ internal final class SonyPTPIPCamera: PTPIPCamera {
                     switch result {
                     case .success(var properties):
 
+                        // TODO: [Test] Make sure this all still works!
                         if var lastProperties = self.lastAllDeviceProps {
-                            properties.forEach { (property) in
+                            properties.forEach { property in
                                 // If the property is already present in received properties, just directly replace it!
                                 if let existingIndex = lastProperties.firstIndex(where: { (existingProperty) -> Bool in
                                     return property.code == existingProperty.code
@@ -113,6 +114,7 @@ internal final class SonyPTPIPCamera: PTPIPCamera {
                         event.postViewPictureURLs = self.imageURLs.compactMapValues({ (urls) -> [(postView: URL, thumbnail: URL?)]? in
                             return urls.map({ ($0, nil) })
                         })
+                        self.lastAllDeviceProps = properties
                         self.imageURLs = [:]
                         callback(nil, event as? T.ReturnType)
                     case .failure(let error):
@@ -261,8 +263,8 @@ internal final class SonyPTPIPCamera: PTPIPCamera {
         let dataPackets = Packet.dataSendPackets(data: data, transactionId: transactionID)
 
         ptpIPClient?.sendCommandRequestPacket(opRequestPacket, callback: callback)
-        dataPackets.forEach { dataPacket in
-            ptpIPClient?.sendControlPacket(dataPacket)
+        dataPackets.forEach { [weak self] dataPacket in
+            self?.ptpIPClient?.sendControlPacket(dataPacket)
         }
     }
     
@@ -349,6 +351,52 @@ internal final class SonyPTPIPCamera: PTPIPCamera {
                 }
                 completion(Result.success(nil))
             }
+        }
+    }
+
+    override func getDevicePropDescriptionsFor(propCodes: Set<PTP.DeviceProperty.Code>, callback: @escaping PTPIPClient.AllDevicePropertyDescriptionsCompletion) {
+
+        guard let ptpIPClient = ptpIPClient else { return }
+
+        if deviceInfo?.supportedOperations.contains(.getAllDevicePropData) ?? false {
+            super.getDevicePropDescriptionsFor(propCodes: propCodes, callback: callback)
+        } else if deviceInfo?.supportedOperations.contains(.sonyGetDevicePropDesc) ?? false {
+
+            var remainingCodes = propCodes
+            var returnProperties: [PTPDeviceProperty] = []
+
+            propCodes.forEach { (propCode) in
+
+                let packet = Packet.commandRequestPacket(code: .sonyGetDevicePropDesc, arguments: [DWord(propCode.rawValue)], transactionId: ptpIPClient.getNextTransactionId())
+                ptpIPClient.awaitDataFor(transactionId: packet.transactionId) { (dataResult) in
+
+                    remainingCodes.remove(propCode)
+
+                    switch dataResult {
+                    case .success(let data):
+                        guard let property = data.data.getDeviceProperty(at: 0) else {
+                            callback(Result.failure(PTPIPClientError.invalidResponse))
+                            return
+                        }
+                        returnProperties.append(property)
+                    case .failure(_):
+                        break
+                    }
+
+                    guard remainingCodes.isEmpty else { return }
+                    callback(returnProperties.count == propCodes.count ? Result.success(returnProperties) : Result.failure(PTPError.propCodeNotFound))
+                }
+                ptpIPClient.sendCommandRequestPacket(packet, callback: nil)
+            }
+        } else {
+            super.getDevicePropDescriptionsFor(propCodes: propCodes, callback: callback)
+        }
+    }
+
+    override func getDevicePropDescriptionFor(propCode: PTP.DeviceProperty.Code, callback: @escaping PTPIPClient.DevicePropertyDescriptionCompletion) {
+
+        if deviceInfo?.supportedOperations.contains(.getAllDevicePropData) ?? false {
+            super.getDevicePropDescriptionFor(propCode: propCode, callback: callback)
         }
     }
 }

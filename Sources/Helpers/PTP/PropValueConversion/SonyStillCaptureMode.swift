@@ -178,7 +178,7 @@ enum SonyStillCaptureMode: DWord, PTPPropValueConvertable {
         case .sony:
             return DWord(rawValue)
         case .canon:
-            return Word(0)
+            return DWord(0)
             //TODO: [Canon] Implement
         }
     }

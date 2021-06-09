@@ -105,7 +105,7 @@ class SonyPTPCameraTests: XCTestCase {
         
         let expectation = XCTestExpectation(description: "Get event")
         
-        self.camera.onEventAvailable = {
+        self.camera.onEventAvailable = { _ in
             self.camera.performFunction(Event.get, payload: nil) { (_, event) in
                 XCTAssertNotNil(event)
                 expectation.fulfill()
@@ -139,7 +139,7 @@ class SonyPTPCameraTests: XCTestCase {
         
         let expectation = XCTestExpectation(description: "Take picture")
         
-        self.camera.onEventAvailable = {
+        self.camera.onEventAvailable = { _ in
             
         }
         

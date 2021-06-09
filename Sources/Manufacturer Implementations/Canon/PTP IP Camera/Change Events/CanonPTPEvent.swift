@@ -173,6 +173,10 @@ struct CanonPTPEvents {
             }
         }
     }
+
+    init(events: [CanonPTPEvent]) {
+        self.events = events
+    }
     
     /// Initialises a new Canon PTP Event from the provided data
     /// - Parameter data: The data received from the camera
@@ -199,10 +203,6 @@ struct CanonPTPEvents {
             // If we can't get a type, we have invalid data... don't continue
             guard let type: DWord = data.read(offset: &offset) else {
                 throw CanonPTPEventParsingError.invalidData
-            }
-
-            if type == 0xc18a {
-                print("[MARK] Got avail list change")
             }
             
             // If we don't have an enum case, we can simply break as we want to continue anyways for other changes

@@ -150,7 +150,8 @@ public protocol Camera: class {
     var eventPollingMode: PollingMode { get }
     
     /// Called by the camera when an event is available.
-    var onEventAvailable: (() -> Void)? { get set }
+    /// If the event passed in is non-null then there is no need to fetch the event from the camera by calling `.getEvent`
+    var onEventAvailable: ((CameraEvent?) -> Void)? { get set }
     
     /// Called by the camera when it was disconnected.
     var onDisconnected: (() -> Void)? { get set }

@@ -67,11 +67,17 @@ public final class CameraEventNotifier {
         case .continuous:
             fetchEvent(true)
         case .cameraDriven:
-            camera.onEventAvailable = { [weak self] in
+            camera.onEventAvailable = { [weak self] event in
                 guard let self = self else { return }
-                Logger.log(message: "Camera indicated event available", category: "CameraEventNotifier", level: .debug)
-                os_log("Camera indicated event available", log: self.log, type: .debug)
-                self.fetchEvent()
+                if let availableEvent = event {
+                    Logger.log(message: "Camera indicated event available and sent the event", category: "CameraEventNotifier", level: .debug)
+                    os_log("Camera indicated event available and sent the event", log: self.log, type: .debug)
+                    self.delegate?.eventNotifier(self, receivedEvent: availableEvent)
+                } else {
+                    Logger.log(message: "Camera indicated event available", category: "CameraEventNotifier", level: .debug)
+                    os_log("Camera indicated event available", log: self.log, type: .debug)
+                    self.fetchEvent()
+                }
             }
         case .timed:
             fetchEvent(true)

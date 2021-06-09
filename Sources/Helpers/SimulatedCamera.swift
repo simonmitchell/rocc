@@ -106,7 +106,7 @@ public final class DummyCamera: Camera {
         return nil
     }
     
-    public var onEventAvailable: (() -> Void)?
+    public var onEventAvailable: ((CameraEvent?) -> Void)?
     
     public var onDisconnected: (() -> Void)?
     

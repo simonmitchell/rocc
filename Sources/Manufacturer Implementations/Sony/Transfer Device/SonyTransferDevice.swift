@@ -38,7 +38,7 @@ internal final class SonyTransferDevice: BaseSSDPCamera {
     
     var pushContentDevice: UPnPDevice?
     
-    var onEventAvailable: (() -> Void)?
+    public var onEventAvailable: ((CameraEvent?) -> Void)?
     
     var onDisconnected: (() -> Void)?
     
