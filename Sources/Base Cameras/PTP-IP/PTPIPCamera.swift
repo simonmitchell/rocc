@@ -227,10 +227,113 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
             completion(nil, false)
         })
     }
+
+    func getDeviceValueFor<T: PTPPropValueConvertable>(
+        function: _CameraFunction,
+        callback: @escaping (Result<T, Error>) -> Void
+    ) {
+        guard let propCodes = propCodesFor(function: function), !propCodes.isEmpty else {
+            callback(.failure(PTPError.propCodeNotFound))
+            return
+        }
+        let manufacturer = manufacturer
+        getDevicePropValuesFor(propCodes: propCodes) { [weak self] result in
+            switch result {
+            case .success(let values):
+                guard let value = T(values: values, manufacturer: manufacturer) else {
+                    callback(.failure(PTPError.propCodeInvalid))
+                    return
+                }
+                callback(.success(value))
+            case .failure(let error):
+                callback(.failure(error))
+            }
+        }
+    }
+
+    /// Gets raw device prop value for the given prop codes
+    /// - Parameters:
+    ///   - propCodes: The prop codes to return for
+    ///   - callback: Closure called once done
+    func getDevicePropValuesFor(
+        propCodes: Set<PTP.DeviceProperty.Code>,
+        callback: @escaping PTPIPClient.DevicePropertyValuesCompletion
+    ) {
+        guard let ptpIPClient = ptpIPClient else { return }
+        guard !propCodes.isEmpty else {
+            callback(.success([:]))
+            return
+        }
+
+        guard deviceInfo?.supportedOperations.contains(.getDevicePropValue) ?? false else {
+
+            // If the .getDevicePropValue not supported, fall back to
+            // .getDevicePropDescriptionsFor
+            getDevicePropDescriptionsFor(
+                propCodes: propCodes
+            ) { propDescriptionCodesResult in
+                switch propDescriptionCodesResult {
+                case .success(let deviceProperties):
+                    var returnValues: [PTP.DeviceProperty.Code: PTPDevicePropertyDataType] = [:]
+                    deviceProperties.forEach { deviceProperty in
+                        returnValues[deviceProperty.code] = deviceProperty.currentValue
+                    }
+                    callback(.success(returnValues))
+                case .failure(let error):
+                    callback(.failure(error))
+                }
+            }
+
+            return
+        }
+
+        // TODO: [Canon] Add override for canon cameras which uses eventing mechanism? :vomit: or perhaps
+        // just rely on last received event
+
+        var remainingCodes = propCodes
+        var returnProperties: [PTP.DeviceProperty.Code: PTPDevicePropertyDataType] = [:]
+
+        propCodes.forEach { propCode in
+
+            let dataType = propCode.dataType(for: manufacturer)
+            let requestPacket = Packet.commandRequestPacket(
+                code: .getDevicePropValue,
+                arguments: [propCode.rawValue],
+                transactionId: ptpIPClient.getNextTransactionId()
+            )
+
+            ptpIPClient.awaitDataFor(transactionId: requestPacket.transactionId) { result in
+                remainingCodes.remove(propCode)
+                switch result {
+                case .success(let data):
+                    var offset: UInt = 0
+                    guard let property = data.data.readValue(of: dataType, at: &offset) else { break }
+                    returnProperties[propCode] = property
+                case .failure(_):
+                    break
+                }
+
+                guard remainingCodes.isEmpty else { return }
+                callback(
+                    returnProperties.count == propCodes.count ?
+                        Result.success(returnProperties) :
+                        Result.failure(PTPError.propCodeNotFound)
+                )
+            }
+            ptpIPClient.sendControlPacket(requestPacket)
+        }
+    }
     
     func getDevicePropDescriptionsFor(propCodes: Set<PTP.DeviceProperty.Code>, callback: @escaping PTPIPClient.AllDevicePropertyDescriptionsCompletion) {
         
         guard let ptpIPClient = ptpIPClient else { return }
+        guard !propCodes.isEmpty else {
+            callback(.success([]))
+            return
+        }
+
+        // TODO: Add check first to check if the required properties are all contained
+        // in deviceInfo?.deviceProperties.
         
         if deviceInfo?.supportedOperations.contains(.getAllDevicePropData) ?? false {
             
@@ -293,6 +396,27 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
         }
     }
 
+    /// Returns whether a function is supported based on a set of supported device properties
+    /// and required device properties. This is a function as some cameras/functions may
+    /// require all of the required device properties to be present, and some may just
+    /// require one or other of the properties to be present
+    ///
+    /// For example Canon has multiple PTP.DeviceProperty.Codes for the same function such as
+    /// ISOCanon and ISOCanonEOS for get/set ISO
+    ///
+    /// - Parameters:
+    ///   - function: The function that we are checking if is supported
+    ///   - supportedDeviceProperties: The device properties that are supported on the camera
+    ///   - requiredDeviceProperties: The device properties that are required from the camera
+    /// - Returns: Whether the function is supported!
+    func isFunctionSupportedBy(
+        _ function: _CameraFunction,
+        supportedDeviceProperties: Set<PTP.DeviceProperty.Code>,
+        requiredDeviceProperties: Set<PTP.DeviceProperty.Code>
+    ) -> Bool {
+        return requiredDeviceProperties.isSubset(of: supportedDeviceProperties)
+    }
+
     /// Gets the given PTP device property codes for the required camera function. This can be overriden by subclasses
     /// to provide custom logic such as Canon models which have multiple codes for the same params such as ISO
     /// - Parameter function: The function that wants to be performed
@@ -315,11 +439,11 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
             return [.exposureProgramModeControl]
         case .getFlashMode, .setFlashMode:
             return [.flashMode]
-        case .getSingleBracketedShootingBracket, .getContinuousBracketedShootingBracket, .getSelfTimerDuration, .getContinuousShootingMode, .setContinuousShootingMode:
+        case .getSingleBracketedShootingBracket, .getContinuousBracketedShootingBracket, .getSelfTimerDuration, .getContinuousShootingMode, .setContinuousShootingMode, .getContinuousShootingSpeed, .setContinuousShootingSpeed:
             return [.stillCaptureMode]
         case .getWhiteBalance, .setWhiteBalance:
             return [.whiteBalance, .colorTemp]
-        case .getLiveViewQuality, .setLiveViewQuality:
+        case .getLiveViewQuality, .setLiveViewQuality, .startLiveViewWithQuality:
             return [.liveViewQuality]
         case .setStillQuality, .getStillQuality:
             return [.stillQuality]
@@ -329,12 +453,25 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
             return [.movieQuality]
         case .getStorageInformation:
             return [.remainingShots, .remainingCaptureTime]
-        case .getStillFormat:
+        case .getStillFormat, .setStillFormat:
             return [.stillFormat]
         case .getExposureSettingsLock:
             return [.exposureSettingsLockStatus]
         case .setExposureSettingsLock:
             return [.exposureSettingsLock]
+        case .setShootMode, .getShootMode:
+            return [.stillCaptureMode]
+        case .startZooming, .stopZooming:
+            // TODO: Check which of these are required? All? Or just one?
+            return [.digitalZoom, .performZoom, .zoomPosition]
+        case .getStillSize, .setStillSize:
+            return [.imageSize]
+        case .setCurrentTime:
+            return [.dateTime]
+        case .cancelHalfPressShutter, .halfPressShutter:
+            return [.autoFocus]
+        case .takePicture:
+            return [.capture]
         default:
             return nil
         }
@@ -381,6 +518,7 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
         case propCodeNotFound
         case anotherSessionOpen
         case operationNotSupported
+        case propCodeInvalid
     }
     
     func performFunction<T>(_ function: T, payload: T.SendType?, callback: @escaping ((Error?, T.ReturnType?) -> Void)) where T : CameraFunction {
@@ -449,71 +587,71 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
                 callback(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil, nil)
             }
         case .getISO:
-            // TODO: Next: Copy this logic to all `get` functions, and probably also to supportsFunction and isFunctionAvailable, calls!
-            guard let propCodes = propCodesFor(function: function.function) else {
-                callback(PTPError.propCodeNotFound, nil)
-                return
-            }
-            getDevicePropDescriptionsFor(propCodes: propCodes) { result in
+            // TODO: [Canon] Perhaps override these on Sony to use the original!
+//            getDevicePropDescriptionFor(propCode: .shutterSpeed, callback: { (result) in
+//                switch result {
+//                case .success(let property):
+//                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
+//                    callback(nil, event.shutterSpeed?.current as? T.ReturnType)
+//                case .failure(let error):
+//                    callback(error, nil)
+//                }
+//            })
+            getDeviceValueFor(function: function.function) { (result: Result<ISO.Value, Error>) in
                 switch result {
-                case .success(let properties):
-                    let event = CameraEvent.fromSonyDeviceProperties(properties).event
-                    callback(nil, event.iso?.current as? T.ReturnType)
+                case .success(let value):
+                    callback(nil, value as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
                 }
             }
         case .getShutterSpeed:
-            getDevicePropDescriptionFor(propCode: .shutterSpeed, callback: { (result) in
+            getDeviceValueFor(function: function.function) { (result: Result<ShutterSpeed, Error>) in
                 switch result {
-                case .success(let property):
-                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
-                    callback(nil, event.shutterSpeed?.current as? T.ReturnType)
+                case .success(let value):
+                    callback(nil, value as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
                 }
-            })
+            }
         case .getAperture:
-            getDevicePropDescriptionFor(propCode: .fNumber, callback: { (result) in
+            getDeviceValueFor(function: function.function) { (result: Result<Aperture.Value, Error>) in
                 switch result {
-                case .success(let property):
-                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
-                    callback(nil, event.aperture?.current as? T.ReturnType)
+                case .success(let value):
+                    callback(nil, value as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
                 }
-            })
+            }
         case .getExposureCompensation:
-            getDevicePropDescriptionFor(propCode: .exposureBiasCompensation, callback: { (result) in
+            getDeviceValueFor(function: function.function) { (result: Result<Exposure.Compensation.Value, Error>) in
                 switch result {
-                case .success(let property):
-                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
-                    callback(nil, event.aperture?.current as? T.ReturnType)
+                case .success(let value):
+                    callback(nil, value as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
                 }
-            })
+            }
         case .getFocusMode:
-            getDevicePropDescriptionFor(propCode: .focusMode, callback: { (result) in
+            getDeviceValueFor(function: function.function) { (result: Result<Focus.Mode.Value, Error>) in
                 switch result {
-                case .success(let property):
-                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
-                    callback(nil, event.focusMode?.current as? T.ReturnType)
+                case .success(let value):
+                    callback(nil, value as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
                 }
-            })
+            }
         case .getExposureMode:
-            getDevicePropDescriptionFor(propCode: .exposureProgramMode, callback: { (result) in
+            getDeviceValueFor(function: function.function) { (result: Result<Exposure.Mode.Value, Error>) in
                 switch result {
-                case .success(let property):
-                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
-                    callback(nil, event.exposureMode?.current as? T.ReturnType)
+                case .success(let value):
+                    callback(nil, value as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
                 }
-            })
+            }
         case .getExposureModeDialControl:
+            // TODO: [Canon] Add PTPPropValueConvertable struct for exposure program mode control
             getDevicePropDescriptionFor(propCode: .exposureProgramModeControl, callback: { (result) in
                 switch result {
                 case .success(let property):
@@ -524,31 +662,28 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
                 }
             })
         case .getFlashMode:
-            getDevicePropDescriptionFor(propCode: .flashMode, callback: { (result) in
+            getDeviceValueFor(function: function.function) { (result: Result<Flash.Mode.Value, Error>) in
                 switch result {
-                case .success(let property):
-                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
-                    callback(nil, event.flashMode?.current as? T.ReturnType)
+                case .success(let value):
+                    callback(nil, value as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
                 }
-            })
+            }
         case .getSingleBracketedShootingBracket:
-            getDevicePropDescriptionFor(propCode: .stillCaptureMode) { (result) in
+            getDeviceValueFor(function: function.function) { (result: Result<SingleBracketCapture.Bracket.Value, Error>) in
                 switch result {
-                case .success(let property):
-                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
-                    callback(nil, event.singleBracketedShootingBrackets?.current as? T.ReturnType)
+                case .success(let value):
+                    callback(nil, value as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
                 }
             }
         case .getContinuousBracketedShootingBracket:
-            getDevicePropDescriptionFor(propCode: .stillCaptureMode) { (result) in
+            getDeviceValueFor(function: function.function) { (result: Result<ContinuousBracketCapture.Bracket.Value, Error>) in
                 switch result {
-                case .success(let property):
-                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
-                    callback(nil, event.continuousBracketedShootingBrackets?.current as? T.ReturnType)
+                case .success(let value):
+                    callback(nil, value as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
                 }
@@ -568,6 +703,7 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
             break
         case .getSelfTimerDuration:
 
+            // TODO: [Canon] Update to add new logic!
             getDevicePropDescriptionFor(propCode: .stillCaptureMode, callback: { (result) in
                 switch result {
                 case .success(let property):
@@ -580,6 +716,7 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
 
         case .setWhiteBalance:
 
+            // TODO: [Canon] Move to SonyPTPIPCamera as this isn't default behaviour
             guard let value = payload as? WhiteBalance.Value else {
                 callback(FunctionError.invalidPayload, nil)
                 return
@@ -596,7 +733,7 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
             ))
 
         case .getWhiteBalance:
-
+            // TODO: You are here!
             // White balance requires white balance and colorTemp codes to be fetched!
             getDevicePropDescriptionsFor(propCodes: [.whiteBalance, .colorTemp]) { (result) in
                 switch result {
@@ -757,15 +894,14 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
                 }
             }
         case .getLiveViewQuality:
-            getDevicePropDescriptionFor(propCode: .liveViewQuality, callback: { (result) in
+            getDeviceValueFor(function: function.function) { (result: Result<LiveView.Quality, Error>) in
                 switch result {
-                case .success(let property):
-                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
-                    callback(nil, event.liveViewQuality?.current as? T.ReturnType)
+                case .success(let value):
+                    callback(nil, value as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
                 }
-            })
+            }
         case .setSendLiveViewFrameInfo:
             // Doesn't seem to be available via PTP/IP
             callback(FunctionError.notSupportedByAvailableVersion, nil)
@@ -803,36 +939,45 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
             // Doesn't seem to be available via PTP/IP
             callback(FunctionError.notSupportedByAvailableVersion, nil)
         case .getContinuousShootingMode:
+            // TODO: [Canon] conform ContinuousCapture.Mode.Value to PTPPropValueConvertable
+//            getDeviceValueFor(function: function.function) { (result: Result<ContinuousCapture.Mode.Value, Error>) in
+//                switch result {
+//                case .success(let value):
+//                    callback(nil, value as? T.ReturnType)
+//                case .failure(let error):
+//                    callback(error, nil)
+//                }
+//            }
             getDevicePropDescriptionFor(propCode: .stillCaptureMode, callback: { (result) in
-                switch result {
-                case .success(let property):
-                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
-                    callback(nil, event.continuousShootingMode?.current as? T.ReturnType)
-                case .failure(let error):
-                    callback(error, nil)
-                }
-            })
-            callback(nil, nil)
+                            switch result {
+                            case .success(let property):
+                                let event = CameraEvent.fromSonyDeviceProperties([property]).event
+                                callback(nil, event.continuousShootingMode?.current as? T.ReturnType)
+                            case .failure(let error):
+                                callback(error, nil)
+                            }
+                        })
+                        callback(nil, nil)
+
+            break
         case .getContinuousShootingSpeed:
-            getDevicePropDescriptionFor(propCode: .stillCaptureMode, callback: { (result) in
+            getDeviceValueFor(function: function.function) { (result: Result<ContinuousCapture.Speed.Value, Error>) in
                 switch result {
-                case .success(let property):
-                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
-                    callback(nil, event.continuousShootingSpeed?.current as? T.ReturnType)
+                case .success(let value):
+                    callback(nil, value as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
                 }
-            })
+            }
         case .getStillQuality:
-            getDevicePropDescriptionFor(propCode: .stillQuality, callback: { (result) in
+            getDeviceValueFor(function: function.function) { (result: Result<StillCapture.Quality.Value, Error>) in
                 switch result {
-                case .success(let property):
-                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
-                    callback(nil, event.stillQuality?.current as? T.ReturnType)
+                case .success(let value):
+                    callback(nil, value as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
                 }
-            })
+            }
         case .getPostviewImageSize:
             //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(nil, nil)
@@ -840,25 +985,23 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
             //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(nil, nil)
         case .getVideoFileFormat:
-            getDevicePropDescriptionFor(propCode: .movieFormat, callback: { (result) in
+            getDeviceValueFor(function: function.function) { (result: Result<VideoCapture.FileFormat.Value, Error>) in
                 switch result {
-                case .success(let property):
-                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
-                    callback(nil, event.videoFileFormat?.current as? T.ReturnType)
+                case .success(let value):
+                    callback(nil, value as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
                 }
-            })
+            }
         case .getVideoQuality:
-            getDevicePropDescriptionFor(propCode: .movieQuality, callback: { (result) in
+            getDeviceValueFor(function: function.function) { (result: Result<VideoCapture.Quality.Value, Error>) in
                 switch result {
-                case .success(let property):
-                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
-                    callback(nil, event.videoQuality?.current as? T.ReturnType)
+                case .success(let value):
+                    callback(nil, value as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
                 }
-            })
+            }
         case .setSteadyMode:
             //TODO: Unable to reverse engineer as not supported on RX100 VII
             callback(nil, nil)
@@ -923,16 +1066,16 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
             //TODO: Implement
             callback(nil, nil)
         case .getStorageInformation:
-            // Requires either remaining shots or remaining capture time to function
-            getDevicePropDescriptionsFor(propCodes: [.remainingShots, .remainingCaptureTime, .storageState]) { (result) in
-                switch result {
-                case .success(let properties):
-                    let event = CameraEvent.fromSonyDeviceProperties(properties).event
-                    callback(nil, event.storageInformation as? T.ReturnType)
-                case .failure(let error):
-                    callback(error, nil)
-                }
-            }
+            // TODO: [Canon] Conform StorageInformation to PTPPropValueConvertable
+//            getDeviceValueFor(function: function.function) { (result: Result<StorageInformation, Error>) in
+//                switch result {
+//                case .success(let value):
+//                    callback(nil, value as? T.ReturnType)
+//                case .failure(let error):
+//                    callback(error, nil)
+//                }
+//            }
+            break
         case .setCameraFunction:
             callback(CameraError.noSuchMethod("setCameraFunction"), nil)
         case .getCameraFunction:
@@ -944,21 +1087,19 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
         case .startRecordMode:
             callback(CameraError.noSuchMethod("startRecordMode"), nil)
         case .getStillFormat:
-            getDevicePropDescriptionFor(propCode: .stillFormat, callback: { (result) in
+            getDeviceValueFor(function: function.function) { (result: Result<StillCapture.Format.Value, Error>) in
                 switch result {
-                case .success(let property):
-                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
-                    callback(nil, event.stillFormat?.current as? T.ReturnType)
+                case .success(let value):
+                    callback(nil, value as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
                 }
-            })
+            }
         case .getExposureSettingsLock:
-            getDevicePropDescriptionFor(propCode: .exposureSettingsLockStatus) { (result) in
+            getDeviceValueFor(function: function.function) { (result: Result<Exposure.SettingsLock.Status, Error>) in
                 switch result {
-                case .success(let property):
-                    let event = CameraEvent.fromSonyDeviceProperties([property]).event
-                    callback(nil, event.exposureSettingsLockStatus as? T.ReturnType)
+                case .success(let value):
+                    callback(nil, value as? T.ReturnType)
                 case .failure(let error):
                     callback(error, nil)
                 }
@@ -970,9 +1111,8 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
             // It doesn't seem like we actually need the value at all, it just toggles it on this camera...
             sendSetDevicePropValue(
                 PTP.DeviceProperty.Value(
-                    code: .exposureSettingsLock,
-                    type: .uint16,
-                    value: Word(0x01)
+                    Exposure.SettingsLock.Status.normal,
+                    manufacturer: manufacturer
                 ),
                 valueB: true
             ) { [weak self] response in
@@ -983,9 +1123,8 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
                 }
                 self.sendSetDevicePropValue(
                     PTP.DeviceProperty.Value(
-                        code: .exposureSettingsLock,
-                        type: .uint16,
-                        value: Word(0x02)
+                        Exposure.SettingsLock.Status.standby,
+                        manufacturer: self.manufacturer
                     ),
                     valueB: true
                 ) { innerResponse in

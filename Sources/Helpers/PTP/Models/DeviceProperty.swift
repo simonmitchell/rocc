@@ -312,61 +312,6 @@ extension PTP.DeviceProperty.Code {
     }
 }
 
-extension _CameraFunction {
-    
-    /// Returns the matching ptp device property codes that are required for the function to be supported.
-    /// - Note: This returns an array because some manufacturers use different codes for the same property
-    var ptpDevicePropertyCodes: [PTP.DeviceProperty.Code]? {
-        switch self {
-        case .getAperture, .setAperture:
-            return [.fNumber]
-        case .getISO, .setISO:
-            return [.ISO]
-        case .getWhiteBalance, .setWhiteBalance:
-            return [.whiteBalance]
-        case .setShootMode, .getShootMode:
-            return [.stillCaptureMode]
-        case .setProgramShift, .getProgramShift:
-            // Not available natively with PTP/IP
-            return nil
-        case .startZooming, .stopZooming:
-            return [.digitalZoom, .performZoom, .zoomPosition]
-        case .getExposureMode, .setExposureMode:
-            return [.exposureProgramMode]
-        case .getFocusMode, .setFocusMode:
-            return [.focusMode]
-        case .getExposureCompensation, .setExposureCompensation:
-            return [.exposureBiasCompensation]
-        case .getShutterSpeed, .setShutterSpeed:
-            return [.shutterSpeed]
-        case .getFlashMode, .setFlashMode:
-            return [.flashMode]
-        case .getStillSize, .setStillSize:
-            return [.imageSize, .imageSizeSony]
-        case .getStillQuality, .setStillQuality:
-            return [.stillQuality]
-        case .getStillFormat, .setStillFormat:
-            return [.stillFormat]
-        case .getLiveViewQuality, .setLiveViewQuality, .startLiveViewWithQuality:
-            return [.liveViewQuality]
-        case .setCurrentTime:
-            return [.dateTime]
-        case .cancelHalfPressShutter, .halfPressShutter:
-            return [.autoFocus]
-        case .takePicture:
-            return [.capture]
-        // These are a bit strange, because setting the exposure lock uses a different parameter (setDeviceBProp)
-        // to getting the value!
-        case .getExposureSettingsLock:
-            return [.exposureSettingsLockStatus]
-        case .setExposureSettingsLock:
-            return [.exposureSettingsLock]
-        default:
-            return nil
-        }
-    }
-}
-
 protocol PTPDevicePropertyDataType {
     
     static var dataType: PTP.DeviceProperty.DataType { get }

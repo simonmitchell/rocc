@@ -25,6 +25,12 @@ internal protocol PTPPropValueConvertable {
     /// - Parameter value: The raw value from the camera
     /// - Parameter manufacturer: The manufacturer to convert for
     init?(value: PTPDevicePropertyDataType, manufacturer: Manufacturer)
+
+    /// Initialises the value based on the raw values from the camera and given manufacturer
+    /// - Parameters:
+    ///   - values: The values to initialise with
+    ///   - manufacturer: The manufacturer to use
+    init?(values: [PTP.DeviceProperty.Code: PTPDevicePropertyDataType], manufacturer: Manufacturer)
 }
 
 extension PTPPropValueConvertable {
@@ -32,5 +38,12 @@ extension PTPPropValueConvertable {
     /// - Parameter manufacturer: The manufacturer of the camera
     static func dataType(for manufacturer: Manufacturer) -> PTP.DeviceProperty.DataType {
         return Self.devicePropertyCode(for: manufacturer).dataType(for: manufacturer)
+    }
+
+    init?(values: [PTP.DeviceProperty.Code : PTPDevicePropertyDataType], manufacturer: Manufacturer) {
+        guard let value = values[Self.devicePropertyCode(for: manufacturer)] else {
+            return nil
+        }
+        self.init(value: value, manufacturer: manufacturer)
     }
 }

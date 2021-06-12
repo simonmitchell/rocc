@@ -18,7 +18,8 @@ extension ShutterSpeed: PTPPropValueConvertable {
             return .shutterSpeed
         case .canon:
             return .shutterSpeedCanonEOS
-            //TODO: [Canon] Implement
+            //TODO: [Canon] Improve so can either use CanonEOS or Canon versions
+            // perhaps pass in available props codes from device info? Or return an array?
         }
     }
     

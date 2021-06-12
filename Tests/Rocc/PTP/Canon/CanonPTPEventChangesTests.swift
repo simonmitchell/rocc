@@ -17,7 +17,7 @@ class CanonPTPEventChangesTests: XCTestCase {
         
         do {
             let change = try CanonPTPEvents(data: byteBuffer)
-            XCTAssertEqual(change.events.count, 146)
+            XCTAssertEqual(change.events.count, 257)
         } catch {
             XCTFail("Failed to create events object")
         }

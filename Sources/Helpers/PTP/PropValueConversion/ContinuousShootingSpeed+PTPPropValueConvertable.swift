@@ -31,6 +31,11 @@ extension ContinuousCapture.Speed.Value: PTPPropValueConvertable {
             return DWord(0)
         }
     }
+
+    init?(values: [PTP.DeviceProperty.Code : PTPDevicePropertyDataType], manufacturer: Manufacturer) {
+        // TODO: Implement
+        return nil
+    }
     
     static func devicePropertyCode(for manufacturer: Manufacturer) -> PTP.DeviceProperty.Code {
         switch manufacturer {

@@ -13,6 +13,8 @@ extension PTPIPClient {
     typealias DevicePropertyDescriptionCompletion = (_ result: Result<PTPDeviceProperty, Error>) -> Void
     
     typealias AllDevicePropertyDescriptionsCompletion = (_ result: Result<[PTPDeviceProperty], Error>) -> Void
+
+    typealias DevicePropertyValuesCompletion = (_ result: Result<[PTP.DeviceProperty.Code: PTPDevicePropertyDataType], Error>) -> Void
     
     func getDevicePropDescFor(propCode: PTP.DeviceProperty.Code,  callback: @escaping DevicePropertyDescriptionCompletion) {
         

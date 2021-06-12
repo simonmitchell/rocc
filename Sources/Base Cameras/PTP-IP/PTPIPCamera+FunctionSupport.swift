@@ -15,14 +15,23 @@ extension PTPIPCamera {
         var supported: Bool = false
                 
         // If the function has a related PTP property value
-        if let deviceInfo = deviceInfo, let propTypeCodes = function.function.ptpDevicePropertyCodes {
+        if let deviceInfo = deviceInfo, let propTypeCodes = propCodesFor(function: function.function) {
                         
             // Check that the related property value is supported
-            supported = propTypeCodes.contains { (functionPropCode) -> Bool in
-                return deviceInfo.supportedDeviceProperties.contains(functionPropCode)
-            }
+            supported = isFunctionSupportedBy(
+                function.function,
+                supportedDeviceProperties: deviceInfo.supportedDeviceProperties,
+                requiredDeviceProperties: propTypeCodes
+            )
             if !supported {
-                callback(false, nil, nil)
+                // Fallback as some models don't return full list of supported device properties
+                // in device info!
+                guard let latestEvent = lastEvent,
+                      let _ = latestEvent.supportedFunctions else {
+                    callback(false, nil, nil)
+                    return
+                }
+                latestEvent.supportsFunction(function, callback: callback)
                 return
             }
         }

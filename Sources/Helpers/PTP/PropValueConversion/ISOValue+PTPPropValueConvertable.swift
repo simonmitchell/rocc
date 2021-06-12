@@ -65,7 +65,7 @@ extension ISO.Value: PTPPropValueConvertable {
             case 0x0000:
                 self = .auto
             case 0x0040:
-                self = .native(50)
+                self = .extended(50)
             case 0x0048:
                 self = .native(100)
             case 0x004b:
@@ -94,7 +94,30 @@ extension ISO.Value: PTPPropValueConvertable {
                 self = .native(1600)
             case 0x0070:
                 self = .native(3200)
-            // TODO: [Canon] Find out and add additional cases!
+            case 0x0073:
+                self = .native(4000)
+            case 0x0075:
+                self = .native(5000)
+            case 0x0078:
+                self = .native(6400)
+            case 0x007b:
+                self = .native(8000)
+            case 0x007d:
+                self = .native(10000)
+            case 0x0080:
+                self = .native(12800)
+            case 0x0083:
+                self = .native(16000)
+            case 0x0085:
+                self = .native(20000)
+            case 0x0088:
+                self = .native(25600)
+            case 0x008b:
+                // TODO: [Canon] Check these values with testers!
+                self = .extended(51200)
+            case 0x008d:
+                // TODO: [Canon] Check these values with testers!
+                self = .extended(102400)
             default:
                 return nil
             }
@@ -134,6 +157,20 @@ extension ISO.Value: PTPPropValueConvertable {
             }
         case .canon:
             switch self {
+            case .extended(let iso):
+                switch iso {
+                case 50:
+                    return DWord(0x0040)
+                case 51200:
+                    // TODO: [Canon] Check these values with testers!
+                    return DWord(0x008b)
+                case 102400:
+                    // TODO: [Canon] Check these values with testers!
+                    return DWord(0x008d)
+                default:
+                    // Default to auto
+                    return DWord(0x00000000)
+                }
             case .native(let iso):
                 switch iso {
                 case 50:
@@ -166,6 +203,24 @@ extension ISO.Value: PTPPropValueConvertable {
                     return DWord(0x0068)
                 case 3200:
                     return DWord(0x0070)
+                case 4000:
+                    return DWord(0x0073)
+                case 5000:
+                    return DWord(0x0075)
+                case 6400:
+                    return DWord(0x0078)
+                case 8000:
+                    return DWord(0x007b)
+                case 10000:
+                    return DWord(0x007d)
+                case 12800:
+                    return DWord(0x0080)
+                case 16000:
+                    return DWord(0x0083)
+                case 20000:
+                    return DWord(0x0085)
+                case 25600:
+                    return DWord(0x0088)
                 default:
                     // Default to auto
                     return DWord(0x00000000)
@@ -176,7 +231,6 @@ extension ISO.Value: PTPPropValueConvertable {
                 // Default to auto
                 return DWord(0x00000000)
             }
-            return DWord(0)
         }
     }
 }

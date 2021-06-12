@@ -23,15 +23,15 @@ extension PTP {
         
         let functionalMode: Word
         
-        var supportedOperations: [CommandCode]
+        var supportedOperations: Set<CommandCode>
         
-        var supportedEventCodes: [EventCode]
+        var supportedEventCodes: Set<EventCode>
         
-        var supportedDeviceProperties: [DeviceProperty.Code]
+        var supportedDeviceProperties: Set<DeviceProperty.Code>
         
-        let supportedCaptureFormats: [Word]
+        let supportedCaptureFormats: Set<Word>
         
-        let supportedImageFormats: [FileFormat]
+        let supportedImageFormats: Set<FileFormat>
         
         let manufacturer: String
         
@@ -77,27 +77,27 @@ extension PTP {
             guard let supportedOperationWords: [Word] = data.read(offset: &offset) else {
                 return nil
             }
-            supportedOperations = supportedOperationWords.compactMap({ CommandCode(rawValue: $0) })
+            supportedOperations = Set(supportedOperationWords.compactMap({ CommandCode(rawValue: $0) }))
             
             guard let supportedEventWords: [Word] = data.read(offset: &offset) else {
                 return nil
             }
-            supportedEventCodes = supportedEventWords.compactMap({ EventCode(rawValue: $0) })
+            supportedEventCodes = Set(supportedEventWords.compactMap({ EventCode(rawValue: $0) }))
             
             guard let _supportedDeviceProperties: [Word] = data.read(offset: &offset) else {
                 return nil
             }
-            supportedDeviceProperties = _supportedDeviceProperties.compactMap({ DeviceProperty.Code(rawValue: DWord($0)) })
+            supportedDeviceProperties = Set(_supportedDeviceProperties.compactMap({ DeviceProperty.Code(rawValue: DWord($0)) }))
             
             guard let _supportedCaptureFormats: [Word] = data.read(offset: &offset) else {
                 return nil
             }
-            supportedCaptureFormats = _supportedCaptureFormats
+            supportedCaptureFormats = Set(_supportedCaptureFormats)
             
             guard let _supportedImageFormats: [Word] = data.read(offset: &offset) else {
                 return nil
             }
-            supportedImageFormats = _supportedImageFormats.compactMap({ FileFormat(rawValue: $0) })
+            supportedImageFormats = Set(_supportedImageFormats.compactMap({ FileFormat(rawValue: $0) }))
             
             guard let _manufacturer: String = data.read(offset: &offset) else {
                 return nil

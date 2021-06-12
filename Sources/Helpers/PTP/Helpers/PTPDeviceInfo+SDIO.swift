@@ -22,17 +22,17 @@ extension PTP.DeviceInfo {
                 guard let opCode = PTP.CommandCode(rawValue: propCode), !supportedOpCodes.contains(opCode) else {
                     return
                 }
-                supportedOpCodes.append(opCode)
+                supportedOpCodes.insert(opCode)
             case 0x4000:
                 guard let eventCode = PTP.EventCode(rawValue: propCode), !supportedEvents.contains(eventCode) else {
                     return
                 }
-                supportedEvents.append(eventCode)
+                supportedEvents.insert(eventCode)
             case 0x5000:
                 guard let propertyCode = PTP.DeviceProperty.Code(rawValue: DWord(propCode)), !supportedProperties.contains(propertyCode) else {
                     return
                 }
-                supportedProperties.append(propertyCode)
+                supportedProperties.insert(propertyCode)
             default:
                 return
             }
