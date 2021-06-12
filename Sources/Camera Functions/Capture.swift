@@ -76,6 +76,7 @@ public struct StillCapture: CameraFunction {
         public enum Value: Equatable {
             case jpeg(String)
             case raw
+            case raw2 // Electric boogaloo
             case rawAndJpeg
             case rawAndHeif
             case heif
