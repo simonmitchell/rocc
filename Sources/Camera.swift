@@ -71,12 +71,12 @@ public enum ConnectionMode {
     case contentsTransfer(Bool)
 }
 
-/// The polling mode of the camera
+/// The event polling mode of the camera
 ///
 /// - continuous: We should continually call get event and the camera will respond when ready
 /// - timer: We should fetch events on a timed basis
 /// - cameraDriven: The camera will let us know when events are available
-public enum PollingMode {
+public enum EventPollingMode {
     case continuous
     case timed
     case cameraDriven
@@ -101,7 +101,7 @@ extension CameraModel {
 }
 
 /// A protocol which defines the base functionality of a camera.
-public protocol Camera: class {
+public protocol Camera: AnyObject {
     
     typealias ConnectedCompletion = (_ error: Error?, _ transferMode: Bool) -> Void
     
@@ -147,11 +147,32 @@ public protocol Camera: class {
     var identifier: String { get }
     
     /// The event polling method of the camera.
-    var eventPollingMode: PollingMode { get }
-    
+    var eventPollingMode: EventPollingMode { get }
+
     /// Called by the camera when an event is available.
     /// If the event passed in is non-null then there is no need to fetch the event from the camera by calling `.getEvent`
     var onEventAvailable: ((CameraEvent?) -> Void)? { get set }
+
+    /// The live view mode of the camera.
+    var liveViewMode: LiveViewStream.Mode { get }
+
+    /// Called by the camera when a live view image is available and has been fetched
+    ///
+    /// The returned Bool from calling this closure determines whether or not to fetch
+    /// the next image from the camera if the camera manually fetches images
+    ///
+    /// - Note: This will only be set if the camera reports it's liveViewMode as `fetch`.
+    /// Do not set this manually, it will be kept up to date by `LiveViewStream`.
+    var onLiveViewImageAvailable: ((Image) -> Bool)? { get set }
+
+    /// Called by the camera when a live view frame is available and has been fetched.
+    ///
+    /// The returned Bool from calling this closure determines whether or not to fetch
+    /// the next set of frames from the camera if the camera manuall fetches frames
+    ///
+    /// - Note: This will only be set if the camera reports it's liveViewMode as `fetch`.
+    /// Do not set this manually, it will be kept up to date by `LiveViewStream`.
+    var onLiveViewFramesAvailable: (([FrameInfo]) -> Bool)? { get set }
     
     /// Called by the camera when it was disconnected.
     var onDisconnected: (() -> Void)? { get set }

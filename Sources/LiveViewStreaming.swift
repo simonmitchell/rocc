@@ -129,6 +129,11 @@ public struct FrameInfo {
 /// This class will be entirely responsible for fetching live view images from the camera and providing
 /// them back to the callee through a delegate based approach
 public final class LiveViewStream: NSObject {
+
+    public enum Mode {
+        case httpStream
+        case fetch
+    }
     
     private let log = OSLog(subsystem: "com.yellow-brick-bear.rocc", category: "LiveViewStreaming")
     
@@ -171,9 +176,7 @@ public final class LiveViewStream: NSObject {
         self.camera = camera
         self.dataProcessingQueue.qualityOfService = .utility
     }
-    
-    private var eventTimer: Timer?
-    
+        
     /// Performs all setup of the live view stream and begins streaming images over the network
     public func start() {
         
@@ -190,45 +193,73 @@ public final class LiveViewStream: NSObject {
         
         Logger.log(message: "Starting live view stream", category: "LiveViewStreaming", level: .debug)
         os_log("Starting live view stream", log: log, type: .debug)
-        
+
+        if camera.liveViewMode == .fetch {
+
+            camera.onLiveViewImageAvailable = { [weak self] image in
+                guard let self = self else { return false }
+                self.delegate?.liveViewStream(self, didReceive: image)
+                return self.isStreaming
+            }
+
+            camera.onLiveViewFramesAvailable = { [weak self] frames in
+                guard let self = self else { return false }
+                self.delegate?.liveViewStream(self, didReceive: frames)
+                return self.isStreaming
+            }
+        }
+
+        // Still call LiveView.start for both modes!
         camera.performFunction(LiveView.start, payload: nil) { [weak self] (error, streamURL) in
             
-            guard let strongSelf = self else { return }
-            
-            guard let streamURL = streamURL else {
-                
-                guard let sonyError = error as? CameraError, case .alreadyRunningPollingAPI(_) = sonyError else {
-                    Logger.log(message: "Starting live view stream errored \((error ?? StreamingError.unknown).localizedDescription)", category: "LiveViewStreaming", level: .error)
-                    os_log("Starting live view stream errored %@", log: strongSelf.log, type: .error, (error ?? StreamingError.unknown).localizedDescription)
-                    strongSelf.isStarting = false
-                    strongSelf.delegate?.liveViewStream(strongSelf, didError: error ?? StreamingError.unknown)
-                    return
-                }
-                
-                Logger.log(message: "Got already running polling API error, restarting live stream", category: "LiveViewStreaming", level: .debug)
-                os_log("Got already running polling API error, restarting live stream", log: strongSelf.log, type: .debug)
-                
-                strongSelf.camera.performFunction(LiveView.stop, payload: nil, callback: { [weak strongSelf] (error, response) in
-                    
-                    guard let _strongSelf = strongSelf else { return }
-                    guard error == nil else {
-                        Logger.log(message: "Stopping live view stream errored \((error ?? StreamingError.unknown).localizedDescription)", category: "LiveViewStreaming", level: .error)
-                        os_log("Stopping live view stream errored %@", log: _strongSelf.log, type: .error, (error ?? StreamingError.unknown).localizedDescription)
-                        _strongSelf.isStarting = false
-                        _strongSelf.delegate?.liveViewStream(_strongSelf, didError: error ?? StreamingError.unknown)
+            guard let self = self else { return }
+
+            switch self.camera.liveViewMode {
+            case .httpStream:
+                guard let streamURL = streamURL else {
+
+                    guard let sonyError = error as? CameraError, case .alreadyRunningPollingAPI(_) = sonyError else {
+                        Logger.log(message: "Starting live view stream errored \((error ?? StreamingError.unknown).localizedDescription)", category: "LiveViewStreaming", level: .error)
+                        os_log("Starting live view stream errored %@", log: self.log, type: .error, (error ?? StreamingError.unknown).localizedDescription)
+                        self.isStarting = false
+                        self.delegate?.liveViewStream(self, didError: error ?? StreamingError.unknown)
                         return
                     }
-                    _strongSelf.start()
+
+                    Logger.log(message: "Got already running polling API error, restarting live stream", category: "LiveViewStreaming", level: .debug)
+                    os_log("Got already running polling API error, restarting live stream", log: self.log, type: .debug)
+
+                    self.camera.performFunction(LiveView.stop, payload: nil, callback: { [weak self] (error, response) in
+
+                        guard let _self = self else { return }
+                        guard error == nil else {
+                            Logger.log(message: "Stopping live view stream errored \((error ?? StreamingError.unknown).localizedDescription)", category: "LiveViewStreaming", level: .error)
+                            os_log("Stopping live view stream errored %@", log: _self.log, type: .error, (error ?? StreamingError.unknown).localizedDescription)
+                            _self.isStarting = false
+                            _self.delegate?.liveViewStream(_self, didError: error ?? StreamingError.unknown)
+                            return
+                        }
+                        _self.start()
+                    })
+
+                    return
+                }
+
+                self.camera.performFunction(LiveView.SendFrameInfo.set, payload: true, callback: { (_, _) in
+
                 })
-                
-                return
+
+                self.streamFrom(url: streamURL)
+            case .fetch:
+                guard let error = error else {
+                    self.isStarting = false
+                    self.isStreaming = true
+                    return
+                }
+                self.isStreaming = false
+                self.isStarting = false
+                self.delegate?.liveViewStream(self, didError: error)
             }
-            
-            strongSelf.camera.performFunction(LiveView.SendFrameInfo.set, payload: true, callback: { (_, _) in
-                
-            })
-            
-            strongSelf.streamFrom(url: streamURL)
         }
     }
     
@@ -395,7 +426,7 @@ public final class LiveViewStream: NSObject {
     
     @discardableResult internal func attemptImageParse() -> [Payload]? {
         
-        // Re-case as Data in-case we've received a DataSlice, which seems to be an issue somewhere!
+        // Re-cast as Data in-case we've received a DataSlice, which seems to be an issue somewhere!
         receivedData = Data(receivedData)
         
         // If for some reason our data doesn't start with the "Start Byte", then delete up to that point!

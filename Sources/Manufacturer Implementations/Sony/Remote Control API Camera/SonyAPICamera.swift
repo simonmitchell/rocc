@@ -114,6 +114,10 @@ internal final class SonyAPICameraDevice: BaseSSDPCamera {
     var type: String?
     
     public var onEventAvailable: ((CameraEvent?) -> Void)?
+
+    var onLiveViewImageAvailable: ((Image) -> Bool)?
+
+    var onLiveViewFramesAvailable: (([FrameInfo]) -> Bool)?
     
     public var onDisconnected: (() -> Void)?
     
@@ -203,6 +207,10 @@ extension SonyAPICameraDevice: SSDPCamera {
     var isInBeta: Bool {
         return false
     }
+
+    var liveViewMode: LiveViewStream.Mode {
+        return .httpStream
+    }
         
     func finishTransfer(callback: @escaping ((Error?) -> Void)) {
         callback(CameraError.noSuchMethod("Finish Transfer"))
@@ -223,7 +231,7 @@ extension SonyAPICameraDevice: SSDPCamera {
         focusChangeAwaitingCallbacks.append(callback)
     }
     
-    var eventPollingMode: PollingMode {
+    var eventPollingMode: EventPollingMode {
         return .continuous
     }
     

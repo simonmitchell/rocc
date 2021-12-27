@@ -32,6 +32,14 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
     var lensModelName: String? = nil
     
     var onEventAvailable: ((CameraEvent?) -> Void)?
+
+    var onLiveViewImageAvailable: ((Image) -> Bool)?
+
+    var onLiveViewFramesAvailable: (([FrameInfo]) -> Bool)?
+
+    var liveViewMode: LiveViewStream.Mode {
+        return .fetch
+    }
     
     var onDisconnected: (() -> Void)?
     
@@ -39,7 +47,7 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
     
     var highFrameRateCallback: ((Result<HighFrameRateCapture.Status, Error>) -> Void)?
         
-    var eventPollingMode: PollingMode {
+    var eventPollingMode: EventPollingMode {
         guard let deviceInfo = deviceInfo else { return .timed }
         return deviceInfo.supportedEventCodes.contains(.propertyChanged) ? .cameraDriven : .timed
     }
@@ -866,33 +874,28 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
                     callback(nil, url as? T.ReturnType)
                 }
             }
-        case .startLiveView, .startLiveViewWithQuality, .endLiveView:
-            getDevicePropDescriptionFor(propCode: .liveViewURL) { [weak self] (result) in
-
+        case .startLiveView, .startLiveViewWithQuality:
+            startLiveView { [weak self] startLiveViewError in
                 guard let self = self else { return }
-                switch result {
-                case .success(let property):
-
-                    var url: URL?
-                    if let string = property.currentValue as? String, let returnedURL = URL(string: string) {
-                        url = returnedURL
-                    }
-
-                    guard function.function == .startLiveViewWithQuality, let quality = payload as? LiveView.Quality else {
-                        callback(nil, url as? T.ReturnType)
-                        return
-                    }
-
-                    self.performFunction(
-                        LiveView.QualitySet.set,
-                        payload: quality) { (_, _) in
-                        callback(nil, url as? T.ReturnType)
-                    }
-
-                case .failure(let error):
+                if let error = startLiveViewError {
                     callback(error, nil)
+                } else {
+                    callback(nil, nil)
+                    self.getViewfinderImage { result in
+                        // TODO: [Canon] NEXT get image in loop!
+                        switch result {
+                        case .success(let image):
+                            print(image.size)
+                            break
+                        case .failure(let error):
+                            callback(error, nil)
+                        }
+                    }
                 }
             }
+            callback(nil, nil)
+        case .endLiveView:
+            callback(nil, nil)
         case .getLiveViewQuality:
             getDeviceValueFor(function: function.function) { (result: Result<LiveView.Quality, Error>) in
                 switch result {
@@ -1544,6 +1547,16 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
     }
 
     typealias CaptureCompletion = (Result<URL?, Error>) -> Void
+
+    func startLiveView(callback: @escaping (_ error: Error?) -> Void) {
+        callback(nil)
+    }
+
+    /// Gets the current viewfinder image from the camera
+    /// - Parameter callback: A closure called once the image has been fetched
+    func getViewfinderImage(callback: @escaping (Result<Image, Error>) -> Void) {
+
+    }
 
     func takePicture(completion: @escaping CaptureCompletion) {
 

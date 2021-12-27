@@ -107,6 +107,10 @@ public final class DummyCamera: Camera {
     }
     
     public var onEventAvailable: ((CameraEvent?) -> Void)?
+
+    public var onLiveViewImageAvailable: ((Image) -> Bool)?
+
+    public var onLiveViewFramesAvailable: (([FrameInfo]) -> Bool)?
     
     public var onDisconnected: (() -> Void)?
     
@@ -116,6 +120,10 @@ public final class DummyCamera: Camera {
     
     public var connectionMode: ConnectionMode {
         return .remoteControl
+    }
+
+    public var liveViewMode: LiveViewStream.Mode  {
+        return .httpStream
     }
     
     public func finishTransfer(callback: @escaping ((Error?) -> Void)) {
@@ -152,7 +160,7 @@ public final class DummyCamera: Camera {
     
     public var name: String? = "Sony a7ii"
     
-    public var eventPollingMode: PollingMode {
+    public var eventPollingMode: EventPollingMode {
         return .continuous
     }
     

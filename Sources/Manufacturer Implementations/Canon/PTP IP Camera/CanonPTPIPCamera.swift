@@ -16,7 +16,7 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
     /// we need to retain this and just update it with incoming events!
     var lastEventChanges: CanonPTPEvents?
 
-    override var eventPollingMode: PollingMode {
+    override var eventPollingMode: EventPollingMode {
         // We manually trigger event fetches on Canon, or manually pass events back to caller!
         return .cameraDriven
     }
@@ -56,14 +56,27 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
             transactionId: ptpIPClient?.getNextTransactionId() ?? 1
         )
 
-        // EOS 400D sends 0x902f at this point, with value of 0x00000002 but this doesn't seem to be necessary?
-        
         ptpIPClient?.sendCommandRequestPacket(packet, callback: { [weak self] (response) in
             guard response.code == .okay else {
                 completion(PTPError.commandRequestFailed(response.code), false)
                 return
             }
-            self?.setEventModeIfSupported(completion: completion)
+
+            guard let self = self, self.deviceInfo?.supportedOperations.contains(.canonUnknownInitialisation) == true else {
+                self?.setEventModeIfSupported(completion: completion)
+                return
+            }
+
+            // This call might not be necessary, but we'll make it anyway
+            let unknownInitPacket = Packet.commandRequestPacket(
+                code: .canonUnknownInitialisation,
+                arguments: [0x00000015],
+                transactionId: self.ptpIPClient?.getNextTransactionId() ?? 2
+            )
+
+            self.ptpIPClient?.sendCommandRequestPacket(unknownInitPacket, callback: { [weak self] initResponse in
+                self?.setEventModeIfSupported(completion: completion)
+            })
         })
     }
     
@@ -96,65 +109,17 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
 
             guard !imageURLs.isEmpty, var lastEvent = lastEvent else {
 
-                let getEventPacket = Packet.commandRequestPacket(
-                    code: .canonGetEvent,
-                    arguments: nil,
-                    transactionId: ptpIPClient?.getNextTransactionId() ?? 4,
-                    dataPhaseInfo: 0x00000001
-                )
+                flushEventStream { [weak self] result in
 
-                ptpIPClient?.awaitDataFor(transactionId: getEventPacket.transactionId, callback: { [weak self] result in
                     guard let self = self else { return }
                     switch result {
-                    case .success(let data):
-                        do {
-                            var events = try CanonPTPEvents(data: data.data)
-
-                            if let lastEvents = self.lastEventChanges {
-                                var lastEventEvents = lastEvents.events
-                                events.events.forEach { event in
-                                    // If the property is already present in received properties,
-                                    // just directly replace it
-                                    if let existingIndex = lastEventEvents.firstIndex(where: { existingEvent in
-                                        // Quick check for performance!
-                                        guard type(of: existingEvent) == type(of: event) else {
-                                            return false
-                                        }
-                                        switch (existingEvent, event) {
-                                        // TODO: See if we can make this more generic! Perhaps add `code` param to protocol so can compare using that?
-                                        case (let existingPropChange as CanonPTPPropValueChange, let newPropChange as CanonPTPPropValueChange):
-                                            return existingPropChange.code == newPropChange.code
-                                        case (let existingAvailableValsPropChange as CanonPTPAvailableValuesChange, let newAvailableValsPropChange as CanonPTPAvailableValuesChange):
-                                            return existingAvailableValsPropChange.code == newAvailableValsPropChange.code
-                                        default: return false
-                                        }
-                                    }) {
-                                        lastEventEvents[existingIndex] = event
-                                    } else { // Otherwise append it to the array
-                                        lastEventEvents.append(event)
-                                    }
-                                }
-                                events = CanonPTPEvents(events: lastEventEvents)
-                            }
-
-                            var event = CameraEvent.fromCanonPTPEvents(events)
-                            // TODO: [Canon] Remove print statement!
-                            print("Gotcanon events!", events)
-                            event.postViewPictureURLs = self.imageURLs.compactMapValues({ (urls) -> [(postView: URL, thumbnail: URL?)]? in
-                                return urls.map({ ($0, nil) })
-                            })
-                            self.imageURLs = [:]
-                            self.lastEventChanges = events
-                            callback(nil, event as? T.ReturnType)
-                        } catch {
-                            callback(error, nil)
-                        }
+                    case .success(let events):
+                        let event = self.handleLatestEvents(events)
+                        callback(nil, event as? T.ReturnType)
                     case .failure(let error):
                         Logger.log(message: "Failed to get event data: \(error.localizedDescription)", category: "CanonPTPIPCamera")
                     }
-                })
-
-                ptpIPClient?.sendCommandRequestPacket(getEventPacket, callback: nil)
+                }
 
                 return
             }
@@ -167,6 +132,97 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
         default:
             super.performFunction(function, payload: payload, callback: callback)
         }
+    }
+
+    func handleLatestEvents(_ canonEvents: CanonPTPEvents) -> CameraEvent {
+
+        var events = canonEvents
+
+        if let lastEvents = self.lastEventChanges {
+            var lastEventEvents = lastEvents.events
+            events.events.forEach { event in
+                // If the property is already present in received properties,
+                // just directly replace it
+                if let existingIndex = lastEventEvents.firstIndex(where: { existingEvent in
+                    // Quick check for performance!
+                    guard type(of: existingEvent) == type(of: event) else {
+                        return false
+                    }
+                    switch (existingEvent, event) {
+                    // TODO: See if we can make this more generic! Perhaps add `code` param to protocol so can compare using that?
+                    case (let existingPropChange as CanonPTPPropValueChange, let newPropChange as CanonPTPPropValueChange):
+                        return existingPropChange.code == newPropChange.code
+                    case (let existingAvailableValsPropChange as CanonPTPAvailableValuesChange, let newAvailableValsPropChange as CanonPTPAvailableValuesChange):
+                        return existingAvailableValsPropChange.code == newAvailableValsPropChange.code
+                    default: return false
+                    }
+                }) {
+                    lastEventEvents[existingIndex] = event
+                } else { // Otherwise append it to the array
+                    lastEventEvents.append(event)
+                }
+            }
+            events = CanonPTPEvents(events: lastEventEvents)
+        }
+
+        var event = CameraEvent.fromCanonPTPEvents(events)
+        // TODO: [Canon] Remove print statement!
+        print("Gotcanon events!", events)
+        event.postViewPictureURLs = self.imageURLs.compactMapValues({ (urls) -> [(postView: URL, thumbnail: URL?)]? in
+            return urls.map({ ($0, nil) })
+        })
+        self.imageURLs = [:]
+        self.lastEvent = event
+        self.lastEventChanges = events
+
+        return event
+    }
+
+    /// Flushes the canon event stream by recursively calling .canonGetEvent
+    /// until the camera returns an empty array of events
+    /// - Parameters:
+    ///   - completion: Closure called when we've flushed the queue
+    ///   - previous: Events fetched on previous recursion
+    func flushEventStream(completion: @escaping (Result<CanonPTPEvents, Error>) -> Void, previous: CanonPTPEvents? = nil) {
+
+        let getEventPacket = Packet.commandRequestPacket(
+            code: .canonGetEvent,
+            arguments: nil,
+            transactionId: ptpIPClient?.getNextTransactionId() ?? 4,
+            dataPhaseInfo: 0x00000001
+        )
+
+        ptpIPClient?.awaitDataFor(transactionId: getEventPacket.transactionId) { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let data):
+                do {
+                    let events = try CanonPTPEvents(data: data.data)
+                    var nextEvents = events.events
+                    if let previous = previous {
+                        nextEvents.append(contentsOf: previous.events)
+                    }
+                    let nextCanonEvents = CanonPTPEvents(events: nextEvents)
+                    // Must be some better way to check we're flushed fully?
+                    if events.events.isEmpty {
+                        completion(.success(nextCanonEvents))
+                    } else {
+                        self.flushEventStream(completion: completion, previous: nextCanonEvents)
+                    }
+                } catch {
+                    completion(.failure(error))
+                }
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
+
+        ptpIPClient?.sendCommandRequestPacket(getEventPacket, callback: nil)
+    }
+
+    override func disconnect(completion: @escaping PTPIPCamera.DisconnectedCompletion) {
+//        https://github.com/gphoto/libgphoto2/blob/33372d3e2bcfafd0eea1ae2f8981a2bbb1a878d6/camlibs/ptp2/library.c#L3061
+        super.disconnect(completion: completion)
     }
 
     override func sendSetDevicePropValue(
@@ -241,6 +297,154 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
         return propCodes
     }
 
-    // TODO: YOU WERE HERE SIMON!
-//    getDe
+    override func startLiveView(callback: @escaping (Error?) -> Void) {
+
+        // [TODO]:  Currently get notReady error when setting this when starting connection
+        sendSetDevicePropValue(
+            .init(
+                code: .EVFOutputDeviceCanonEOS,
+                type: .uint32,
+                value: DWord(2)
+            )
+        ) { response in
+            if response.code.isError {
+                callback(PTPError.commandRequestFailed(response.code))
+            } else {
+                callback(nil)
+            }
+        }
+    }
+
+    override func getViewfinderImage(callback: @escaping (Result<Image, Error>) -> Void) {
+
+        guard deviceInfo?.supportedOperations.contains(.canonEOSGetViewFinderData) == true else {
+            callback(.failure(PTPError.operationNotSupported))
+            return
+        }
+
+        // TODO: [Canon] Important, set EVFOutputDeviceCanonEOS if not already set to correct value (0x08000000)
+
+        // Canon cameras can return "not ready" when trying to fetch live view image,
+        // based on the logic [libgphoto2](https://github.com/gphoto/libgphoto2/blob/33372d3e2bcfafd0eea1ae2f8981a2bbb1a878d6/camlibs/ptp2/library.c#L3355) provide, we try and implement something similar!
+
+        var liveViewData: PTPIPClient.DataContainer?
+        // Try maximum of 150 times
+        var tries: Int = 150
+
+        DispatchQueue.global().asyncWhile({ [weak self] continueClosure in
+
+                guard let self = self else { return }
+
+                // TODO: [Canon] Get EOS events until queue empty!
+                self.flushEventStream { [weak self] eventResult in
+                    guard let self = self else {
+                        tries -= 1
+                        continueClosure(true)
+                        return
+                    }
+                    switch eventResult {
+                    case .success(let canonEvents):
+
+                        // Notifiy event handler of latest events!
+                        let events = self.handleLatestEvents(canonEvents)
+                        self.onEventAvailable?(events)
+
+                        let getViewFinderCommand = Packet.commandRequestPacket(
+                            code: .canonEOSGetViewFinderData,
+                            arguments: [0x00002000, 0x01000000, 0x00000000], // As seen on Canon EOS 4000D
+                            transactionId: self.ptpIPClient?.getNextTransactionId() ?? 1
+                        )
+                        self.ptpIPClient?.awaitDataFor(transactionId: getViewFinderCommand.transactionId, callback: { result in
+                            defer {
+                                tries -= 1
+                            }
+                            switch result {
+                            case .success(let data):
+                                liveViewData = data
+                            case .failure(let error):
+                                var responseCode: CommandResponsePacket.Code?
+                                switch error {
+                                case let commandResponse as CommandResponsePacket.Code:
+                                    responseCode = commandResponse
+                                case let ptpError as PTPError:
+                                    if case .commandRequestFailed(let code) = ptpError {
+                                        responseCode = code
+                                    }
+                                default:
+                                    break
+                                }
+                                guard let responseCode = responseCode else {
+                                    callback(.failure(error))
+                                    // Break the loop if it wasn't a PTPError
+                                    continueClosure(true)
+                                    return
+                                }
+                                switch responseCode {
+                                // According to libgphoto2 we also need to check 0xa102 which
+                                // we have as nikon_notReady case
+                                case .deviceBusy, .nikon_notReady:
+                                    // TODO: May not be necessary once we've got this working?
+                                    usleep(1300)
+                                    continueClosure(tries > 0 ? false : true)
+                                default:
+                                    // Break the loop if it wasn't a deviceBusy or notReady code
+                                    continueClosure(true)
+                                }
+                            }
+                        })
+                        self.ptpIPClient?.sendCommandRequestPacket(getViewFinderCommand, callback: nil)
+
+                    case .failure(_):
+                        continueClosure(false)
+                    }
+                }
+            },
+            timeout: 3
+        ) {
+
+            guard let liveViewData = liveViewData else {
+                callback(.failure(PTPError.commandRequestFailed(.deviceBusy)))
+                return
+            }
+
+            guard let image = try? self.parseLiveViewData(liveViewData.data) else {
+                callback(.failure(PTPError.operationNotSupported))
+                return
+            }
+            callback(.success(image))
+        }
+    }
+
+    private func parseLiveViewData(_ data: ByteBuffer) throws -> Image? {
+
+        var offset: UInt = 0
+        var imageData: Data = Data()
+        let liveViewData = Data(data.bytes.compactMap({ $0 }))
+        while offset < data.length - 1 {
+
+            guard let length: DWord = data.read(offset: &offset),
+                  let type: DWord = data.read(offset: &offset) else {
+                break
+            }
+
+            switch type {
+            case 9, 1, 11:
+                if length > (UInt(data.length) - offset) {
+                    break
+                }
+                let dataEndIndex = offset + UInt(length) - UInt(MemoryLayout<DWord>.size * 2)
+                imageData.append(liveViewData[offset..<dataEndIndex])
+
+                // dump the rest of the blobs
+                break
+            default:
+                if length > (UInt(data.length) - offset) {
+                    break
+                }
+                offset = offset + UInt(length) - UInt(MemoryLayout<DWord>.size * 2)
+            }
+        }
+
+        return Image(data: imageData)
+    }
 }

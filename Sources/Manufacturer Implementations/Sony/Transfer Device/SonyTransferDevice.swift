@@ -39,6 +39,10 @@ internal final class SonyTransferDevice: BaseSSDPCamera {
     var pushContentDevice: UPnPDevice?
     
     public var onEventAvailable: ((CameraEvent?) -> Void)?
+
+    var onLiveViewImageAvailable: ((Image) -> Bool)?
+
+    var onLiveViewFramesAvailable: (([FrameInfo]) -> Bool)?
     
     var onDisconnected: (() -> Void)?
     
@@ -84,6 +88,10 @@ fileprivate extension FileRequest.SortOrder {
 }
 
 extension SonyTransferDevice: Camera {
+
+    var liveViewMode: LiveViewStream.Mode {
+        return .httpStream
+    }
     
     var isInBeta: Bool {
         return false
@@ -93,7 +101,7 @@ extension SonyTransferDevice: Camera {
         return nil
     }
     
-    var eventPollingMode: PollingMode {
+    var eventPollingMode: EventPollingMode {
         return .none
     }
     

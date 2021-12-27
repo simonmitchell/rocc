@@ -103,6 +103,7 @@ struct PTP {
         case getPartialObject = 0x101b
         case initiateOpenCapture = 0x101c
         case okay = 0x2001
+        case canonUnknownInitialisation = 0x902f
         case canonGetMACAdrress = 0x9033
         case canonGetStorageIDs = 0x9101
         case canonGetStorageInfo = 0x9102
@@ -114,8 +115,8 @@ struct PTP {
         case canonSetRemoteMode = 0x9114
         case canonSetEventMode = 0x9115
         case canonGetEvent = 0x9116
-        case canonGetViewFinderData = 0x9153
-        case canonGetDevicePropValue = 0x9127 // TODO: Important!
+        case canonEOSGetViewFinderData = 0x9153
+        case canonGetDevicePropValue = 0x9127
         case canonRemoteReleaseOn = 0x9128
         case canonRemoteReleaseOff = 0x9129
         case sdioConnect = 0x9201

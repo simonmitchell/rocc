@@ -10,6 +10,10 @@ import Foundation
 import os.log
 
 internal final class SonyPTPIPCamera: PTPIPCamera {
+
+    override var liveViewMode: LiveViewStream.Mode {
+        return .httpStream
+    }
     
     struct ApiDeviceInfo {
         
@@ -115,6 +119,7 @@ internal final class SonyPTPIPCamera: PTPIPCamera {
                             return urls.map({ ($0, nil) })
                         })
                         self.lastAllDeviceProps = properties
+                        self.lastEvent = event
                         self.imageURLs = [:]
                         callback(nil, event as? T.ReturnType)
                     case .failure(let error):
