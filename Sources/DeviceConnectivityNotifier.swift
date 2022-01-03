@@ -136,6 +136,7 @@ public final class DeviceConnectivityNotifier {
             Logger.log(message: "Reachable and no connection required", category: "DeviceConnectivity", level: .debug)
             os_log("Reachable and no connection required", log: logger, type: .debug)
             
+//        TODO: Maybe don't do this on Canon EOS 400D, maybe need to check if supports?
             camera.performFunction(Ping.perform, payload: nil) { [weak self] (error, _) in
                 guard let self = self else { return }
                 os_log("Ping performed with error: %@", log: self.logger, type: .debug, error?.localizedDescription ?? "nil")

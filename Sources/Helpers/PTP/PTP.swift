@@ -103,12 +103,13 @@ struct PTP {
         case getPartialObject = 0x101b
         case initiateOpenCapture = 0x101c
         case okay = 0x2001
-        case canonUnknownInitialisation = 0x902f
+        case canonKeepAlive = 0x902f
         case canonGetMACAdrress = 0x9033
         case canonGetStorageIDs = 0x9101
         case canonGetStorageInfo = 0x9102
         case canonGetObjectInfo = 0x9103
         case canonGetPartialObject = 0x9107
+        case canonGetDeviceInfoEx = 0x9108
         case canonGetObjectInfoEx = 0x9109
         case canonGetThumbEx = 0x910a
         case canonSetDevicePropValueEx = 0x9110

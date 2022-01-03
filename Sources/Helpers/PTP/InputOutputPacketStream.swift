@@ -29,6 +29,8 @@ final class InputOutputPacketStream: NSObject, PTPPacketStream {
     
     private var openStreams: [Stream] = []
     
+    var sendSynchronously: Bool = false
+    
     internal var awaitingFurtherDataControlPacket: Packetable?
 
     init?(camera: Camera, port: Int = 15740) {

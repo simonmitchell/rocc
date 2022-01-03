@@ -218,7 +218,7 @@ public final class LiveViewStream: NSObject {
             case .httpStream:
                 guard let streamURL = streamURL else {
 
-                    guard let sonyError = error as? CameraError, case .alreadyRunningPollingAPI(_) = sonyError else {
+                    guard let cameraError = error as? CameraError, case .alreadyRunningPollingAPI(_) = cameraError else {
                         Logger.log(message: "Starting live view stream errored \((error ?? StreamingError.unknown).localizedDescription)", category: "LiveViewStreaming", level: .error)
                         os_log("Starting live view stream errored %@", log: self.log, type: .error, (error ?? StreamingError.unknown).localizedDescription)
                         self.isStarting = false

@@ -199,6 +199,7 @@ struct Packet: Packetable {
         
         let _startDataPacket = startDataPacket(size: DWord(size), transactionId: transactionId)
         
+//        CHECK THIS LOGIC NEXT!
         // If we have small amounts of data send it with end data packet
         if data.length < 128 {
             return [

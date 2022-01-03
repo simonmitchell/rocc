@@ -253,6 +253,7 @@ internal final class SonyPTPIPCamera: PTPIPCamera {
     override func sendSetDevicePropValue(
         _ value: PTP.DeviceProperty.Value,
         valueB: Bool = false,
+        retry: Int = 0,
         callback: CommandRequestPacketResponse? = nil
     ) {
 

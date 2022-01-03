@@ -46,6 +46,12 @@ final class PTPIPClient {
     private var currentTransactionId: DWord = 0
     
     private var guid: String
+  
+    // TODO: Remove if we don't need
+//    /// Whether the client should queue commands before sending the next one.
+//    /// Will wait for a response packet for the most recent command before attempting the
+//    /// next one
+//    var sendSynchronously: Bool = false
     
     init(camera: Camera, packetStream: PTPPacketStream) {
         self.packetStream = packetStream
@@ -128,10 +134,23 @@ final class PTPIPClient {
         packetStream.sendEventPacket(packet)
     }
     
+    var queuedControlPackets: [Packetable] = []
+    
+    var sendingControlPacket: Packetable? = nil
+    
     /// Sends a packet to the control loop of the PTP IP connection
     /// - Parameter packet: The packet to send
     func sendControlPacket(_ packet: Packetable) {
-        packetStream.sendControlPacket(packet)
+        // TODO: Remove if we don't need
+//        guard sendSynchronously else {
+//            packetStream.sendControlPacket(packet)
+//            return
+//        }
+//        if sendingControlPacket == nil {
+            packetStream.sendControlPacket(packet)
+//        } else {
+//            queuedControlPackets.append(packet)
+//        }
     }
     
     //MARK: Command Requests
@@ -225,6 +244,16 @@ final class PTPIPClient {
         guard !packet.awaitingFurtherData else {
             return
         }
+        
+        // TODO: Remove if we don't need!
+//        defer {
+//            // If we have any packets queued (because we're running
+//            // synchronously) then send them now... This should
+//            // recurse assuming we always get a command response packet!
+//            if let queuedPacket = queuedControlPackets.last {
+//                sendControlPacket(queuedPacket)
+//            }
+//        }
         
         guard let transactionId = packet.transactionId else {
             commandRequestCallbacks = commandRequestCallbacks.filter { (_, value) -> Bool in

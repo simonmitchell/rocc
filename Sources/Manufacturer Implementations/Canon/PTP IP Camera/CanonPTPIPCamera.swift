@@ -15,6 +15,19 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
     /// we fetch to to maintain the same eventing mechanism as other models
     /// we need to retain this and just update it with incoming events!
     var lastEventChanges: CanonPTPEvents?
+    
+    var storageIds: [DWord]?
+    
+    // TODO: Remove if we don't need
+//    override var ptpIPClient: PTPIPClient? {
+//        get {
+//            let client = super.ptpIPClient
+//            client?.sendSynchronously = true
+//            return client
+//        } set {
+//            super.ptpIPClient = newValue
+//        }
+//    }
 
     override var eventPollingMode: EventPollingMode {
         // We manually trigger event fetches on Canon, or manually pass events back to caller!
@@ -42,6 +55,23 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
         model = _modelEnum
     }
     
+    var isCanonEOSMLikeFirmware: Bool {
+        guard let deviceInfo = deviceInfo else { return false }
+        guard deviceInfo.supportedOperations.contains(.canonSetRemoteMode) else {
+            return false
+        }
+        guard let model = deviceInfo.model else {
+            return false
+        }
+        if model.starts(with: "Canon EOS M") {
+            return true
+        }
+        
+        return (model.starts(with: "Canon PowerShot SX") ||
+            model.starts(with: "Canon PowerShot G") ||
+            model.starts(with: "Canon Digital IXUS")) && deviceInfo.supportedOperations.contains(.canonRemoteReleaseOn)
+    }
+    
     override func performPostConnectCommands(completion: @escaping PTPIPCamera.ConnectedCompletion) {
         
         guard deviceInfo?.supportedOperations.contains(.canonSetRemoteMode) == true else {
@@ -49,10 +79,26 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
             return
         }
         
+        // TODO: Calculate mode based on device model.
+        // Also for EOS M and newer we use 0x15 and have to re-call ptp_getdeviceinfo because it changes when call canonSetRemoteMode
+        
+        var remoteMode: DWord = deviceInfo?.model == "Canon EOS 4000D" ? 0x15 : 1
+        if isCanonEOSMLikeFirmware {
+            remoteMode = 0x15
+            switch deviceInfo?.model {
+            case "Canon EOS M6 Mark II":
+                remoteMode = 0x1
+            case "Canon PowerShot SX540 HS", "Canon PowerShot SX720 HS", "Canon PowerShot G5 X":
+                remoteMode = 0x11
+                break
+            default:
+                break
+            }
+        }
+        
         let packet = Packet.commandRequestPacket(
             code: .canonSetRemoteMode,
-            arguments: [0x00000005], // TODO: Magic number.. for now! This is 0x00000015 on Canon EOS 400D, do we need to change?
-            // Where do we find the correct value!?
+            arguments: [remoteMode],
             transactionId: ptpIPClient?.getNextTransactionId() ?? 1
         )
 
@@ -61,35 +107,55 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
                 completion(PTPError.commandRequestFailed(response.code), false)
                 return
             }
-
-            guard let self = self, self.deviceInfo?.supportedOperations.contains(.canonUnknownInitialisation) == true else {
-                self?.setEventModeIfSupported(completion: completion)
-                return
-            }
-
+            
+            guard let self = self else { return }
+            
             // This call might not be necessary, but we'll make it anyway
-            let unknownInitPacket = Packet.commandRequestPacket(
-                code: .canonUnknownInitialisation,
-                arguments: [0x00000015],
-                transactionId: self.ptpIPClient?.getNextTransactionId() ?? 2
-            )
-
-            self.ptpIPClient?.sendCommandRequestPacket(unknownInitPacket, callback: { [weak self] initResponse in
+            self.keepAlive { [weak self] error in
                 self?.setEventModeIfSupported(completion: completion)
-            })
+                // TODO: Fetch device info if isCanonEOSMLikeFirmware == true
+            }
         })
+    }
+    
+    func keepAlive(completion: @escaping (Error?) -> Void) {
+        guard deviceInfo?.supportedOperations.contains(.canonKeepAlive) == true else {
+            return
+        }
+        let keepAlivePacket = Packet.commandRequestPacket(
+            code: .canonKeepAlive,
+            arguments: nil,
+            transactionId: self.ptpIPClient?.getNextTransactionId() ?? 2
+        )
+        
+        self.ptpIPClient?.sendCommandRequestPacket(keepAlivePacket) { response in
+            completion(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil)
+        }
     }
     
     private func setEventModeIfSupported(completion: @escaping PTPIPCamera.ConnectedCompletion) {
         
+        let eventFetchCompletion: PTPIPCamera.ConnectedCompletion = { [weak self] error, transferMode in
+            guard error == nil else {
+                completion(error, transferMode)
+                return
+            }
+            
+//          TODO: Maybe:IF support canonGetDeviceInfoEx call this first!
+            
+            self?.getStorageIds(completion: completion)
+        }
+        
         guard deviceInfo?.supportedOperations.contains(.canonSetEventMode) == true else {
-            performInitialEventFetch(completion: completion)
+            performInitialEventFetch(completion: eventFetchCompletion)
             return
         }
         
         let packet = Packet.commandRequestPacket(
             code: .canonSetEventMode,
-            arguments: [0x00000001], // TODO: Magic number.. for now! EOS R sends this, EOS 400D sends 0x00000002?
+            arguments: [
+                deviceInfo?.supportedEventCodes.contains(.requestGetEvent) == true ?
+                0x00000002 : 0x00000001],
             transactionId: ptpIPClient?.getNextTransactionId() ?? 2
         )
         
@@ -98,8 +164,72 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
                 completion(PTPError.commandRequestFailed(response.code), false)
                 return
             }
-            self?.performInitialEventFetch(completion: completion)
+            self?.performInitialEventFetch(completion: eventFetchCompletion)
         })
+    }
+    
+    private func getStorageIds(completion: @escaping PTPIPCamera.ConnectedCompletion) {
+        
+        let packet = Packet.commandRequestPacket(
+            code: .canonGetStorageIDs,
+            arguments: nil,
+            transactionId: ptpIPClient?.getNextTransactionId() ?? 4
+        )
+        
+        ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let data):
+                var offset: UInt = 0
+                let storageIds: [DWord]? = data.data.read(offset: &offset)
+                self.storageIds = storageIds
+                guard let firstStorageId = storageIds?.first else {
+                    completion(nil, false)
+                    self.performInitialEventFetch(completion: completion)
+                    // TODO: Get event again?
+                    return
+                }
+                self.getStorageInfo(storageId: firstStorageId, completion: completion)
+            case .failure(let error):
+                completion(error, false)
+            }
+        })
+        
+        ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
+    }
+    
+    func getStorageInfo(storageId: DWord, completion: @escaping PTPIPCamera.ConnectedCompletion) {
+        
+        let packet = Packet.commandRequestPacket(
+            code: .canonGetStorageInfo,
+            arguments: [storageId],
+            transactionId: ptpIPClient?.getNextTransactionId() ?? 5
+        )
+        
+        ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(_):
+                self.performInitialEventFetch(completion: { [weak self] error, transferMode in
+                    guard error == nil else {
+                        completion(error, transferMode)
+                        return
+                    }
+                    self?.getDeviceInfo { result in
+                        switch result {
+                        case .success(let deviceInfo):
+                            completion(nil, transferMode)
+                        case .failure(let error):
+                            completion(error, transferMode)
+                        }
+                    }
+                })
+            case .failure(let error):
+                completion(error, false)
+            }
+        })
+        
+        ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
     }
 
     override func performFunction<T>(_ function: T, payload: T.SendType?, callback: @escaping ((Error?, T.ReturnType?) -> Void)) where T : CameraFunction {
@@ -129,6 +259,14 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
             })
             imageURLs = [:]
             callback(nil, lastEvent as? T.ReturnType)
+        case .cancelHalfPressShutter, .halfPressShutter:
+            // TODO: See if this exists/how this works for Canon
+            // for now, disable so we can get past this point of connection
+            callback(nil, nil)
+        case .ping:
+            keepAlive { error in
+                callback(error, nil)
+            }
         default:
             super.performFunction(function, payload: payload, callback: callback)
         }
@@ -228,6 +366,7 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
     override func sendSetDevicePropValue(
         _ value: PTP.DeviceProperty.Value,
         valueB: Bool = false,
+        retry: Int = 0,
         callback: CommandRequestPacketResponse? = nil
     ) {
         // TODO: [Canon] Write test that covers this!
@@ -249,8 +388,21 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
         let dataPackets = Packet.dataSendPackets(data: data, transactionId: transactionID)
 
         ptpIPClient?.sendCommandRequestPacket(opRequestPacket, callback: { [weak self] response in
-            callback?(response)
+            
             guard let self = self else { return }
+            
+            if response.code == .deviceBusy, retry < 3 {
+                usleep(1300)
+                self.sendSetDevicePropValue(
+                    value,
+                    valueB: valueB,
+                    retry: retry + 1,
+                    callback: callback
+                )
+            } else {
+                callback?(response)
+            }
+            
             guard response.code == .okay else { return }
             guard let lastEvents = self.lastEventChanges else {
                 self.onEventAvailable?(nil)
@@ -298,8 +450,12 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
     }
 
     override func startLiveView(callback: @escaping (Error?) -> Void) {
+        
+//    TODO: If we get `deviceBusy` then retry? Maybe awaiting an event first? Maybe calling getDeviceInfo first?
+        
+//        Also maybe do this for all setDevicePropValueEx calls?
 
-        // [TODO]:  Currently get notReady error when setting this when starting connection
+        // [TODO]:  Currently get deviceBusy error when setting this when starting connection
         sendSetDevicePropValue(
             .init(
                 code: .EVFOutputDeviceCanonEOS,
@@ -382,8 +538,8 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
                                 switch responseCode {
                                 // According to libgphoto2 we also need to check 0xa102 which
                                 // we have as nikon_notReady case
-                                case .deviceBusy, .nikon_notReady:
-                                    // TODO: May not be necessary once we've got this working?
+                                case .deviceBusy, .notReady:
+//                                     TODO: May not be necessary once we've got this working?
                                     usleep(1300)
                                     continueClosure(tries > 0 ? false : true)
                                 default:

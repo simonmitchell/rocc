@@ -323,6 +323,16 @@ extension ByteBuffer {
         }
         return arrayElements
     }
+    
+    func read(offset: inout UInt) -> [DWord]? {
+        guard let length: DWord = read(offset: &offset) else { return nil }
+        var arrayElements: [DWord] = []
+        for _ in 0..<UInt(length) {
+            guard let word: DWord = self.read(offset: &offset) else { continue }
+            arrayElements.append(word)
+        }
+        return arrayElements
+    }
 }
 
 extension ByteBuffer {

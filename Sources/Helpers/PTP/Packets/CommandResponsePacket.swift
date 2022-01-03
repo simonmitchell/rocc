@@ -78,7 +78,7 @@ struct CommandResponsePacket: Packetable {
 //        case nikon_UNKNOWN_COMMAND = 0xA001
 //        case nikon_OPERATION_REFUSED = 0xA005
 //        case nikon_lensCover = 0xA006
-        case nikon_notReady = 0xA102
+        case notReady = 0xA102
 
 //        case nikon_A009 = 0xA009
 

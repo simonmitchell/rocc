@@ -114,31 +114,39 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
                 completion(PTPError.commandRequestFailed(response.code), false)
                 return
             }
-            self?.getDeviceInfo(completion: completion)
+            self?.getDeviceInfo(completion: { result in
+                
+                switch result {
+                case .success(let deviceInfo):
+                    // Only get SDIO Ext Device Info if it's supported!
+                    self?.deviceInfo = deviceInfo
+                    guard deviceInfo.supportedOperations.contains(.sdioGetExtDeviceInfo) else {
+                        completion(nil, false)
+                        return
+                    }
+                    self?.getSdioExtDeviceInfo(completion: completion)
+                case .failure(let error):
+                    completion(error, false)
+                }
+            })
         }, callCallbackForAnyResponse: true)
     }
     
-    private func getDeviceInfo(completion: @escaping PTPIPCamera.ConnectedCompletion) {
+    internal func getDeviceInfo(completion: @escaping (Result<PTP.DeviceInfo, Error>) -> Void) {
         
         let packet = Packet.commandRequestPacket(code: .getDeviceInfo, arguments: nil, transactionId: ptpIPClient?.getNextTransactionId() ?? 1)
         
-        ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { [weak self] (dataResult) in
+        ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { (dataResult) in
             
             switch dataResult {
             case .success(let dataContainer):
                 guard let deviceInfo = PTP.DeviceInfo(data: dataContainer.data) else {
-                    completion(PTPError.fetchDeviceInfoFailed, false)
+                    completion(.failure(PTPError.fetchDeviceInfoFailed))
                     return
                 }
-                self?.deviceInfo = deviceInfo
-                // Only get SDIO Ext Device Info if it's supported!
-                guard deviceInfo.supportedOperations.contains(.sdioGetExtDeviceInfo) else {
-                    completion(nil, false)
-                    return
-                }
-                self?.getSdioExtDeviceInfo(completion: completion)
+                completion(.success(deviceInfo))
             case .failure(let error):
-                completion(error, false)
+                completion(.failure(error))
             }
         })
         
@@ -1145,7 +1153,7 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
     ///   - value: The value to set the prop to
     ///   - valueB: Used for Sony cameras, some props require using a different command code (setValueB rather than setValueA)
     ///   - callback: Closure to call when done
-    func sendSetDevicePropValue(_ value: PTP.DeviceProperty.Value, valueB: Bool = false, callback: CommandRequestPacketResponse? = nil) {
+    func sendSetDevicePropValue(_ value: PTP.DeviceProperty.Value, valueB: Bool = false, retry: Int = 0, callback: CommandRequestPacketResponse? = nil) {
 
         // TODO: Implement default PTP/IP function for this (So far Sony and Canon are bespoke)
     }
