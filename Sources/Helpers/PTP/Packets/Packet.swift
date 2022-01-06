@@ -35,6 +35,11 @@ protocol Packetable {
     mutating func addingAwaitedData(_ data: ByteBuffer) -> (packet: CommandResponsePacket, length: DWord)?
 }
 
+protocol Transactional {
+    
+    var transactionIdentifier: DWord? { get }
+}
+
 extension Packetable {
 
     var awaitingFurtherData: Bool {
@@ -235,9 +240,9 @@ struct Packet: Packetable {
         return packet
     }
     
-    static func endDataPacket(data: ByteBuffer?, transactionId: DWord = 0) -> Packet {
+    static func endDataPacket(data: ByteBuffer?, transactionId: DWord = 0) -> EndDataPacket {
         
-        var packet = Packet(name: .endDataPacket)
+        var packet = EndDataPacket(transactionId: transactionId)
         packet.data[dWord: UInt(headerLength)] = transactionId
         if let data = data {
             packet.data.append(bytes: data.bytes.compactMap({ $0 }))

@@ -19,15 +19,15 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
     var storageIds: [DWord]?
     
     // TODO: Remove if we don't need
-//    override var ptpIPClient: PTPIPClient? {
-//        get {
-//            let client = super.ptpIPClient
-//            client?.sendSynchronously = true
-//            return client
-//        } set {
-//            super.ptpIPClient = newValue
-//        }
-//    }
+    override var ptpIPClient: PTPIPClient? {
+        get {
+            let client = super.ptpIPClient
+            client?.sendSynchronously = true
+            return client
+        } set {
+            super.ptpIPClient = newValue
+        }
+    }
 
     override var eventPollingMode: EventPollingMode {
         // We manually trigger event fetches on Canon, or manually pass events back to caller!

@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct CommandResponsePacket: Packetable {
+struct CommandResponsePacket: Packetable, Transactional {
     
     enum Code: Word, Error {
         
@@ -137,6 +137,10 @@ struct CommandResponsePacket: Packetable {
     let code: Code
     
     let transactionId: DWord?
+    
+    var transactionIdentifier: DWord? {
+        return transactionId
+    }
     
     func addingAwaitedData(_ data: ByteBuffer) -> (packet: CommandResponsePacket, length: DWord)?  {
         var fullData = pendingData

@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct StartDataPacket: Packetable {
+struct StartDataPacket: Packetable, Transactional {
     
     var name: Packet.Name
     
@@ -17,6 +17,10 @@ struct StartDataPacket: Packetable {
     var data: ByteBuffer
     
     let transactionId: DWord
+    
+    var transactionIdentifier: DWord? {
+        return transactionId
+    }
     
     let dataLength: DWord
     

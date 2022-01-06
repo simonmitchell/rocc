@@ -51,7 +51,7 @@ final class PTPIPClient {
 //    /// Whether the client should queue commands before sending the next one.
 //    /// Will wait for a response packet for the most recent command before attempting the
 //    /// next one
-//    var sendSynchronously: Bool = false
+    var sendSynchronously: Bool = false
     
     init(camera: Camera, packetStream: PTPPacketStream) {
         self.packetStream = packetStream
@@ -142,15 +142,29 @@ final class PTPIPClient {
     /// - Parameter packet: The packet to send
     func sendControlPacket(_ packet: Packetable) {
         // TODO: Remove if we don't need
-//        guard sendSynchronously else {
-//            packetStream.sendControlPacket(packet)
-//            return
-//        }
-//        if sendingControlPacket == nil {
+        guard sendSynchronously else {
             packetStream.sendControlPacket(packet)
-//        } else {
-//            queuedControlPackets.append(packet)
-//        }
+            return
+        }
+        
+        var queuePacket = false
+        
+        // If the packet we're currently sending has a transaction ID and the
+        // next packet has a different transaction ID then queue it
+        if let tSendingPacket = sendingControlPacket as? Transactional,
+            let tPacket = packet as? Transactional {
+            queuePacket = tSendingPacket.transactionIdentifier != tPacket.transactionIdentifier
+        } else { // If either doesn't have a transaction ID then queue it
+            queuePacket = sendingControlPacket != nil
+        }
+        
+        guard queuePacket else {
+            sendingControlPacket = packet
+            packetStream.sendControlPacket(packet)
+            return
+        }
+        
+        queuedControlPackets.append(packet)
     }
     
     //MARK: Command Requests
@@ -194,6 +208,7 @@ final class PTPIPClient {
         switch packet {
         case let initCommandAckPacket as InitCommandAckPacket:
             
+            clearQueuedControlPackets()
             onEventStreamsOpened = { [weak self] in
                 let initEventPacket = Packet.initEventPacket(sessionId: initCommandAckPacket.sessionId)
                 self?.sendEventPacket(initEventPacket)
@@ -214,13 +229,16 @@ final class PTPIPClient {
             switch packet.name {
             case .initEventAck:
                 // We're done with setting up sockets here, any further handshake should be done by the caller of `connect`
+                clearQueuedControlPackets()
                 connectCallback?(nil)
                 connectCallback = nil
             case .ping:
                 // Perform a pong!
+                clearQueuedControlPackets()
                 let pongPacket = Packet.pongPacket()
                 sendEventPacket(pongPacket)
             case .pong:
+                clearQueuedControlPackets()
                 onPong?()
             default:
                 break
@@ -236,6 +254,35 @@ final class PTPIPClient {
     }
     
     //MARK: Commands
+    
+    // TODO: Remove if we don't need
+    private func clearQueuedControlPackets() {
+        sendingControlPacket = nil
+        // If we have any packets queued (because we're running
+        // synchronously) then send them now... This should
+        // recurse assuming we always get a command response packet!
+        if let queuedPacket = queuedControlPackets.first {
+            
+            print("[QUEUEING] got queued packet", queuedPacket)
+
+            // If the queued packet is transactional (has transactionId)
+            if let tQueuedPacket = queuedPacket as? Transactional {
+                // Send all other queued packets with same transaction ID
+                let packetsWithSameTransId = queuedControlPackets.filter({
+                    ($0 as? Transactional)?.transactionIdentifier == tQueuedPacket.transactionIdentifier
+                })
+                packetsWithSameTransId.forEach { packet in
+                    queuedControlPackets.removeAll(where: {
+                        ($0 as? Transactional)?.transactionIdentifier == tQueuedPacket.transactionIdentifier
+                    })
+                    sendControlPacket(packet)
+                }
+            } else { // Otherwise just send first queued packet
+                queuedControlPackets.removeFirst()
+                sendControlPacket(queuedPacket)
+            }
+        }
+    }
         
     fileprivate func handleCommandResponsePacket(_ packet: CommandResponsePacket) {
         
@@ -246,14 +293,9 @@ final class PTPIPClient {
         }
         
         // TODO: Remove if we don't need!
-//        defer {
-//            // If we have any packets queued (because we're running
-//            // synchronously) then send them now... This should
-//            // recurse assuming we always get a command response packet!
-//            if let queuedPacket = queuedControlPackets.last {
-//                sendControlPacket(queuedPacket)
-//            }
-//        }
+        defer {
+            clearQueuedControlPackets()
+        }
         
         guard let transactionId = packet.transactionId else {
             commandRequestCallbacks = commandRequestCallbacks.filter { (_, value) -> Bool in

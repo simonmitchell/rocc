@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct EventPacket: Packetable {
+struct EventPacket: Packetable, Transactional {
     
     var name: Packet.Name
     
@@ -21,6 +21,10 @@ struct EventPacket: Packetable {
     let transactionId: DWord?
         
     let variables: [DWord]?
+    
+    var transactionIdentifier: DWord? {
+        return transactionId
+    }
     
     init?(length: DWord, name: Packet.Name, data: ByteBuffer) {
         
