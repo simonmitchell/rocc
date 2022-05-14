@@ -869,9 +869,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = B1316A612089C08F006BD136 /* Build configuration list for PBXNativeTarget "Rocc" */;
 			buildPhases = (
+				B1316A4A2089C08F006BD136 /* Headers */,
 				B1316A482089C08F006BD136 /* Sources */,
 				B1316A492089C08F006BD136 /* Frameworks */,
-				B1316A4A2089C08F006BD136 /* Headers */,
 				B1316A4B2089C08F006BD136 /* Resources */,
 				B182B8CF237EEEE50054539E /* ShellScript */,
 			);
