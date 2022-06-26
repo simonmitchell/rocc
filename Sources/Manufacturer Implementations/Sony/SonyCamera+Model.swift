@@ -143,6 +143,11 @@ extension SonyCamera {
             return [.cyberShot_RX100M2, .cyberShot_HX50, .cyberShot_HX50V].contains(self)
         }
         
+        /// This can be used to see whether the camera supports the given function, based purely on it's model. Bear in mind this is only used for API cameras
+        /// with PTP/IP cameras, we instead use information provided by the camera exclusively. This information is based on a matrix
+        /// provided by Sony of supported functions, and my own testing
+        /// - Parameter function: The function to check which models supports
+        /// - Returns: An array of camera models that support the required function
         internal static func supporting(function: _CameraFunction) -> [Model] {
             switch function {
                 // No API based cameras support any of these
