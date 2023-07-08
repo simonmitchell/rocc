@@ -9,6 +9,7 @@
 import Foundation
 import os
 import SystemConfiguration
+import Network
 
 extension UserDefaults {
     
@@ -56,7 +57,7 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
         
     private let log: OSLog = OSLog(subsystem: "com.yellow-brick-bear.rocc", category: "UDPDeviceDiscoverer")
     
-    init(initialMessages: [String], address: String, port: Int = 0) {
+    init(initialMessages: [String], address: NWEndpoint.Host, port: NWEndpoint.Port = 0) {
         
         self.udpClient = UDPClient(
             initialMessages: initialMessages,
@@ -81,13 +82,13 @@ class UDPDeviceDiscoverer: DeviceDiscoverer {
         
         // If we have a description URL cached for the current SSID, then first off try and hit that!
         if let currentSSID = Reachability.currentWiFiSSID, let urls = UserDefaults.standard.ssidDeviceMap[currentSSID], !ignoreSavedDevices {
-            
+
             let urlString = urls.map({ $0.absoluteString }).joined(separator: ", ")
             Logger.log(message: "Have cached devices at \(urlString) for SSID \(currentSSID)", category: "UDPDeviceDiscoverer", level: .debug)
             os_log("Have cached devices at: %{public}@ for SSID %{public}@", log: log, type: .debug, urlString, currentSSID)
-            
+
             urls.forEach { (url) in
-                
+
                 parseDeviceInfo(at: url, isCached: true) { [weak self] (error) in
                     guard let strongSelf = self else {
                         return
