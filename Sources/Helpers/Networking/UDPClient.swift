@@ -84,16 +84,17 @@ class UDPClient {
         
         if self.connectionGroup == nil {
             do {
-                let group = try NWMulticastGroup(
-                    for: [.hostPort(host: address, port: port)])
-                self.connectionGroup = .init(
-                    with: group,
-                    using: .udp
+                let multicast = try NWMulticastGroup(
+                    for: [
+                        .hostPort(host: address, port: port)
+                    ]
                 )
+                let params: NWParameters = .udp
+                params.allowLocalEndpointReuse = true
+                self.connectionGroup = NWConnectionGroup(with: multicast, using: params)
             } catch {
                 
             }
-            
         }
         
         self.connectionGroup?.setReceiveHandler(handler: { [weak self] message, content, isComplete in
@@ -127,14 +128,15 @@ class UDPClient {
             
             Logger.log(message: "Got device from socket with ddURL: \(ddURL.absoluteString), uuid: \(uuid)", category: "UDPClient", level: .debug)
             os_log("Got device from socket with ddURL: %@, uuid: %@", log: log, type: .debug, ddURL.absoluteString, uuid)
-            
-            let device = Device(uuid: uuid, ddURL: ddURL)
-            if !devices.contains(where: { $0.uuid == uuid }) {
-                devices.append(device)
-                ssdpReceived = true
-            }
-            
+                        
             OperationQueue.main.addOperation {
+                
+                let device = Device(uuid: uuid, ddURL: ddURL)
+                if !self.devices.contains(where: { $0.uuid == uuid }) {
+                    self.devices.append(device)
+                    self.ssdpReceived = true
+                }
+                
                 self.callCompletionHandlers(with: device, error: nil)
             }
         })
@@ -143,21 +145,22 @@ class UDPClient {
             guard let self = self else { return }
             guard state == .ready else { return }
             
-            let messageDatas = initialMessage.map({ (message) in
-                return (message: message, data: Data(Array(message.utf8)))
+            let messageDatas = initialMessage.map({ message in
+                return (message: message, data: message.data(using: .utf8))
             })
             
             messageDatas.forEach { messageData in
+                Logger.log(message: "Sending \(messageData.data?.count ?? 0) bytes to multicast connection group", category: "UDPClient", level: .debug)
+                os_log("Sending data: %i bytes", log: self.log, type: .debug, messageData.data?.count ?? 0)
                 self.connectionGroup?.send(content: messageData.data, completion: { [weak self] error in
                     guard let self = self else { return }
                     if let error {
                         Logger.log(message: "Failed to send data to socket \(error):\n\n\(messageData.message)", category: "UDPClient", level: .error)
                         os_log("Failed to send data to socket:\n\n%@", log: self.log, type: .error, messageData.message)
                     } else {
-                        Logger.log(message: "Sending data to socket:\n\n\(messageData.message)", category: "UDPClient", level: .debug)
-                        os_log("sendSocket Sending data:\n\n%@", log: self.log, type: .debug, messageData.message)
+                        Logger.log(message: "Sent data to socket:\n\n\(messageData.message)", category: "UDPClient", level: .debug)
+                        os_log("Sent data:\n\n%@", log: self.log, type: .debug, messageData.message)
                     }
-                    
                 })
             }
         }
