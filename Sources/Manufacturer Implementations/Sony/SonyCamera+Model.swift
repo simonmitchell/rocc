@@ -16,6 +16,7 @@ struct Sony {
             case a7 = "ILCE-7"
             case a7ii = "ILCE-7M2"
             case a7iii = "ILCE-7M3"
+            case a7iv = "ILCE-7M4"
             case a7r = "ILCE-7R"
             case a7rii = "ILCE-7RM2"
             case a7riii = "ILCE-7RM3"
@@ -79,6 +80,7 @@ struct Sony {
                 case .a7: return "ɑ7"
                 case .a7ii: return "ɑ7 II"
                 case .a7iii: return "ɑ7 III"
+                case .a7iv: return "ɑ7 IV"
                 case .a7r: return "ɑ7R"
                 case .a7rii: return "ɑ7R II"
                 case .a7riii: return "ɑ7R III"
@@ -147,9 +149,9 @@ struct Sony {
                 switch function {
                     // No API based cameras support any of these
                 case .startContinuousBracketShooting, .stopContinuousBracketShooting,
-                     .setContinuousBracketedShootingBracket, .getContinuousBracketedShootingBracket,
-                     .takeSingleBracketShot,
-                     .setSingleBracketedShootingBracket, .getSingleBracketedShootingBracket:
+                        .setContinuousBracketedShootingBracket, .getContinuousBracketedShootingBracket,
+                        .takeSingleBracketShot,
+                        .setSingleBracketedShootingBracket, .getSingleBracketedShootingBracket:
                     return []
                     // This isn't documented, so let's err on the side of caution!
                 case .startBulbCapture, .endBulbCapture:

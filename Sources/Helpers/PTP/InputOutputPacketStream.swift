@@ -246,6 +246,7 @@ final class InputOutputPacketStream: NSObject, PTPPacketStream {
     
     fileprivate func sendQueuedEventPackets() {
         guard let eventWriteStream = eventWriteStream else { return }
+        var indicesToRemove: [Int] = []
         for (index, packet) in pendingEventPackets.enumerated() {
             let response = eventWriteStream.write(packet)
             guard response == packet.length else {
@@ -253,12 +254,18 @@ final class InputOutputPacketStream: NSObject, PTPPacketStream {
             }
             Logger.log(message: "Sending event packet to device: \(packet.debugDescription)", category: "PTPIPClient", level: .debug)
             os_log("Sending event packet to device: %@", log: log, type: .debug, "\(packet.debugDescription)")
-            pendingEventPackets.remove(at: index)
+            indicesToRemove.append(index)
         }
+        
+        pendingEventPackets = pendingEventPackets
+            .enumerated()
+            .filter { !indicesToRemove.contains($0.offset) }
+            .map { $0.element }
     }
     
     fileprivate func sendQueuedControlPackets() {
         guard let controlWriteStream = controlWriteStream else { return }
+        var indicesToRemove: [Int] = []
         for (index, packet) in pendingControlPackets.enumerated() {
             let response = controlWriteStream.write(packet)
             guard response == packet.length else {
@@ -266,8 +273,12 @@ final class InputOutputPacketStream: NSObject, PTPPacketStream {
             }
             Logger.log(message: "Sending control packet to device: \(packet.debugDescription)", category: "PTPIPClient", level: .debug)
             os_log("Sending control packet to device: %@", log: log, type: .debug, "\(packet.debugDescription)")
-            pendingControlPackets.remove(at: index)
+            indicesToRemove.append(index)
         }
+        pendingControlPackets = pendingControlPackets
+            .enumerated()
+            .filter { !indicesToRemove.contains($0.offset) }
+            .map { $0.element }
     }
 }
 
