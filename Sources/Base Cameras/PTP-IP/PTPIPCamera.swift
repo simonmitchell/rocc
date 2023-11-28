@@ -41,6 +41,12 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
         return .fetch
     }
     
+    func deviceSpecificOpCode(for code: PTP.CommandCode) -> PTP.CommandCode {
+        return code
+    }
+    
+    var storageIds: [DWord]?
+    
     var onDisconnected: (() -> Void)?
     
     var zoomingDirection: Zoom.Direction?
@@ -132,6 +138,63 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
         }, callCallbackForAnyResponse: true)
     }
     
+    internal func initialiseFileSystem(completion: @escaping (Error?) -> Void) {
+        
+        let listFolders: ([DWord]) -> Void = { [weak self] storageIds in
+            guard let self = self else { return }
+            
+            listFolder(storageId: nil, handle: nil) { error in
+                guard error == nil else {
+                    completion(error)
+                    return
+                }
+                
+                storageIds.asyncForEach(
+                    body: { [weak self] storageId in
+                        guard let self = self else {
+                            return
+                        }
+                        try await withCheckedThrowingContinuation { continuation in
+                            self.listFolder(
+                                storageId: storageId,
+                                handle: nil
+                            ) { error in
+                                guard let error else {
+                                    continuation.resume(returning: Void())
+                                    return
+                                }
+                                continuation.resume(throwing: error)
+                            }
+                        }
+                    },
+                    done: completion
+                )
+            }
+        }
+        
+        guard let storageIds, !storageIds.isEmpty else {
+            
+            if deviceInfo?.supportedOperations.contains(
+                deviceSpecificOpCode(for: .getStorageIds)
+            ) == true {
+                getStorageIds { result in
+                    switch result {
+                    case .success(let success):
+                        listFolders(success)
+                    case .failure(let failure):
+                        completion(failure)
+                    }
+                }
+            } else {
+                listFolders([])
+            }
+            
+            return
+        }
+        
+        listFolders(storageIds)
+    }
+    
     internal func getDeviceInfo(completion: @escaping (Result<PTP.DeviceInfo, Error>) -> Void) {
         
         let packet = Packet.commandRequestPacket(code: .getDeviceInfo, arguments: nil, transactionId: ptpIPClient?.getNextTransactionId() ?? 1)
@@ -145,6 +208,47 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
                     return
                 }
                 completion(.success(deviceInfo))
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        })
+        
+        ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
+    }
+    
+    /// Lists the contents of a folder in storageId with handle. `nil` is handled as a special case here for initial setup calls
+    /// - Parameters:
+    ///   - storageId: The storage ID to list the folder in
+    ///   - handle: The handle of the folder
+    ///   - completion: Closure called with response from camera
+    internal func listFolder(
+        storageId: DWord?,
+        handle: DWord?,
+        completion: @escaping (Error?) -> Void
+    ) {
+        // TODO: Implement base approach
+    }
+    
+    internal func getStorageIds(completion: @escaping (Result<[DWord], Error>) -> Void) {
+        
+        // TODO: Update logic based on manufacturer
+        let packet = Packet.commandRequestPacket(
+            code: deviceSpecificOpCode(for: .getStorageIds),
+            arguments: nil,
+            transactionId: ptpIPClient?.getNextTransactionId() ?? 4
+        )
+        
+        ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let data):
+                var offset: UInt = 0
+                guard let storageIds: [DWord] = data.data.read(offset: &offset) else {
+                    completion(.failure(PTPError.invalidData))
+                    return
+                }
+                self.storageIds = storageIds
+                completion(.success(storageIds))
             case .failure(let error):
                 completion(.failure(error))
             }
@@ -535,6 +639,7 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
         case anotherSessionOpen
         case operationNotSupported
         case propCodeInvalid
+        case invalidData
     }
     
     func performFunction<T>(_ function: T, payload: T.SendType?, callback: @escaping ((Error?, T.ReturnType?) -> Void)) where T : CameraFunction {

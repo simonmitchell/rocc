@@ -15,9 +15,7 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
     /// we fetch to to maintain the same eventing mechanism as other models
     /// we need to retain this and just update it with incoming events!
     var lastEventChanges: CanonPTPEvents?
-    
-    var storageIds: [DWord]?
-    
+        
     // TODO: Remove if we don't need
     override var ptpIPClient: PTPIPClient? {
         get {
@@ -74,13 +72,101 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
     
     override func performPostConnectCommands(completion: @escaping PTPIPCamera.ConnectedCompletion) {
         
+        // 1. https://github.com/gphoto/libgphoto2/blob/af2a91f82eb6b5acedc0ea04dd15b0fd1906c14a/camlibs/ptp2/library.c#L9726
+        initialise { [weak self] error in
+            guard let self = self, error == nil else {
+                completion(error, false)
+                return
+            }
+            // 2. https://github.com/gphoto/libgphoto2/blob/aecbc5d45577a94a1ce7ed1bbc47c90a3aba4704/camlibs/ptp2/config.c#L374
+            prepareForCapture { error in
+                completion(error, false)
+            }
+        }
+    }
+    
+    override func deviceSpecificOpCode(for code: PTP.CommandCode) -> PTP.CommandCode {
+        switch code {
+        case .getStorageIds:
+            return .canonGetStorageIDs
+        default:
+            return code
+        }
+    }
+    
+    private func initialise(completion: @escaping (Error?) -> Void) {
+        
+        getDeviceInfo { [weak self] result in
+            
+            guard let self = self else { return }
+            
+            switch result {
+            case .success:
+                guard deviceInfo?.supportedOperations.contains(.canonSetRemoteMode) == true else {
+                    setEventModeIfSupported(completion: completion)
+                    return
+                }
+                
+                // Calculate mode based on device model.
+                // Also for EOS M and newer we use 0x15 and have to re-call ptp_getdeviceinfo because it changes when call canonSetRemoteMode
+                
+                var remoteMode: DWord = 1
+                if isCanonEOSMLikeFirmware {
+                    remoteMode = 0x15
+                    switch deviceInfo?.model {
+                    case "Canon EOS M6 Mark II":
+                        remoteMode = 0x1
+                    case "Canon PowerShot SX540 HS", "Canon PowerShot SX720 HS", "Canon PowerShot G5 X":
+                        remoteMode = 0x11
+                        break
+                    default:
+                        break
+                    }
+                }
+                
+                let packet = Packet.commandRequestPacket(
+                    code: .canonSetRemoteMode,
+                    arguments: [remoteMode],
+                    transactionId: ptpIPClient?.getNextTransactionId() ?? 1
+                )
+
+                ptpIPClient?.sendCommandRequestPacket(packet, callback: { [weak self] (response) in
+                    guard response.code == .okay else {
+                        completion(PTPError.commandRequestFailed(response.code))
+                        return
+                    }
+                    
+                    guard let self = self else { return }
+                    
+                    if isCanonEOSMLikeFirmware {
+                        getDeviceInfo { [weak self] deviceInfoResult in
+                            guard let self = self else { return }
+                            switch deviceInfoResult {
+                            case .success:
+                                initialiseFileSystem(completion: completion)
+                            case .failure(let failure):
+                                completion(failure)
+                            }
+                        }
+                    } else {
+                        initialiseFileSystem(completion: completion)
+                    }
+                })
+                
+            case .failure(let failure):
+                completion(failure)
+            }
+        }
+    }
+    
+    private func prepareForCapture(completion: @escaping (Error?) -> Void) {
+        
         guard deviceInfo?.supportedOperations.contains(.canonSetRemoteMode) == true else {
             setEventModeIfSupported(completion: completion)
             return
         }
         
-        // TODO: Calculate mode based on device model.
-        // Also for EOS M and newer we use 0x15 and have to re-call ptp_getdeviceinfo because it changes when call canonSetRemoteMode
+        // Calculate mode based on device model.
         
         var remoteMode: DWord = deviceInfo?.model == "Canon EOS 4000D" ? 0x15 : 1
         if isCanonEOSMLikeFirmware {
@@ -104,7 +190,7 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
 
         ptpIPClient?.sendCommandRequestPacket(packet, callback: { [weak self] (response) in
             guard response.code == .okay else {
-                completion(PTPError.commandRequestFailed(response.code), false)
+                completion(PTPError.commandRequestFailed(response.code))
                 return
             }
             
@@ -113,7 +199,6 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
             // This call might not be necessary, but we'll make it anyway
             self.keepAlive { [weak self] error in
                 self?.setEventModeIfSupported(completion: completion)
-                // TODO: Fetch device info if isCanonEOSMLikeFirmware == true
             }
         })
     }
@@ -133,24 +218,85 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
         }
     }
     
-    private func setEventModeIfSupported(completion: @escaping PTPIPCamera.ConnectedCompletion) {
+    private func setEventModeIfSupported(completion: @escaping (Error?) -> Void) {
         
-        let eventFetchCompletion: PTPIPCamera.ConnectedCompletion = { [weak self] error, transferMode in
-            guard error == nil else {
-                completion(error, transferMode)
+        let eventFetchCompletion: (Error?) -> Void = { [weak self] error in
+            guard let self, error == nil else {
+                completion(error)
                 return
             }
             
-//          TODO: Maybe:IF support canonGetDeviceInfoEx call this first!
-            
-            self?.getStorageIds(completion: completion)
+            getDeviceMetadata { [weak self] in
+                guard let self else { return }
+                
+                // TODO: If GetDeviceInfoEx supported, do it before awaitPropExists
+                
+                awaitPropExists(completion: { [weak self] in
+                    
+                    // Maybe? camera_canon_eos_update_capture_target: https://github.com/gphoto/libgphoto2/blob/aecbc5d45577a94a1ce7ed1bbc47c90a3aba4704/camlibs/ptp2/config.c#L286
+                    
+                    guard let self else { return }
+                    
+                    getDeviceInfo { [weak self] result in
+                        
+                        guard let self else { return }
+                        
+                        switch result {
+                        case .success:
+                            getStorageIds(completion: { [weak self] result in
+                                
+                                guard let self else {
+                                    return
+                                }
+                                
+                                switch result {
+                                case .success(let success):
+                                    guard let firstStorageId = success.first else {
+                                        performInitialEventFetch { error, transferMode in
+                                            // TODO: [Next] ptp_canon_eos_setdevicepropvalue EVFOutputDeviceCanonEOS with retry after x seconds
+                                            completion(error)
+                                        }
+                                        return
+                                    }
+                                    getStorageInfo(
+                                        storageId: firstStorageId
+                                    ) { [weak self] error in
+                                        
+                                        guard let self, error == nil else {
+                                            completion(error)
+                                            return
+                                        }
+                                                                   
+                                        performInitialEventFetch { error, transferMode in
+                                            // TODO: [Next] ptp_canon_eos_setdevicepropvalue EVFOutputDeviceCanonEOS with retry after x seconds
+                                            completion(error)
+                                        }
+                                    }
+
+                                case .failure(let failure):
+                                    completion(failure)
+                                }
+                            })
+                        case .failure(let failure):
+                            completion(failure)
+                        }
+                    }
+                    
+                    
+                }, code: .EVFOutputDeviceCanonEOS)
+                
+                
+            }
         }
         
         guard deviceInfo?.supportedOperations.contains(.canonSetEventMode) == true else {
-            performInitialEventFetch(completion: eventFetchCompletion)
+            performInitialEventFetch { error, _ in
+                eventFetchCompletion(error)
+            }
             return
         }
         
+        // libgphoto2 does this after all of the above, but can we do it here instead? Only time will tell!
         let packet = Packet.commandRequestPacket(
             code: .canonSetEventMode,
             arguments: [
@@ -161,44 +307,157 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
         
         ptpIPClient?.sendCommandRequestPacket(packet, callback: { [weak self] (response) in
             guard response.code == .okay else {
-                completion(PTPError.commandRequestFailed(response.code), false)
+                completion(PTPError.commandRequestFailed(response.code))
                 return
             }
-            self?.performInitialEventFetch(completion: eventFetchCompletion)
+            // TODO: Potentiatlly add SetRequestOLCInfoGroup if supported
+            self?.performInitialEventFetch { error, _ in
+                eventFetchCompletion(error)
+            }
         })
     }
     
-    private func getStorageIds(completion: @escaping PTPIPCamera.ConnectedCompletion) {
+    private func awaitPropExists(
+        completion: @escaping () -> Void,
+        code: PTP.DeviceProperty.Code,
+        retries: Int = 10,
+        attempt: Int = 1
+    ) {
+        flushEventStream { [weak self] events in
+            guard let self else {
+                completion()
+                return
+            }
+            guard !propExists(for: code), attempt <= retries else {
+                completion()
+                return
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+                self?.awaitPropExists(
+                    completion: completion,
+                    code: code,
+                    attempt: attempt + 1
+                )
+            }
+        }
+    }
+    
+    private func propExists(for code: PTP.DeviceProperty.Code) -> Bool {
+        return lastEventChanges?.events.contains(where: { event in
+            (event as? CanonPTPPropValueChange)?.code == code
+        }) ?? false
+    }
+    
+    private func getDeviceMetadata(completion: @escaping () -> Void) {
+        // TODO: Get Owner, artist, copyright, serial number. Don't return error
+        completion()
+    }
         
-        let packet = Packet.commandRequestPacket(
-            code: .canonGetStorageIDs,
-            arguments: nil,
-            transactionId: ptpIPClient?.getNextTransactionId() ?? 4
-        )
+    private func performPostListFolderInit(completion: @escaping PTPIPCamera.ConnectedCompletion) {
+        performInitialEventFetch(completion: { [weak self] error, transferMode in
+            guard error == nil else {
+                completion(error, transferMode)
+                return
+            }
+            self?.getDeviceInfo { result in
+                switch result {
+                case .success(let deviceInfo):
+                    completion(nil, transferMode)
+                case .failure(let error):
+                    completion(error, transferMode)
+                }
+            }
+        })
+    }
+    
+    internal override func listFolder(
+        storageId: DWord?,
+        handle: DWord?,
+        completion: @escaping (Error?) -> Void
+    ) {
+        var handle = handle ?? 0
+                
+        if handle != 0 && handle != 0xffffffff {
+            //ptp_object_want (params, handle, PTPOBJECT_OBJECTINFO_LOADED, &ob);
+            return
+        }
+    
+        guard let storageId else {
+            handle = 0xffffffff
+            getStorageIds { [weak self] response in
+                switch response {
+                case .success(let success):
+                    self?.getObjectInfoEx(for: success, handle: handle) { error in
+                        completion(error)
+                    }
+                case .failure(let failure):
+                    completion(failure)
+                }
+            }
+            return
+        }
         
-        ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { [weak self] result in
-            guard let self = self else { return }
-            switch result {
-            case .success(let data):
-                var offset: UInt = 0
-                let storageIds: [DWord]? = data.data.read(offset: &offset)
-                self.storageIds = storageIds
-                guard let firstStorageId = storageIds?.first else {
-                    completion(nil, false)
-                    self.performInitialEventFetch(completion: completion)
-                    // TODO: Get event again?
+        getObjectInfoEx(for: [storageId], handle: handle) { error in
+            completion(error)
+        }
+    }
+    
+    private func getObjectInfoEx(
+        for storageIds: [DWord],
+        handle: DWord,
+        completion: @escaping (Error?) -> Void
+    ) {
+        storageIds.asyncForEach { element in
+            try await withCheckedThrowingContinuation { continuation in
+                
+                guard element & 0xffff != 0 else {
+                    // TODO: Log skipping invalid storage
+                    continuation.resume(returning: Void())
                     return
                 }
-                self.getStorageInfo(storageId: firstStorageId, completion: completion)
+                
+                self.getObjectInfoEx(
+                    for: element,
+                    handle: handle
+                ) { error in
+                    if let error {
+                        continuation.resume(throwing: error)
+                    } else {
+                        continuation.resume(returning: Void())
+                    }
+                }
+            }
+        } done: { error in
+            completion(error)
+        }
+    }
+    
+    private func getObjectInfoEx(
+        for storageId: DWord,
+        handle: DWord,
+        completion: @escaping (Error?) -> Void
+    ) {
+        let packet = Packet.commandRequestPacket(
+            code: .canonGetObjectInfoEx,
+            arguments: [storageId, handle, 0x1000000],
+            transactionId: ptpIPClient?.getNextTransactionId() ?? 6
+        )
+        
+        ptpIPClient?.awaitDataFor(transactionId: packet.transactionId, callback: { result in
+            switch result {
+            case .success(_):
+                // TODO: Parse data
+                completion(nil)
             case .failure(let error):
-                completion(error, false)
+                completion(error)
             }
         })
         
         ptpIPClient?.sendCommandRequestPacket(packet, callback: nil)
     }
     
-    func getStorageInfo(storageId: DWord, completion: @escaping PTPIPCamera.ConnectedCompletion) {
+    func getStorageInfo(storageId: DWord, completion: @escaping (Error?) -> Void) {
         
         let packet = Packet.commandRequestPacket(
             code: .canonGetStorageInfo,
@@ -210,22 +469,9 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
             guard let self = self else { return }
             switch result {
             case .success(_):
-                self.performInitialEventFetch(completion: { [weak self] error, transferMode in
-                    guard error == nil else {
-                        completion(error, transferMode)
-                        return
-                    }
-                    self?.getDeviceInfo { result in
-                        switch result {
-                        case .success(let deviceInfo):
-                            completion(nil, transferMode)
-                        case .failure(let error):
-                            completion(error, transferMode)
-                        }
-                    }
-                })
+                completion(nil)
             case .failure(let error):
-                completion(error, false)
+                completion(error)
             }
         })
         
@@ -344,6 +590,9 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
                     // Must be some better way to check we're flushed fully?
                     if events.events.isEmpty {
                         completion(.success(nextCanonEvents))
+                        // Notifiy event handler of latest events!
+                        let returnEvents = self.handleLatestEvents(events)
+                        self.onEventAvailable?(returnEvents)
                     } else {
                         self.flushEventStream(completion: completion, previous: nextCanonEvents)
                     }
@@ -460,7 +709,7 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
             .init(
                 code: .EVFOutputDeviceCanonEOS,
                 type: .uint32,
-                value: DWord(2)
+                value: DWord(8)
             )
         ) { response in
             if response.code.isError {
@@ -499,11 +748,7 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
                         return
                     }
                     switch eventResult {
-                    case .success(let canonEvents):
-
-                        // Notifiy event handler of latest events!
-                        let events = self.handleLatestEvents(canonEvents)
-                        self.onEventAvailable?(events)
+                    case .success:
 
                         let getViewFinderCommand = Packet.commandRequestPacket(
                             code: .canonEOSGetViewFinderData,

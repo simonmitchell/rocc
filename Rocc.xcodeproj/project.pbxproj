@@ -45,6 +45,7 @@
 		B1316A722089C0F6006BD136 /* DeviceDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1316A712089C0F6006BD136 /* DeviceDiscovery.swift */; };
 		B1316A742089C1D6006BD136 /* UDPClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1316A732089C1D6006BD136 /* UDPClient.swift */; };
 		B1316A7B2089C426006BD136 /* SonyConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1316A7A2089C426006BD136 /* SonyConstants.swift */; };
+		B1373C532B0D12E400E10E5E /* Collection+AsyncForEach.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1373C522B0D12E400E10E5E /* Collection+AsyncForEach.swift */; };
 		B154525C21EE61B800C59096 /* SOAPRequestBody.swift in Sources */ = {isa = PBXBuildFile; fileRef = B154525B21EE61B800C59096 /* SOAPRequestBody.swift */; };
 		B154535521EFDC1700C59096 /* Countable.swift in Sources */ = {isa = PBXBuildFile; fileRef = B154535421EFDC1700C59096 /* Countable.swift */; };
 		B154535E21EFE3D100C59096 /* ChildRangeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B154535D21EFE3D100C59096 /* ChildRangeTests.swift */; };
@@ -282,6 +283,7 @@
 		B1316A712089C0F6006BD136 /* DeviceDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceDiscovery.swift; sourceTree = "<group>"; };
 		B1316A732089C1D6006BD136 /* UDPClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UDPClient.swift; sourceTree = "<group>"; };
 		B1316A7A2089C426006BD136 /* SonyConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SonyConstants.swift; sourceTree = "<group>"; };
+		B1373C522B0D12E400E10E5E /* Collection+AsyncForEach.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Collection+AsyncForEach.swift"; sourceTree = "<group>"; };
 		B154525B21EE61B800C59096 /* SOAPRequestBody.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SOAPRequestBody.swift; sourceTree = "<group>"; };
 		B154535421EFDC1700C59096 /* Countable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Countable.swift; sourceTree = "<group>"; };
 		B154535D21EFE3D100C59096 /* ChildRangeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChildRangeTests.swift; sourceTree = "<group>"; };
@@ -711,6 +713,7 @@
 				B12CCC92247DAEF100BCD2D1 /* Wrapper.swift */,
 				EF140C5924902FC7001BAD7F /* Retries.swift */,
 				B1DB6922256095BA000F5488 /* Array+FirstNotNilOrEmpty.swift */,
+				B1373C522B0D12E400E10E5E /* Collection+AsyncForEach.swift */,
 				B182470E256A9041008268F4 /* XMLParser.swift */,
 			);
 			path = Helpers;
@@ -1216,6 +1219,7 @@
 				B1F7CEBA236CD326007E3921 /* PTPIPClient.swift in Sources */,
 				B1F180D72545792000453668 /* URLRequest+Backgroundable.swift in Sources */,
 				B19BD2962413C3C700111539 /* FunctionNames.swift in Sources */,
+				B1373C532B0D12E400E10E5E /* Collection+AsyncForEach.swift in Sources */,
 				B1F180DE2545792000453668 /* RequestController+SessionDelegate.swift in Sources */,
 				B1824705256A6DAD008268F4 /* PTPIPCamera.swift in Sources */,
 				B1F180CB2545792000453668 /* Data+ContentType.swift in Sources */,
@@ -1461,7 +1465,7 @@
 				);
 				INFOPLIST_FILE = Sources/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1494,7 +1498,7 @@
 				);
 				INFOPLIST_FILE = Sources/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
