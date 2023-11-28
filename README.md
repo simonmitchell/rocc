@@ -25,6 +25,8 @@ The Sony implementation is a tried and tested codebase which is used by the app 
 
 Rocc is designed to be as generic as possible, both from a coding point of view and also from an API point of view, meaning support for other manufacturers should be a seamless integration with any existing codebase which is using the framework.
 
+Rocc has taken a lot of learnings (mostly data shapes and command sequences) from the fantastic and widely used [libgphoto2](https://github.com/gphoto/libgphoto2)
+
 ## Installation
 
 ### Swift Package Manager
