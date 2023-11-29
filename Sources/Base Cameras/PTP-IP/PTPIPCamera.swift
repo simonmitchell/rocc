@@ -704,9 +704,12 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
                 return
             }
             sendSetDevicePropValue(
-                PTP.DeviceProperty.Value(value, manufacturer: manufacturer)) { response in
-                callback(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil, nil)
-            }
+                PTP.DeviceProperty.Value(
+                    value,
+                    manufacturer: manufacturer
+                ), callback:  { response in
+                    callback(response.code.isError ? PTPError.commandRequestFailed(response.code) : nil, nil)
+                })
         case .getISO:
             // TODO: [Canon] Perhaps override these on Sony to use the original!
 //            getDevicePropDescriptionFor(propCode: .shutterSpeed, callback: { (result) in
@@ -1258,9 +1261,30 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
     ///   - value: The value to set the prop to
     ///   - valueB: Used for Sony cameras, some props require using a different command code (setValueB rather than setValueA)
     ///   - callback: Closure to call when done
-    func sendSetDevicePropValue(_ value: PTP.DeviceProperty.Value, valueB: Bool = false, retry: Int = 0, callback: CommandRequestPacketResponse? = nil) {
+    ///   - retryDurationProvider: A closure to provide custom retry durations for each retry, so we can achieve fall-offs in duration e.t.c. Defaults to: 0.0013
+    ///   - retry: The current max retry
+    func sendSetDevicePropValue(
+        _ value: PTP.DeviceProperty.Value,
+        retryDurationProvider: @escaping (Int) -> TimeInterval = { _ in return 0.0013 },
+        valueB: Bool = false,
+        retry: Int = 0,
+        callback: CommandRequestPacketResponse? = nil
+    ) {
+        let transactionID = ptpIPClient?.getNextTransactionId() ?? 2
+        let opRequestPacket = Packet.commandRequestPacket(
+            code: valueB ? .setControlDeviceB : .setControlDeviceA,
+            arguments: [DWord(value.code.rawValue)],
+            transactionId: transactionID,
+            dataPhaseInfo: 2
+        )
+        var data = ByteBuffer()
+        data.appendValue(value.value, ofType: value.type)
+        let dataPackets = Packet.dataSendPackets(data: data, transactionId: transactionID)
 
-        // TODO: Implement default PTP/IP function for this (So far Sony and Canon are bespoke)
+        ptpIPClient?.sendCommandRequestPacket(opRequestPacket, callback: callback)
+        dataPackets.forEach { [weak self] dataPacket in
+            self?.ptpIPClient?.sendControlPacket(dataPacket)
+        }
     }
     
     //MARK: - Camera protocol conformance -

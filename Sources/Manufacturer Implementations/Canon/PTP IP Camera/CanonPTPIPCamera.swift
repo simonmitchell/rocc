@@ -96,67 +96,58 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
     
     private func initialise(completion: @escaping (Error?) -> Void) {
         
-        getDeviceInfo { [weak self] result in
+        // getDeviceInfo already called during connection process prior to this
+        
+        guard deviceInfo?.supportedOperations.contains(.canonSetRemoteMode) == true else {
+            initialiseFileSystem(completion: completion)
+            return
+        }
+        
+        // Calculate mode based on device model.
+        // Also for EOS M and newer we use 0x15 and have to re-call ptp_getdeviceinfo because it changes when call canonSetRemoteMode
+        
+        var remoteMode: DWord = 1
+        if isCanonEOSMLikeFirmware {
+            remoteMode = 0x15
+            switch deviceInfo?.model {
+            case "Canon EOS M6 Mark II":
+                remoteMode = 0x1
+            case "Canon PowerShot SX540 HS", "Canon PowerShot SX720 HS", "Canon PowerShot G5 X":
+                remoteMode = 0x11
+                break
+            default:
+                break
+            }
+        }
+        
+        let packet = Packet.commandRequestPacket(
+            code: .canonSetRemoteMode,
+            arguments: [remoteMode],
+            transactionId: ptpIPClient?.getNextTransactionId() ?? 1
+        )
+
+        ptpIPClient?.sendCommandRequestPacket(packet, callback: { [weak self] (response) in
+            guard response.code == .okay else {
+                completion(PTPError.commandRequestFailed(response.code))
+                return
+            }
             
             guard let self = self else { return }
             
-            switch result {
-            case .success:
-                guard deviceInfo?.supportedOperations.contains(.canonSetRemoteMode) == true else {
-                    setEventModeIfSupported(completion: completion)
-                    return
-                }
-                
-                // Calculate mode based on device model.
-                // Also for EOS M and newer we use 0x15 and have to re-call ptp_getdeviceinfo because it changes when call canonSetRemoteMode
-                
-                var remoteMode: DWord = 1
-                if isCanonEOSMLikeFirmware {
-                    remoteMode = 0x15
-                    switch deviceInfo?.model {
-                    case "Canon EOS M6 Mark II":
-                        remoteMode = 0x1
-                    case "Canon PowerShot SX540 HS", "Canon PowerShot SX720 HS", "Canon PowerShot G5 X":
-                        remoteMode = 0x11
-                        break
-                    default:
-                        break
-                    }
-                }
-                
-                let packet = Packet.commandRequestPacket(
-                    code: .canonSetRemoteMode,
-                    arguments: [remoteMode],
-                    transactionId: ptpIPClient?.getNextTransactionId() ?? 1
-                )
-
-                ptpIPClient?.sendCommandRequestPacket(packet, callback: { [weak self] (response) in
-                    guard response.code == .okay else {
-                        completion(PTPError.commandRequestFailed(response.code))
-                        return
-                    }
-                    
+            if isCanonEOSMLikeFirmware {
+                getDeviceInfo { [weak self] deviceInfoResult in
                     guard let self = self else { return }
-                    
-                    if isCanonEOSMLikeFirmware {
-                        getDeviceInfo { [weak self] deviceInfoResult in
-                            guard let self = self else { return }
-                            switch deviceInfoResult {
-                            case .success:
-                                initialiseFileSystem(completion: completion)
-                            case .failure(let failure):
-                                completion(failure)
-                            }
-                        }
-                    } else {
+                    switch deviceInfoResult {
+                    case .success:
                         initialiseFileSystem(completion: completion)
+                    case .failure(let failure):
+                        completion(failure)
                     }
-                })
-                
-            case .failure(let failure):
-                completion(failure)
+                }
+            } else {
+                initialiseFileSystem(completion: completion)
             }
-        }
+        })
     }
     
     private func prepareForCapture(completion: @escaping (Error?) -> Void) {
@@ -197,8 +188,30 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
             guard let self = self else { return }
             
             // This call might not be necessary, but we'll make it anyway
-            self.keepAlive { [weak self] error in
-                self?.setEventModeIfSupported(completion: completion)
+            self.keepAlive { [weak self] _ in
+                guard let self else { return }
+                setEventModeIfSupported(completion: { [weak self] error in
+                    guard let self else { return }
+                    guard error == nil else {
+                        completion(error)
+                        return
+                    }
+                    
+                    sendSetDevicePropValue(
+                        .init(
+                            code: .EVFOutputDeviceCanonEOS,
+                        type: .uint32,
+                        value: DWord(8)
+                    )) { retry in
+                        return Double(retry + 1) * 0.75
+                    } callback: { packet in
+                        if response.code.isError {
+                            completion(PTPError.commandRequestFailed(response.code))
+                        } else {
+                            completion(nil)
+                        }
+                    }
+                })
             }
         })
     }
@@ -220,6 +233,7 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
     
     private func setEventModeIfSupported(completion: @escaping (Error?) -> Void) {
         
+        // TODO: Seperate out all this logic!
         let eventFetchCompletion: (Error?) -> Void = { [weak self] error in
             guard let self, error == nil else {
                 completion(error)
@@ -614,10 +628,12 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
 
     override func sendSetDevicePropValue(
         _ value: PTP.DeviceProperty.Value,
+        retryDurationProvider: @escaping (Int) -> TimeInterval = { _ in return 0.0013 },
         valueB: Bool = false,
         retry: Int = 0,
         callback: CommandRequestPacketResponse? = nil
     ) {
+        
         // TODO: [Canon] Write test that covers this!
         var data = ByteBuffer()
         // Insert a Word at start, which we'll populate later with the length of `data`
@@ -641,13 +657,18 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
             guard let self = self else { return }
             
             if response.code == .deviceBusy, retry < 3 {
-                usleep(1300)
-                self.sendSetDevicePropValue(
-                    value,
-                    valueB: valueB,
-                    retry: retry + 1,
-                    callback: callback
-                )
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + retryDurationProvider(retry)) { [weak self] in
+                    guard let self else { return }
+                    sendSetDevicePropValue(
+                        value,
+                        retryDurationProvider: retryDurationProvider,
+                        valueB: valueB,
+                        retry: retry + 1,
+                        callback: callback
+                    )
+                }
+                
             } else {
                 callback?(response)
             }
@@ -699,12 +720,6 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
     }
 
     override func startLiveView(callback: @escaping (Error?) -> Void) {
-        
-//    TODO: If we get `deviceBusy` then retry? Maybe awaiting an event first? Maybe calling getDeviceInfo first?
-        
-//        Also maybe do this for all setDevicePropValueEx calls?
-
-        // [TODO]:  Currently get deviceBusy error when setting this when starting connection
         sendSetDevicePropValue(
             .init(
                 code: .EVFOutputDeviceCanonEOS,
@@ -735,85 +750,82 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
         var liveViewData: PTPIPClient.DataContainer?
         // Try maximum of 150 times
         var tries: Int = 150
+        
+        // Get EOS events until queue empty!
+        flushEventStream { [weak self] eventResult in
+            
+            guard let self else { return }
+            
+            switch eventResult {
+            case .success:
+                
+                DispatchQueue.global().asyncWhile({ [weak self] continueClosure in
 
-        DispatchQueue.global().asyncWhile({ [weak self] continueClosure in
+                    guard let self = self else { return }
+                        
+                    let getViewFinderCommand = Packet.commandRequestPacket(
+                        code: .canonEOSGetViewFinderData,
+                        arguments: [0x00200000, 0x00000001, 0x00000000], // As seen on Canon EOS 4000D
+                        transactionId: self.ptpIPClient?.getNextTransactionId() ?? 1
+                    )
+                    self.ptpIPClient?.awaitDataFor(transactionId: getViewFinderCommand.transactionId, callback: { result in
+                        defer {
+                            tries -= 1
+                        }
+                        switch result {
+                        case .success(let data):
+                            liveViewData = data
+                        case .failure(let error):
+                            var responseCode: CommandResponsePacket.Code?
+                            switch error {
+                            case let commandResponse as CommandResponsePacket.Code:
+                                responseCode = commandResponse
+                            case let ptpError as PTPError:
+                                if case .commandRequestFailed(let code) = ptpError {
+                                    responseCode = code
+                                }
+                            default:
+                                break
+                            }
+                            guard let responseCode = responseCode else {
+                                callback(.failure(error))
+                                // Break the loop if it wasn't a PTPError
+                                continueClosure(true)
+                                return
+                            }
+                            switch responseCode {
+                            // According to libgphoto2 we also need to check 0xa102 which
+                            // we have as nikon_notReady case
+                            case .deviceBusy, .notReady:
+                                continueClosure(tries > 0 ? false : true)
+                            default:
+                                // Break the loop if it wasn't a deviceBusy or notReady code
+                                continueClosure(true)
+                            }
+                        }
+                    })
+                    self.ptpIPClient?.sendCommandRequestPacket(getViewFinderCommand, callback: nil)
+                    },
+                    timeout: 3
+                ) {
 
-                guard let self = self else { return }
-
-                // TODO: [Canon] Get EOS events until queue empty!
-                self.flushEventStream { [weak self] eventResult in
-                    guard let self = self else {
-                        tries -= 1
-                        continueClosure(true)
+                    guard let liveViewData = liveViewData else {
+                        callback(.failure(PTPError.commandRequestFailed(.deviceBusy)))
                         return
                     }
-                    switch eventResult {
-                    case .success:
 
-                        let getViewFinderCommand = Packet.commandRequestPacket(
-                            code: .canonEOSGetViewFinderData,
-                            arguments: [0x00002000, 0x01000000, 0x00000000], // As seen on Canon EOS 4000D
-                            transactionId: self.ptpIPClient?.getNextTransactionId() ?? 1
-                        )
-                        self.ptpIPClient?.awaitDataFor(transactionId: getViewFinderCommand.transactionId, callback: { result in
-                            defer {
-                                tries -= 1
-                            }
-                            switch result {
-                            case .success(let data):
-                                liveViewData = data
-                            case .failure(let error):
-                                var responseCode: CommandResponsePacket.Code?
-                                switch error {
-                                case let commandResponse as CommandResponsePacket.Code:
-                                    responseCode = commandResponse
-                                case let ptpError as PTPError:
-                                    if case .commandRequestFailed(let code) = ptpError {
-                                        responseCode = code
-                                    }
-                                default:
-                                    break
-                                }
-                                guard let responseCode = responseCode else {
-                                    callback(.failure(error))
-                                    // Break the loop if it wasn't a PTPError
-                                    continueClosure(true)
-                                    return
-                                }
-                                switch responseCode {
-                                // According to libgphoto2 we also need to check 0xa102 which
-                                // we have as nikon_notReady case
-                                case .deviceBusy, .notReady:
-//                                     TODO: May not be necessary once we've got this working?
-                                    usleep(1300)
-                                    continueClosure(tries > 0 ? false : true)
-                                default:
-                                    // Break the loop if it wasn't a deviceBusy or notReady code
-                                    continueClosure(true)
-                                }
-                            }
-                        })
-                        self.ptpIPClient?.sendCommandRequestPacket(getViewFinderCommand, callback: nil)
-
-                    case .failure(_):
-                        continueClosure(false)
+                    guard let image = try? self.parseLiveViewData(liveViewData.data) else {
+                        callback(.failure(PTPError.operationNotSupported))
+                        return
                     }
+                    callback(.success(image))
                 }
-            },
-            timeout: 3
-        ) {
-
-            guard let liveViewData = liveViewData else {
-                callback(.failure(PTPError.commandRequestFailed(.deviceBusy)))
-                return
+            case .failure(let error):
+                callback(.failure(error))
             }
-
-            guard let image = try? self.parseLiveViewData(liveViewData.data) else {
-                callback(.failure(PTPError.operationNotSupported))
-                return
-            }
-            callback(.success(image))
         }
+
+        
     }
 
     private func parseLiveViewData(_ data: ByteBuffer) throws -> Image? {

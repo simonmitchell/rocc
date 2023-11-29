@@ -249,30 +249,6 @@ internal final class SonyPTPIPCamera: PTPIPCamera {
             super.performFunction(function, payload: payload, callback: callback)
         }
     }
-
-    override func sendSetDevicePropValue(
-        _ value: PTP.DeviceProperty.Value,
-        valueB: Bool = false,
-        retry: Int = 0,
-        callback: CommandRequestPacketResponse? = nil
-    ) {
-
-        let transactionID = ptpIPClient?.getNextTransactionId() ?? 2
-        let opRequestPacket = Packet.commandRequestPacket(
-            code: valueB ? .setControlDeviceB : .setControlDeviceA,
-            arguments: [DWord(value.code.rawValue)],
-            transactionId: transactionID,
-            dataPhaseInfo: 2
-        )
-        var data = ByteBuffer()
-        data.appendValue(value.value, ofType: value.type)
-        let dataPackets = Packet.dataSendPackets(data: data, transactionId: transactionID)
-
-        ptpIPClient?.sendCommandRequestPacket(opRequestPacket, callback: callback)
-        dataPackets.forEach { [weak self] dataPacket in
-            self?.ptpIPClient?.sendControlPacket(dataPacket)
-        }
-    }
     
     override func performInitialEventFetch(completion: @escaping PTPIPCamera.ConnectedCompletion) {
         
