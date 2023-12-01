@@ -36,6 +36,8 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
     var onLiveViewImageAvailable: ((Image) -> Bool)?
 
     var onLiveViewFramesAvailable: (([FrameInfo]) -> Bool)?
+    
+    private var recursivelyFetchLiveView: Bool = false
 
     var liveViewMode: LiveViewStream.Mode {
         return .fetch
@@ -996,21 +998,15 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
                 if let error = startLiveViewError {
                     callback(error, nil)
                 } else {
+                    recursivelyFetchLiveView = true
                     callback(nil, nil)
-                    self.getViewfinderImage { result in
-                        // TODO: [Canon] NEXT get image in loop!
-                        switch result {
-                        case .success(let image):
-                            print(image.size)
-                            break
-                        case .failure(let error):
-                            callback(error, nil)
-                        }
-                    }
+                    recursivelyGetViewfinderImage()
                 }
             }
             callback(nil, nil)
         case .endLiveView:
+            recursivelyFetchLiveView = false
+            // TODO: Call command here on camera end?
             callback(nil, nil)
         case .getLiveViewQuality:
             getDeviceValueFor(function: function.function) { (result: Result<LiveView.Quality, Error>) in
@@ -2002,6 +1998,26 @@ internal class PTPIPCamera: BaseSSDPCamera, SSDPCamera {
         } catch let error {
             Logger.log(message: "Failed to save image to disk: \(error.localizedDescription)", category: "SonyPTPIPCamera", level: .error)
             os_log("Failed to save image to disk", log: self.log, type: .error)
+        }
+    }
+    
+    private func recursivelyGetViewfinderImage() {
+        
+        guard recursivelyFetchLiveView else { return }
+        
+        self.getViewfinderImage { [weak self] result in
+            guard let self else { return }
+            switch result {
+            case .success(let image):
+                // onLiveViewImageAvailable returns whether to get
+                // another image
+                guard let onLiveViewImageAvailable, onLiveViewImageAvailable(image) else {
+                    return
+                }
+                recursivelyGetViewfinderImage()
+            case .failure:
+                recursivelyGetViewfinderImage()
+            }
         }
     }
 }

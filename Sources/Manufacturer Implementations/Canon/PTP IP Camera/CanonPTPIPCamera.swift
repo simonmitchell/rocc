@@ -742,8 +742,6 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
             return
         }
 
-        // TODO: [Canon] Important, set EVFOutputDeviceCanonEOS if not already set to correct value (0x08000000)
-
         // Canon cameras can return "not ready" when trying to fetch live view image,
         // based on the logic [libgphoto2](https://github.com/gphoto/libgphoto2/blob/33372d3e2bcfafd0eea1ae2f8981a2bbb1a878d6/camlibs/ptp2/library.c#L3355) provide, we try and implement something similar!
 
@@ -775,6 +773,7 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
                         switch result {
                         case .success(let data):
                             liveViewData = data
+                            continueClosure(true)
                         case .failure(let error):
                             var responseCode: CommandResponsePacket.Code?
                             switch error {
@@ -805,7 +804,7 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
                         }
                     })
                     self.ptpIPClient?.sendCommandRequestPacket(getViewFinderCommand, callback: nil)
-                    },
+                },
                     timeout: 3
                 ) {
 
@@ -833,7 +832,7 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
         var offset: UInt = 0
         var imageData: Data = Data()
         let liveViewData = Data(data.bytes.compactMap({ $0 }))
-        while offset < data.length - 1 {
+        dataLoop: while offset < data.length - 1 {
 
             guard let length: DWord = data.read(offset: &offset),
                   let type: DWord = data.read(offset: &offset) else {
@@ -843,18 +842,18 @@ internal final class CanonPTPIPCamera: PTPIPCamera {
             switch type {
             case 9, 1, 11:
                 if length > (UInt(data.length) - offset) {
-                    break
+                    break dataLoop
                 }
                 let dataEndIndex = offset + UInt(length) - UInt(MemoryLayout<DWord>.size * 2)
                 imageData.append(liveViewData[offset..<dataEndIndex])
 
                 // dump the rest of the blobs
-                break
+                break dataLoop
             default:
                 if length > (UInt(data.length) - offset) {
-                    break
+                    break dataLoop
                 }
-                offset = offset + UInt(length) - UInt(MemoryLayout<DWord>.size * 2)
+                offset = offset + UInt(length)
             }
         }
 
