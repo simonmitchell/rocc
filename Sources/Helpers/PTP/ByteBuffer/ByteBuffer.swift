@@ -159,7 +159,7 @@ struct ByteBuffer {
             hexString.append(contentsOf: " ")
         }
         
-        return hexString
+        return hexString.trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
     var toString: String {

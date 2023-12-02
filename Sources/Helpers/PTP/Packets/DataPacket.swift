@@ -28,7 +28,7 @@ struct DataPacket: Packetable, Transactional {
         self.name = name
         
         // If we don't have enough data yet, return nil, otherwise we'll get broken packets when parsing!
-        guard data.length >= length - 8 else {
+        guard data.length >= length - DWord(Packet.headerLength) else {
             return nil
         }
                 
