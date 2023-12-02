@@ -126,14 +126,15 @@ final class InputOutputPacketStream: NSObject, PTPPacketStream {
     
     fileprivate func readAvailableBytes(stream: InputStream) {
         
-        var bytes: [Byte] = Array<Byte>.init(repeating: .zero, count: 1024)
+        // Use the PTP/IP max packet size, which is Ethernet v2 max transition unit, minus the length of that protocol's header data
+        var bytes: [Byte] = Array<Byte>.init(repeating: .zero, count: 1500 - 40)
         
         Logger.log(message: "Start reading available bytes", category: "PTPIPClient", level: .debug)
         os_log("Start reading available bytes", log: log, type: .debug)
         
         while stream.hasBytesAvailable {
             
-            let numberOfBytesRead = stream.read(&bytes, maxLength: 1024)
+            let numberOfBytesRead = stream.read(&bytes, maxLength: 1500 - 40)
             
             if numberOfBytesRead < 0 {
                 if let _ = stream.streamError {
