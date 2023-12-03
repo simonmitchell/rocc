@@ -21,6 +21,9 @@ extension CameraEvent {
 
         var currentShutterSpeed: ShutterSpeed?
         var availableShutterSpeed: [ShutterSpeed]?
+        
+        var currentAperture: Aperture.Value?
+        var availableApertures: [Aperture.Value]?
 
         var availableFunctions: [_CameraFunction] = []
         var supportedFunctions: [_CameraFunction] = []
@@ -76,6 +79,13 @@ extension CameraEvent {
                             level: Double(level)/100.0
                         )
                     ]
+                case .apertureCanon, .apertureCanonEOS:
+                    guard let current = Aperture.Value(value: propertyChange.value, manufacturer: .canon) else {
+                        return
+                    }
+                    availableFunctions.append(contentsOf: [.setAperture, .getAperture])
+                    supportedFunctions.append(contentsOf: [.setAperture, .getAperture])
+                    currentAperture = current
                 default:
                     break
                 }
@@ -91,12 +101,21 @@ extension CameraEvent {
                         ShutterSpeed(value: $0, manufacturer: .canon)
                     })
                     availableShutterSpeed = available
+                case .apertureCanon, .apertureCanonEOS:
+                    let available = availableValuesChange.availableValues.compactMap({
+                        Aperture.Value(value: $0, manufacturer: .canon)
+                    })
                 default:
                     break
                 }
             default:
                 break
             }
+        }
+        
+        var aperture: (current: Aperture.Value, available: [Aperture.Value], supported: [Aperture.Value])?
+        if let currentAperture = currentAperture {
+            aperture = (currentAperture, availableApertures ?? [], availableApertures ?? [])
         }
 
         var iso: (current: ISO.Value, available: [ISO.Value], supported: [ISO.Value])?
@@ -133,7 +152,7 @@ extension CameraEvent {
             shootMode: nil,
             exposureCompensation: nil,
             flashMode: nil,
-            aperture: nil,
+            aperture: aperture,
             focusMode: nil,
             iso: iso,
             isProgramShifted: nil,
