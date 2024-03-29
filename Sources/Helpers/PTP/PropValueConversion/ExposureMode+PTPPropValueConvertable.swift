@@ -119,6 +119,18 @@ extension Exposure.Mode.Value: PTPPropValueConvertable {
                 self = .manualDepthOfField
             case 0x07:
                 self = .bulb // TODO: [Canon] BULB, will need to figure out how this differs from other manufacturers
+            case 0x0a:
+                self = .scene(.nightPortrait)
+            case 0x0b:
+                self = .scene(.sport)
+            case 0x0c:
+                self = .scene(.portrait)
+            case 0x0d:
+                self = .scene(.landscape)
+            case 0x0e:
+                self = .scene(.macro) // TODO: [Canon] This has two raw values... what do we do?
+            case 0x1b:
+                self = .scene(.food)
             case 0x65:
                 self = .manual2
             case 0x66:
@@ -253,46 +265,46 @@ extension Exposure.Mode.Value: PTPPropValueConvertable {
                 case .highSensitivity:
                     return DWord(0x0005801c)
                 case .digitalMacro:
-                    return DWord(0) // Doesn't exist in Sony cameras
+                    return DWord(0) // Not yet seen in Sony cameras
                 case .superMacro:
-                    return DWord(0) // Doesn't exist in Sony cameras
+                    return DWord(0) // Not yet seen in Sony cameras
                 case .nightSnapshot:
-                    return DWord(0) // Doesn't exist in Sony cameras
+                    return DWord(0) // Not yet seen in Sony cameras
                 case .far:
-                    return DWord(0) // Doesn't exist in Sony cameras
+                    return DWord(0) // Not yet seen in Sony cameras
                 case .foliage:
-                    return DWord(0) // Doesn't exist in Sony cameras
+                    return DWord(0) // Not yet seen in Sony cameras
                 case .indoor:
-                    return DWord(0) // Doesn't exist in Sony cameras
+                    return DWord(0) // Not yet seen in Sony cameras
                 case .beach:
-                    return DWord(0) // Doesn't exist in Sony cameras
+                    return DWord(0) // Not yet seen in Sony cameras
                 case .underwater:
-                    return DWord(0) // Doesn't exist in Sony cameras
+                    return DWord(0) // Not yet seen in Sony cameras
                 case .snow:
-                    return DWord(0) // Doesn't exist in Sony cameras
+                    return DWord(0) // Not yet seen in Sony cameras
                 }
             case .manual2:
-                return DWord(0) // Doesn't exist in Sony cameras
+                return DWord(0) // Not yet seen in Sony cameras
             case .autoDepthOfField:
-                return DWord(0) // Doesn't exist in Sony cameras
+                return DWord(0) // Not yet seen in Sony cameras
             case .manualDepthOfField:
-                return DWord(0) // Doesn't exist in Sony cameras
+                return DWord(0) // Not yet seen in Sony cameras
             case .flashOff:
-                return DWord(0) // Doesn't exist in Sony cameras
+                return DWord(0) // Not yet seen in Sony cameras
             case .bulb:
-                return DWord(0) // Doesn't exist in Sony cameras
+                return DWord(0) // Not yet seen in Sony cameras
             case .longShutter:
-                return DWord(0) // Doesn't exist in Sony cameras
+                return DWord(0) // Not yet seen in Sony cameras
             case .spot:
-                return DWord(0) // Doesn't exist in Sony cameras
+                return DWord(0) // Not yet seen in Sony cameras
             case .photoInMovie:
-                return DWord(0) // Doesn't exist in Sony cameras
+                return DWord(0) // Not yet seen in Sony cameras
             case .effect(_):
-                return DWord(0) // Doesn't exist in Sony cameras
+                return DWord(0) // Not yet seen in Sony cameras
             case .fastShutter:
-                return DWord(0) // Doesn't exist in Sony cameras
+                return DWord(0) // Not yet seen in Sony cameras
             case .slowShutter:
-                return DWord(0) // Doesn't exist in Sony cameras
+                return DWord(0) // Not yet seen in Sony cameras
             }
             
         case .canon:
@@ -308,35 +320,35 @@ extension Exposure.Mode.Value: PTPPropValueConvertable {
             case .manual2:
                 return Word(0x65)
             case .panorama:
-                return Word(0) // Doesn't exist in Canon cameras
+                return Word(0) // Not yet seen in Canon cameras
             case .videoProgrammedAuto:
-                return Word(0) // Doesn't exist in Canon cameras
+                return Word(0) // Not yet seen in Canon cameras
             case .videoAperturePriority:
-                return Word(0) // Doesn't exist in Canon cameras
+                return Word(0) // Not yet seen in Canon cameras
             case .videoShutterPriority:
-                return Word(0) // Doesn't exist in Canon cameras
+                return Word(0) // Not yet seen in Canon cameras
             case .videoManual:
-                return Word(0) // Doesn't exist in Canon cameras
+                return Word(0) // Not yet seen in Canon cameras
             case .slowAndQuickProgrammedAuto:
-                return Word(0) // Doesn't exist in Canon cameras
+                return Word(0) // Not yet seen in Canon cameras
             case .slowAndQuickAperturePriority:
-                return Word(0) // Doesn't exist in Canon cameras
+                return Word(0) // Not yet seen in Canon cameras
             case .slowAndQuickShutterPriority:
-                return Word(0) // Doesn't exist in Canon cameras
+                return Word(0) // Not yet seen in Canon cameras
             case .slowAndQuickManual:
-                return Word(0) // Doesn't exist in Canon cameras
+                return Word(0) // Not yet seen in Canon cameras
             case .intelligentAuto:
                 return Word(0x00)
             case .superiorAuto:
-                return Word(0) // Doesn't exist in Canon cameras
+                return Word(0) // Not yet seen in Canon cameras
             case .highFrameRateProgrammedAuto:
-                return Word(0) // Doesn't exist in Canon cameras
+                return Word(0) // Not yet seen in Canon cameras
             case .highFrameRateAperturePriority:
-                return Word(0) // Doesn't exist in Canon cameras
+                return Word(0) // Not yet seen in Canon cameras
             case .highFrameRateShutterPriority:
-                return Word(0) // Doesn't exist in Canon cameras
+                return Word(0) // Not yet seen in Canon cameras
             case .highFrameRateManual:
-                return Word(0) // Doesn't exist in Canon cameras
+                return Word(0) // Not yet seen in Canon cameras
             case .autoDepthOfField:
                 return Word(0x05)
             case .manualDepthOfField:
@@ -354,37 +366,39 @@ extension Exposure.Mode.Value: PTPPropValueConvertable {
             case .scene(let scene):
                 switch scene {
                 case .portrait:
+                    // TODO: [Canon] This has two values as seen in testing, we need to differentiate! Other is 0x0c
                     return Word(0x6c)
                 case .sport:
-                    return Word(0) // Doesn't exist in Canon cameras?
+                    return Word(0x0b)
                 case .sunset:
-                    return Word(0) // Doesn't exist in Canon cameras
+                    return Word(0) // Not yet seen in Canon cameras
                 case .night:
                     return Word(0x69)
                 case .landscape:
-                    return Word(0) // Doesn't exist in Canon cameras
+                    return Word(0x0d)
                 case .macro:
+                    // TODO: [Canon] This has two values as seen in testing, we need to differentiate! Other is 0x0e
                     return Word(0x6e)
                 case .digitalMacro:
                     return Word(0x7e)
                 case .superMacro:
                     return Word(0x75)
                 case .handheldTwilight:
-                    return Word(0) // Doesn't exist in Canon cameras
+                    return Word(0) // Not yet seen in Canon cameras
                 case .nightPortrait:
-                    return Word(0) // Doesn't exist in Canon cameras
+                    return Word(0x0a)
                 case .nightSnapshot:
                     return Word(0x7d)
                 case .antiMotionBlur:
-                    return Word(0) // Doesn't exist in Canon cameras
+                    return Word(0) // Not yet seen in Canon cameras
                 case .pet:
                     return Word(0x7c)
                 case .food:
-                    return Word(0) // Doesn't exist in Canon cameras
+                    return Word(0x1b)
                 case .fireworks:
                     return Word(0x78)
                 case .highSensitivity:
-                    return Word(0) // Doesn't exist in Canon cameras
+                    return Word(0) // Not yet seen in Canon cameras
                 case .far:
                     return Word(0x66)
                 case .foliage:
