@@ -201,6 +201,8 @@ fileprivate extension Focus.Mode.Value {
             return "DMF"
         case .powerFocus:
             return "PF"
+        case .autoFocusAuto:
+            return "AF-A" // Not supported on Sony cameras
         }
     }
 }

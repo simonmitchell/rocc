@@ -15,8 +15,7 @@ extension Exposure.Mode.Value: PTPPropValueConvertable {
         case .sony:
             return .exposureProgramMode
         case .canon:
-            //TODO: [Canon] Implement
-            return .exposureProgramMode
+            return .autoExposureModeCanonEOS
         }
     }
     
@@ -99,8 +98,87 @@ extension Exposure.Mode.Value: PTPPropValueConvertable {
                 return nil
             }
         case .canon:
-            //TODO: [Canon] Implement
-            return nil
+            guard let binaryInt = value.toInt else {
+                return nil
+            }
+            
+            switch binaryInt {
+            case 0x00:
+                self = .intelligentAuto // TODO: [Canon] Check this!
+            case 0x01:
+                self = .programmedAuto
+            case 0x02:
+                self = .shutterPriority
+            case 0x03:
+                self = .aperturePriority
+            case 0x04:
+                self = .manual
+            case 0x05:
+                self = .autoDepthOfField
+            case 0x06:
+                self = .manualDepthOfField
+            case 0x07:
+                self = .bulb // TODO: [Canon] BULB, will need to figure out how this differs from other manufacturers
+            case 0x65:
+                self = .manual2
+            case 0x66:
+                self = .scene(.far)
+            case 0x67:
+                self = .fastShutter
+            case 0x68:
+                self = .slowShutter
+            case 0x69:
+                self = .scene(.night)
+            case 0x6a:
+                self = .effect(.grayScale)
+            case 0x6b:
+                self = .effect(.sepia)
+            case 0x6d:
+                self = .spot
+            case 0x6e:
+                self = .scene(.macro)
+            case 0x6f:
+                self = .effect(.blackAndWhite)
+            case 0x70:
+                self = .effect(.panFocus)
+            case 0x71:
+                self = .effect(.vivid)
+            case 0x72:
+                self = .effect(.neutral)
+            case 0x73:
+                self = .flashOff
+            case 0x74:
+                self = .longShutter
+            case 0x75:
+                self = .scene(.superMacro)
+            case 0x76:
+                self = .scene(.foliage)
+            case 0x77:
+                self = .scene(.indoor)
+            case 0x78:
+                self = .scene(.fireworks)
+            case 0x79:
+                self = .scene(.beach)
+            case 0x7a:
+                self = .scene(.underwater)
+            case 0x7b:
+                self = .scene(.snow)
+            case 0x7c:
+                self = .scene(.pet)
+            case 0x7d:
+                self = .scene(.nightSnapshot)
+            case 0x7e:
+                self = .scene(.digitalMacro)
+            case 0x7f:
+                self = .effect(.myColours)
+            case 0x80:
+                self = .photoInMovie
+            default:
+                var byteBuffer = ByteBuffer()
+                byteBuffer.appendValue(value, ofType: .uint16)
+                print("[EXPOSURE MODE] Unknown exposure mode: \(byteBuffer.toHex)")
+                return nil
+            }
         }
     }
     
@@ -174,11 +252,174 @@ extension Exposure.Mode.Value: PTPPropValueConvertable {
                     return DWord(0x0005801b)
                 case .highSensitivity:
                     return DWord(0x0005801c)
+                case .digitalMacro:
+                    return DWord(0) // Doesn't exist in Sony cameras
+                case .superMacro:
+                    return DWord(0) // Doesn't exist in Sony cameras
+                case .nightSnapshot:
+                    return DWord(0) // Doesn't exist in Sony cameras
+                case .far:
+                    return DWord(0) // Doesn't exist in Sony cameras
+                case .foliage:
+                    return DWord(0) // Doesn't exist in Sony cameras
+                case .indoor:
+                    return DWord(0) // Doesn't exist in Sony cameras
+                case .beach:
+                    return DWord(0) // Doesn't exist in Sony cameras
+                case .underwater:
+                    return DWord(0) // Doesn't exist in Sony cameras
+                case .snow:
+                    return DWord(0) // Doesn't exist in Sony cameras
                 }
+            case .manual2:
+                return DWord(0) // Doesn't exist in Sony cameras
+            case .autoDepthOfField:
+                return DWord(0) // Doesn't exist in Sony cameras
+            case .manualDepthOfField:
+                return DWord(0) // Doesn't exist in Sony cameras
+            case .flashOff:
+                return DWord(0) // Doesn't exist in Sony cameras
+            case .bulb:
+                return DWord(0) // Doesn't exist in Sony cameras
+            case .longShutter:
+                return DWord(0) // Doesn't exist in Sony cameras
+            case .spot:
+                return DWord(0) // Doesn't exist in Sony cameras
+            case .photoInMovie:
+                return DWord(0) // Doesn't exist in Sony cameras
+            case .effect(_):
+                return DWord(0) // Doesn't exist in Sony cameras
+            case .fastShutter:
+                return DWord(0) // Doesn't exist in Sony cameras
+            case .slowShutter:
+                return DWord(0) // Doesn't exist in Sony cameras
             }
+            
         case .canon:
-            //TODO: [Canon] Implement
-            return DWord(0)
+            switch self {
+            case .programmedAuto:
+                return Word(0x01)
+            case .aperturePriority:
+                return Word(0x03)
+            case .shutterPriority:
+                return Word(0x02)
+            case .manual:
+                return Word(0x04)
+            case .manual2:
+                return Word(0x65)
+            case .panorama:
+                return Word(0) // Doesn't exist in Canon cameras
+            case .videoProgrammedAuto:
+                return Word(0) // Doesn't exist in Canon cameras
+            case .videoAperturePriority:
+                return Word(0) // Doesn't exist in Canon cameras
+            case .videoShutterPriority:
+                return Word(0) // Doesn't exist in Canon cameras
+            case .videoManual:
+                return Word(0) // Doesn't exist in Canon cameras
+            case .slowAndQuickProgrammedAuto:
+                return Word(0) // Doesn't exist in Canon cameras
+            case .slowAndQuickAperturePriority:
+                return Word(0) // Doesn't exist in Canon cameras
+            case .slowAndQuickShutterPriority:
+                return Word(0) // Doesn't exist in Canon cameras
+            case .slowAndQuickManual:
+                return Word(0) // Doesn't exist in Canon cameras
+            case .intelligentAuto:
+                return Word(0x00)
+            case .superiorAuto:
+                return Word(0) // Doesn't exist in Canon cameras
+            case .highFrameRateProgrammedAuto:
+                return Word(0) // Doesn't exist in Canon cameras
+            case .highFrameRateAperturePriority:
+                return Word(0) // Doesn't exist in Canon cameras
+            case .highFrameRateShutterPriority:
+                return Word(0) // Doesn't exist in Canon cameras
+            case .highFrameRateManual:
+                return Word(0) // Doesn't exist in Canon cameras
+            case .autoDepthOfField:
+                return Word(0x05)
+            case .manualDepthOfField:
+                return Word(0x06)
+            case .flashOff:
+                return Word(0x73)
+            case .bulb:
+                return Word(0x07)
+            case .longShutter:
+                return Word(0x74)
+            case .spot:
+                return Word(0x6d)
+            case .photoInMovie:
+                return Word(0x80)
+            case .scene(let scene):
+                switch scene {
+                case .portrait:
+                    return Word(0x6c)
+                case .sport:
+                    return Word(0) // Doesn't exist in Canon cameras?
+                case .sunset:
+                    return Word(0) // Doesn't exist in Canon cameras
+                case .night:
+                    return Word(0x69)
+                case .landscape:
+                    return Word(0) // Doesn't exist in Canon cameras
+                case .macro:
+                    return Word(0x6e)
+                case .digitalMacro:
+                    return Word(0x7e)
+                case .superMacro:
+                    return Word(0x75)
+                case .handheldTwilight:
+                    return Word(0) // Doesn't exist in Canon cameras
+                case .nightPortrait:
+                    return Word(0) // Doesn't exist in Canon cameras
+                case .nightSnapshot:
+                    return Word(0x7d)
+                case .antiMotionBlur:
+                    return Word(0) // Doesn't exist in Canon cameras
+                case .pet:
+                    return Word(0x7c)
+                case .food:
+                    return Word(0) // Doesn't exist in Canon cameras
+                case .fireworks:
+                    return Word(0x78)
+                case .highSensitivity:
+                    return Word(0) // Doesn't exist in Canon cameras
+                case .far:
+                    return Word(0x66)
+                case .foliage:
+                    return Word(0x76)
+                case .indoor:
+                    return Word(0x77)
+                case .beach:
+                    return Word(0x79)
+                case .underwater:
+                    return Word(0x7a)
+                case .snow:
+                    return Word(0x7b)
+                }
+            case .effect(let effect):
+                switch effect {
+                case .blackAndWhite:
+                    return Word(0x6f)
+                case .grayScale:
+                    return Word(0x6a)
+                case .neutral:
+                    return Word(0x72)
+                case .panFocus:
+                    return Word(0x70)
+                case .sepia:
+                    return Word(0x6b)
+                case .vivid:
+                    return Word(0x71)
+                case .myColours:
+                    return Word(0x7f)
+                }
+            case .fastShutter:
+                return Word(0x67)
+            case .slowShutter:
+                return Word(0x68)
+            }
         }
     }
 }

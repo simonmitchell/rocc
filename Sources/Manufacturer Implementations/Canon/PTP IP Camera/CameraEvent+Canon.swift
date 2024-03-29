@@ -24,6 +24,15 @@ extension CameraEvent {
         
         var currentAperture: Aperture.Value?
         var availableApertures: [Aperture.Value]?
+        
+        var currentFocusMode: Focus.Mode.Value?
+        var availableFocusModes: [Focus.Mode.Value]?
+        
+        var currentExposureCompensation: Exposure.Compensation.Value?
+        var availableExposureCompensations: [Exposure.Compensation.Value]?
+        
+        var currentExposureMode: Exposure.Mode.Value?
+        var availableExposureModes: [Exposure.Mode.Value]?
 
         var availableFunctions: [_CameraFunction] = []
         var supportedFunctions: [_CameraFunction] = []
@@ -86,24 +95,55 @@ extension CameraEvent {
                     availableFunctions.append(contentsOf: [.setAperture, .getAperture])
                     supportedFunctions.append(contentsOf: [.setAperture, .getAperture])
                     currentAperture = current
+                case .focusMode, .focusModeCanonEOS:
+                    guard let current = Focus.Mode.Value(value: propertyChange.value, manufacturer: .canon) else {
+                        return
+                    }
+                    availableFunctions.append(contentsOf: [.setFocusMode, .getFocusMode])
+                    supportedFunctions.append(contentsOf: [.setFocusMode, .getFocusMode])
+                    currentFocusMode = current
+                case .exposureBiasCompensation, .expCompensationCanon, .expCompensationCanonEOS:
+                    guard let current = Exposure.Compensation.Value(value: propertyChange.value, manufacturer: .canon) else {
+                        return
+                    }
+                    availableFunctions.append(contentsOf: [.setExposureCompensation, .getExposureCompensation])
+                    supportedFunctions.append(contentsOf: [.setExposureCompensation, .getExposureCompensation])
+                    currentExposureCompensation = current
+                case .autoExposureModeCanonEOS, .exposureProgramMode:
+                    guard let current = Exposure.Mode.Value(value: propertyChange.value, manufacturer: .canon) else {
+                        return
+                    }
+                    availableFunctions.append(contentsOf: [.setExposureMode, .getExposureMode])
+                    supportedFunctions.append(contentsOf: [.setExposureMode, .getExposureMode])
+                    currentExposureMode = current
                 default:
                     break
                 }
             case let availableValuesChange as CanonPTPAvailableValuesChange:
                 switch availableValuesChange.code {
                 case .ISO, .ISOSpeedCanon, .ISOSpeedCanonEOS:
-                    let available = availableValuesChange.availableValues.compactMap({
+                    availableISO = availableValuesChange.availableValues.compactMap({
                         ISO.Value(value: $0, manufacturer: .canon)
                     })
-                    availableISO = available
                 case .shutterSpeed, .shutterSpeedCanon, .shutterSpeedCanonEOS:
-                    let available = availableValuesChange.availableValues.compactMap({
+                    availableShutterSpeed = availableValuesChange.availableValues.compactMap({
                         ShutterSpeed(value: $0, manufacturer: .canon)
                     })
-                    availableShutterSpeed = available
                 case .apertureCanon, .apertureCanonEOS:
-                    let available = availableValuesChange.availableValues.compactMap({
+                    availableApertures = availableValuesChange.availableValues.compactMap({
                         Aperture.Value(value: $0, manufacturer: .canon)
+                    })
+                case .focusMode, .focusModeCanonEOS:
+                    availableFocusModes = availableValuesChange.availableValues.compactMap({
+                        Focus.Mode.Value(value: $0, manufacturer: .canon)
+                    })
+                case .exposureBiasCompensation, .expCompensationCanon, .expCompensationCanonEOS:
+                    availableExposureCompensations = availableValuesChange.availableValues.compactMap({
+                        Exposure.Compensation.Value(value: $0, manufacturer: .canon)
+                    })
+                case .autoExposureModeCanonEOS, .exposureProgramMode:
+                    availableExposureModes = availableValuesChange.availableValues.compactMap({
+                        Exposure.Mode.Value(value: $0, manufacturer: .canon)
                     })
                 default:
                     break
@@ -117,14 +157,29 @@ extension CameraEvent {
         if let currentAperture = currentAperture {
             aperture = (currentAperture, availableApertures ?? [], availableApertures ?? [])
         }
+        
+        var exposureComp: (current: Exposure.Compensation.Value, available: [Exposure.Compensation.Value], supported: [Exposure.Compensation.Value])?
+        if let currentExposureCompensation {
+            exposureComp = (currentExposureCompensation, availableExposureCompensations ?? [], availableExposureCompensations ?? [])
+        }
+        
+        var exposureModes: (current: Exposure.Mode.Value, available: [Exposure.Mode.Value], supported: [Exposure.Mode.Value])?
+        if let currentExposureMode {
+            exposureModes = (currentExposureMode, availableExposureModes ?? [], availableExposureModes ?? [])
+        }
+        
+        var focusMode: (current: Focus.Mode.Value, available: [Focus.Mode.Value], supported: [Focus.Mode.Value])?
+        if let currentFocusMode {
+            focusMode = (currentFocusMode, availableFocusModes ?? [], availableFocusModes ?? [])
+        }
 
         var iso: (current: ISO.Value, available: [ISO.Value], supported: [ISO.Value])?
-        if let currentISO = currentISO {
+        if let currentISO {
             iso = (currentISO, availableISO ?? [], availableISO ?? [])
         }
 
         var shutterSpeed: (current: ShutterSpeed, available: [ShutterSpeed], supported: [ShutterSpeed])?
-        if let currentShutterSpeed = currentShutterSpeed {
+        if let currentShutterSpeed {
             shutterSpeed = (currentShutterSpeed, availableShutterSpeed ?? [], availableShutterSpeed ?? [])
         }
 
@@ -144,16 +199,16 @@ extension CameraEvent {
             stillSizeInfo: nil,
             steadyMode: nil,
             viewAngle: nil,
-            exposureMode: nil,
+            exposureMode: exposureModes,
             exposureModeDialControl: nil,
             exposureSettingsLockStatus: nil,
             postViewImageSize: nil,
             selfTimer: nil,
             shootMode: nil,
-            exposureCompensation: nil,
+            exposureCompensation: exposureComp,
             flashMode: nil,
             aperture: aperture,
-            focusMode: nil,
+            focusMode: focusMode,
             iso: iso,
             isProgramShifted: nil,
             shutterSpeed: shutterSpeed,

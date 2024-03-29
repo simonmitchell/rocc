@@ -19,6 +19,7 @@ public struct Focus {
             case auto
             case autoSingle
             case autoContinuous
+            case autoFocusAuto // Switches between single and continuous intelligently
             case directManual
             case manual
             case powerFocus

@@ -68,19 +68,39 @@ public struct Exposure {
                 case night
                 case landscape
                 case macro
+                case digitalMacro
+                case superMacro
                 case handheldTwilight
                 case nightPortrait
+                case nightSnapshot
                 case antiMotionBlur
                 case pet
                 case food
                 case fireworks
                 case highSensitivity
+                case far
+                case foliage
+                case indoor
+                case beach
+                case underwater
+                case snow
+            }
+            
+            public enum Effect: CaseIterable {
+                case blackAndWhite
+                case grayScale
+                case neutral
+                case panFocus
+                case sepia
+                case vivid
+                case myColours
             }
             
             case programmedAuto
             case aperturePriority
             case shutterPriority
             case manual
+            case manual2
             case panorama
             case videoProgrammedAuto
             case videoAperturePriority
@@ -96,7 +116,17 @@ public struct Exposure {
             case highFrameRateAperturePriority
             case highFrameRateShutterPriority
             case highFrameRateManual
+            case autoDepthOfField
+            case manualDepthOfField
+            case flashOff
+            case bulb
+            case longShutter
+            case fastShutter
+            case slowShutter
+            case spot // TODO: [Canon] Check this? Should it be .scene(.sport)?
+            case photoInMovie
             case scene(Scene)
+            case effect(Effect)
         }
     
         public var function: _CameraFunction

@@ -16,7 +16,7 @@ extension Focus.Mode.Value: PTPPropValueConvertable {
             return .focusMode
         case .canon:
             //TODO: [Canon] Implement
-            return .focusMode
+            return .focusModeCanonEOS
         }
     }
     
@@ -41,8 +41,19 @@ extension Focus.Mode.Value: PTPPropValueConvertable {
                 return nil
             }
         case .canon:
-            //TODO: [Canon] Implement
-            return nil
+            guard let intValue = value.toInt else { return nil }
+            switch intValue {
+            case 0x0000:
+                self = .autoSingle
+            case 0x0001:
+                self = .autoContinuous // Called AI Servo on Canon
+            case 0x0002:
+                self = .autoFocusAuto
+            case 0x0003:
+                self = .manual
+            default:
+                return nil
+            }
         }
     }
     
@@ -62,9 +73,22 @@ extension Focus.Mode.Value: PTPPropValueConvertable {
                 return Word(0x0001)
             case .powerFocus:
                 return Word(0x8009)
+            case .autoFocusAuto:
+                return Word(0x0000) // Not supported on Sony cameras
             }
         case .canon:
-            return Word(0)
+            switch self {
+            case .auto, .powerFocus, .directManual:
+                return DWord(0x0000) // Not supported on Canon cameras
+            case .autoSingle:
+                return DWord(0x0000)
+            case .autoContinuous:
+                return DWord(0x0001)
+            case .autoFocusAuto:
+                return DWord(0x0002)
+            case .manual:
+                return DWord(0x0003)
+            }
         }
     }
 }
