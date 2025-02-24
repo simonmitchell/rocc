@@ -16,10 +16,10 @@ public struct TouchAF: CameraFunction {
     public struct Information: Equatable {
         
         /// Whether Touch AF points are set
-        let isSet: Bool
-        
+        public let isSet: Bool
+
         /// The list of Touch AF points that have been set
-        let points: [CGPoint]
+        public let points: [CGPoint]
     }
     
     /// Functions for interacting with the position of Touch AF points
