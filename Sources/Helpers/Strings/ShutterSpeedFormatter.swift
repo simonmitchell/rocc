@@ -74,11 +74,14 @@ public class ShutterSpeedFormatter {
         public let rawValue: Int
         
         /// Whether to append quotes for shutter speeds over 1 second
-        static let appendQuotes = FormattingOptions(rawValue: 1 << 0)
-        
+        public static let appendQuotes = FormattingOptions(rawValue: 1 << 0)
+
         /// Whether integers should be formatted with decimal places included
-        static let forceIntegersToDouble = FormattingOptions(rawValue: 2 << 0)
-    
+        public static let forceIntegersToDouble = FormattingOptions(rawValue: 1 << 1)
+
+        /// Whether voiceover readable strings should be used instead of displayable strings
+        public static let readable = FormattingOptions(rawValue: 1 << 2)
+
         public init(rawValue: Int) {
             self.rawValue = rawValue
         }
@@ -125,11 +128,19 @@ public class ShutterSpeedFormatter {
                 return "\(string)"
             }
         }
-        
-        if formattingOptions.contains(.forceIntegersToDouble) {
-            return "\(fixedShutterSpeed.numerator)/\(fixedShutterSpeed.denominator)"
+
+        if formattingOptions.contains(.readable) {
+            if formattingOptions.contains(.forceIntegersToDouble) {
+                return "\(fixedShutterSpeed.numerator) over \(fixedShutterSpeed.denominator)"
+            } else {
+                return "\(fixedShutterSpeed.numerator.toString) over \(fixedShutterSpeed.denominator.toString)"
+            }
         } else {
-            return "\(fixedShutterSpeed.numerator.toString)/\(fixedShutterSpeed.denominator.toString)"
+            if formattingOptions.contains(.forceIntegersToDouble) {
+                return "\(fixedShutterSpeed.numerator)/\(fixedShutterSpeed.denominator)"
+            } else {
+                return "\(fixedShutterSpeed.numerator.toString)/\(fixedShutterSpeed.denominator.toString)"
+            }
         }
     }
     
